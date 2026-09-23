@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   ChevronDown,
   Calendar,
-  Users
 } from 'lucide-react';
 import Image from 'next/image';
 import { PassportIcon } from './icons/PassportIcon';
@@ -24,12 +23,7 @@ export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCa
   // Hotel fields
   const [hotelDestination, setHotelDestination] = useState('Singapore');
   const [checkIn, setCheckIn] = useState('2026-04-15');
-  const [checkOut, setCheckOut] = useState('2026-04-18');
-  const [guests, setGuests] = useState('2 Adults (1 Room)');
-  const [showGuestsMenu, setShowGuestsMenu] = useState(false);
-  const [adultCount, setAdultCount] = useState(2);
-  const [roomCount, setRoomCount] = useState(1);
-  const guestsRef = useRef(null);
+  const [hotelVisaType, setHotelVisaType] = useState('Tourist');
 
   // Umrah/Flights fields
   const [fromCity, setFromCity] = useState('Multan (MUX)');
@@ -38,6 +32,7 @@ export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCa
   // Visas fields
   const [visaDestination, setVisaDestination] = useState('Dubai, UAE');
   const [visaCheckIn, setVisaCheckIn] = useState('2026-04-15');
+  const [visaCheckOut, setVisaCheckOut] = useState('2026-04-20');
   const [visaGuests, setVisaGuests] = useState('2 adults');
 
   // Umrah additional fields
@@ -50,30 +45,6 @@ export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCa
   const [carDropoffDate, setCarDropoffDate] = useState('2026-05-17');
   const [carType, setCarType] = useState('GMC Yukon (VIP Umrah)');
 
-  // Outside-click & Escape listener for Guests dropdown popup
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (guestsRef.current && !guestsRef.current.contains(event.target)) {
-        setShowGuestsMenu(false);
-      }
-    };
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        setShowGuestsMenu(false);
-      }
-    };
-    if (showGuestsMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-      document.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showGuestsMenu]);
-
   // Sync activeTab if activeCategory changes externally
   if (activeCategory !== prevCategory) {
     setPrevCategory(activeCategory);
@@ -82,25 +53,15 @@ export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCa
     }
   }
 
-  const updateGuests = (a, r) => {
-    setAdultCount(a);
-    setRoomCount(r);
-    setGuests(`${a} Adult${a > 1 ? 's' : ''} (${r} Room${r > 1 ? 's' : ''})`);
-  };
-
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    setShowGuestsMenu(false);
 
     let params = {};
     if (activeTab === 'hotels') {
       params = {
         destination: hotelDestination,
         checkIn,
-        checkOut,
-        guests,
-        adultCount,
-        roomCount
+        visaType: hotelVisaType
       };
     } else if (activeTab === 'umrah') {
       params = {
@@ -113,6 +74,7 @@ export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCa
       params = {
         destinationCountry: visaDestination,
         checkIn: visaCheckIn,
+        checkOut: visaCheckOut,
         guests: visaGuests
       };
     } else if (activeTab === 'cars') {
@@ -247,55 +209,22 @@ export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCa
 
               <div className="flat-search-divider" />
 
-              {/* Check-Out */}
-              <div className="flat-search-field">
-                <label className="flat-field-label">CHECK-OUT</label>
+              {/* Visa Type */}
+              <div className="flat-search-field flat-search-field-wide">
+                <label className="flat-field-label">VISA TYPE</label>
                 <div className="flat-field-value-row">
-                  <input
-                    type="date"
-                    className="flat-field-input"
-                    value={checkOut}
-                    onChange={(e) => setCheckOut(e.target.value)}
-                  />
-                  <Calendar size={14} className="flat-field-icon" />
-                </div>
-              </div>
-
-              <div className="flat-search-divider" />
-
-              {/* Guests */}
-              <div className="flat-search-field flat-search-field-wide" style={{ position: 'relative' }} ref={guestsRef}>
-                <label className="flat-field-label">GUESTS</label>
-                <button
-                  type="button"
-                  className="flat-guests-btn"
-                  onClick={() => setShowGuestsMenu(!showGuestsMenu)}
-                >
-                  <span className="flat-guests-value">{guests}</span>
+                  <select
+                    className="flat-field-select"
+                    value={hotelVisaType}
+                    onChange={(e) => setHotelVisaType(e.target.value)}
+                  >
+                    <option value="Tourist">Tourist</option>
+                    <option value="Umrah">Umrah</option>
+                    <option value="eVisa">eVisa</option>
+                    <option value="Business">Business</option>
+                  </select>
                   <ChevronDown size={14} className="flat-field-chevron" />
-                </button>
-
-                {showGuestsMenu && (
-                  <div className="guests-dropdown-popup">
-                    <div className="guests-counter-row">
-                      <span className="guests-counter-label">Adults</span>
-                      <div className="guests-counter-controls">
-                        <button type="button" className="guest-counter-btn" onClick={() => updateGuests(Math.max(1, adultCount - 1), roomCount)}>−</button>
-                        <span className="guest-counter-val">{adultCount}</span>
-                        <button type="button" className="guest-counter-btn" onClick={() => updateGuests(adultCount + 1, roomCount)}>+</button>
-                      </div>
-                    </div>
-                    <div className="guests-counter-row">
-                      <span className="guests-counter-label">Rooms</span>
-                      <div className="guests-counter-controls">
-                        <button type="button" className="guest-counter-btn" onClick={() => updateGuests(adultCount, Math.max(1, roomCount - 1))}>−</button>
-                        <span className="guest-counter-val">{roomCount}</span>
-                        <button type="button" className="guest-counter-btn" onClick={() => updateGuests(adultCount, roomCount + 1)}>+</button>
-                      </div>
-                    </div>
-                    <button type="button" className="guests-done-btn" onClick={() => setShowGuestsMenu(false)}>Done</button>
-                  </div>
-                )}
+                </div>
               </div>
 
               {/* Search Button */}
@@ -402,6 +331,19 @@ export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCa
                     className="flat-field-input"
                     value={visaCheckIn}
                     onChange={(e) => setVisaCheckIn(e.target.value)}
+                  />
+                  <Calendar size={16} className="flat-field-icon" />
+                </div>
+              </div>
+              <div className="flat-search-divider" />
+              <div className="flat-search-field">
+                <label className="flat-field-label">CHECK-OUT</label>
+                <div className="flat-field-value-row">
+                  <input
+                    type="date"
+                    className="flat-field-input"
+                    value={visaCheckOut}
+                    onChange={(e) => setVisaCheckOut(e.target.value)}
                   />
                   <Calendar size={16} className="flat-field-icon" />
                 </div>

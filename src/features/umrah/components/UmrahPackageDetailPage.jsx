@@ -8,10 +8,6 @@ import {
   ChevronDown,
   Calendar,
   Building2,
-  CreditCard,
-  Plane,
-  Car,
-  ShieldCheck,
   MessageCircle,
   Phone,
 } from 'lucide-react';
@@ -256,33 +252,8 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                 </p>
               )}
 
-              {/* Package Amenities */}
-              <h3 className="upd-sec-heading">Package Amenities</h3>
-              <div className="upd-amenities-box">
-                <div className="upd-amenity-item">
-                  <Building2 size={15} className="upd-amenity-icon" />
-                  <span>Hotel</span>
-                </div>
-                <div className="upd-amenity-item">
-                  <CreditCard size={15} className="upd-amenity-icon" />
-                  <span>Visa</span>
-                </div>
-                <div className="upd-amenity-item">
-                  <Plane size={15} className="upd-amenity-icon" />
-                  <span>Air Ticket</span>
-                </div>
-                <div className="upd-amenity-item">
-                  <Car size={15} className="upd-amenity-icon" />
-                  <span>Pick &amp; Drop</span>
-                </div>
-                <div className="upd-amenity-item">
-                  <ShieldCheck size={15} className="upd-amenity-icon" />
-                  <span>Insurance</span>
-                </div>
-              </div>
-
-              {/* Itinerary / Package Highlights */}
-              {pkg.itinerary && Array.isArray(pkg.itinerary) && pkg.itinerary.length > 0 ? (
+              {/* Itinerary Highlights */}
+              {pkg.itinerary && Array.isArray(pkg.itinerary) && pkg.itinerary.length > 0 && (
                 <>
                   <h3 className="upd-sec-heading">Itinerary Highlights</h3>
                   <div className="upd-itinerary-list">
@@ -295,19 +266,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                     ))}
                   </div>
                 </>
-              ) : pkg.features && Array.isArray(pkg.features) && pkg.features.length > 0 ? (
-                <>
-                  <h3 className="upd-sec-heading">Package Highlights</h3>
-                  <ul className="upd-features-list">
-                    {pkg.features.map((feature, idx) => (
-                      <li key={idx} className="upd-feature-item">
-                        <ShieldCheck size={14} className="upd-feature-icon" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : null}
+              )}
             </div>
 
             {/* ── Right Column / Sidebar Form ── */}
