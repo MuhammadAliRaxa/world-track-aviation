@@ -1,0 +1,4387 @@
+/* =====================================================================
+   5. POPULAR HOTELS SECTION
+   ===================================================================== */
+.hotels-feature-section {
+  padding: 60px 0 20px 0;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+}
+
+.section-header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 24px;
+}
+
+.section-header-left {
+  max-width: 680px;
+}
+
+.section-eyebrow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--blue-header);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.section-main-title {
+  font-family: var(--font-display);
+  font-size: 29px;
+  font-weight: 800;
+  color: var(--dark-heading);
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+
+.section-sub-title {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* Filter pills */
+.hotel-filters-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hotel-filter-pill {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.hotel-filter-pill:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.hotel-filter-pill.active {
+  background: var(--blue-header);
+  color: #ffffff;
+  border-color: var(--blue-header);
+  box-shadow: 0 4px 12px rgba(0, 128, 246, 0.25);
+}
+
+/* Hotels Catalog Grid (4 Cols) */
+.hotels-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  margin-bottom: 0;
+}
+
+.hotel-card-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hotel-card-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.hotel-card-media {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.hotel-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.hotel-card-item:hover .hotel-card-img {
+  transform: scale(1.04);
+}
+
+.hotel-tag-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  padding: 4px 9px;
+  border-radius: 5px;
+}
+
+.hotel-fav-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s;
+}
+
+.hotel-fav-btn:hover {
+  transform: scale(1.1);
+  background: #ffffff;
+}
+
+.hotel-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.hotel-location-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.location-pin-icon {
+  color: #94a3b8;
+}
+
+.hotel-title-text {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--dark-heading);
+  line-height: 1.35;
+  margin-bottom: 8px;
+  min-height: 2.7em;
+  height: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.hotel-stars-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.star-filled {
+  color: #f59e0b;
+  fill: #f59e0b;
+}
+
+.star-muted {
+  color: #cbd5e1;
+}
+
+.hotel-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.rating-pill-badge {
+  background: var(--blue-header);
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.reviews-count-text {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.hotel-pricing-action-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.price-from-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: block;
+}
+
+.price-amount {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--dark-heading);
+}
+
+.price-unit {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.hotel-book-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--blue-light-bg);
+  color: var(--blue-header);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.hotel-book-btn:hover {
+  background: var(--blue-header);
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+/* =====================================================================
+   6. QUOTE CALLOUT BANNER (Screenshot 3)
+   ===================================================================== */
+.quote-callout-wrapper {
+  margin: 0 0 50px 0;
+}
+
+.quote-callout-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-lg);
+  padding: 22px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-card);
+  gap: 20px;
+}
+
+.quote-callout-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.shield-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--blue-light-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blue-header);
+  flex-shrink: 0;
+}
+
+.quote-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dark-heading);
+  margin-bottom: 2px;
+}
+
+.quote-card-subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.request-quote-dark-btn {
+  background: var(--dark-heading);
+  color: #ffffff;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.request-quote-dark-btn:hover {
+  background: var(--blue-header);
+  box-shadow: 0 4px 12px rgba(0, 128, 246, 0.3);
+}
+
+/* =====================================================================
+   7. FOOTER
+   ===================================================================== */
+
+/* ── Newsletter Subscription Floating Card ── */
+.footer-newsletter-card {
+  background: #0b1325;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 20px;
+  padding: 38px 46px;
+  margin-bottom: 56px;
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.5);
+}
+
+.newsletter-inner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.newsletter-text-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.newsletter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.newsletter-envelope-icon {
+  flex-shrink: 0;
+}
+
+.newsletter-badge-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #f59e0b;
+  text-transform: uppercase;
+}
+
+.newsletter-heading {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.25;
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.newsletter-subtitle {
+  font-size: 13px;
+  color: #8896ab;
+  line-height: 1.5;
+  max-width: 480px;
+}
+
+.newsletter-form-col {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.newsletter-form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.newsletter-email-input {
+  background: #0f182c;
+  border: 1px solid #23334d;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 13px;
+  color: #ffffff;
+  width: 250px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.newsletter-email-input:focus {
+  border-color: #3b82f6;
+}
+
+.newsletter-email-input::placeholder {
+  color: #556987;
+}
+
+.newsletter-subscribe-btn {
+  background: #f59e0b;
+  color: #000000;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 12px 22px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.newsletter-subscribe-btn:hover {
+  background: #fbbf24;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+  transform: translateY(-1px);
+}
+
+.newsletter-privacy-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #64748b;
+  padding-left: 2px;
+}
+
+.newsletter-lock-icon {
+  color: #64748b;
+}
+
+/* ── Main Footer Content ── */
+.main-footer-section {
+  background: #060b17;
+  color: #cbd5e1;
+  padding: 48px 0 28px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.footer-columns-grid,
+.footer-top-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr 1.15fr;
+  gap: 44px;
+  padding-bottom: 48px;
+}
+
+.footer-logo-capsule {
+  margin-bottom: 16px;
+}
+
+.footer-about-text {
+  font-size: 12px;
+  color: #8392a5;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-width: 320px;
+}
+
+.trust-pills-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.trust-pill-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  background: #0b1220;
+}
+
+.trust-pill-iata {
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.trust-pill-lic {
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+}
+
+.trust-pill-dts {
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+.footer-social-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.footer-social-box {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: #0c1424;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7f8ea3;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.footer-social-box:hover {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.footer-heading {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 18px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.footer-nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-nav-list a {
+  font-size: 12.5px;
+  color: #8392a5;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.footer-nav-list a:hover {
+  color: #ffffff;
+}
+
+/* Branch Offices */
+.branch-offices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.branch-office-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.branch-city {
+  font-size: 12.5px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.branch-address {
+  font-size: 12px;
+  color: #8392a5;
+}
+
+.branch-phone-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #10b981;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: 2px;
+  transition: color 0.15s ease;
+}
+
+.branch-phone-link:hover {
+  color: #34d399;
+}
+
+.branch-phone-icon {
+  color: #10b981;
+}
+
+.branch-office-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 6px 0;
+}
+
+/* ── Bottom Bar ── */
+.footer-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 22px;
+  gap: 20px;
+}
+
+.footer-copyright-text {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.footer-designer-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #8392a5;
+}
+
+.evolix-logo-img {
+  height: 22px;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+
+/* =====================================================================
+   8. MODALS
+   ===================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 500px;
+  border-radius: var(--radius-card);
+  padding: 30px;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: scaleUp 0.25s ease;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.modal-header-banner {
+  margin-bottom: 18px;
+}
+
+.modal-badge {
+  display: inline-block;
+  background: var(--blue-light-bg);
+  color: var(--blue-header);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.modal-header-banner h3 {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--dark-heading);
+}
+
+.modal-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.modal-price-tag {
+  color: var(--blue-header);
+  font-weight: 700;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 13.5px;
+  color: var(--text-dark);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--blue-header);
+  box-shadow: 0 0 0 3px rgba(0, 128, 246, 0.12);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-submit-btn {
+  background: var(--blue-cta);
+  color: #ffffff;
+  padding: 12px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 6px;
+  transition: background 0.2s;
+}
+
+.modal-submit-btn:hover {
+  background: var(--blue-cta-hover);
+}
+
+.modal-success-state {
+  text-align: center;
+  padding: 24px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-success-state h3 {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--dark-heading);
+}
+
+.modal-success-state p {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+
+
+/* =====================================================================
+   TEAM LEADERSHIP & TOP FLOATING STATS BANNER
+   ===================================================================== */
+.team-leadership-section {
+  padding: 60px 0 52px 0;
+  background: #ffffff;
+  position: relative;
+}
+
+.team-stats-banner-card,
+.reviews-stats-banner-card {
+  background: #0080f6;
+  border-radius: 18px;
+  padding: 24px 32px;
+  color: #ffffff;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  box-shadow: 0 14px 34px rgba(0, 128, 246, 0.28);
+}
+
+.stats-banner-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+}
+
+.stat-banner-cell {
+  text-align: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 0 16px;
+}
+
+.stat-banner-cell:last-child {
+  border-right: none;
+}
+
+.stat-banner-val {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 3px;
+}
+
+.stat-banner-lbl {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.team-header-centered {
+  text-align: center;
+  max-width: 820px;
+  margin: 0 auto 48px auto;
+}
+
+.team-eyebrow {
+  color: #0284c7 !important;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+
+.team-eyebrow-icon {
+  color: #0284c7;
+}
+
+.team-nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-arrow-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.team-arrow-btn:hover {
+  background: #0080f6;
+  color: #ffffff;
+  border-color: #0080f6;
+  box-shadow: 0 4px 14px rgba(0, 128, 246, 0.3);
+}
+
+.full-width-team-section {
+  overflow: hidden;
+}
+
+.zero-edge-track {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+  padding: 12px 24px 28px 24px !important;
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.zero-edge-track::-webkit-scrollbar {
+  display: none;
+}
+
+.team-slider-card {
+  flex: 0 0 290px;
+  scroll-snap-align: start;
+}
+
+/* Continuous Scrolling Specialists Marquee */
+.team-marquee-wrapper {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  padding: 16px 0 36px 0;
+  margin-top: 8px;
+}
+
+.team-marquee-track {
+  display: flex;
+  gap: 24px;
+  width: max-content;
+  animation: teamMarqueeScroll 38s linear infinite;
+  padding: 10px 16px 16px 16px;
+}
+
+.team-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes teamMarqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Specialist Card Matching Reference (media_1789552597074.png) */
+.specialist-card {
+  flex: 0 0 210px;
+  width: 210px;
+  height: 285px;
+  position: relative;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+}
+
+.specialist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  border-color: #cbd5e1;
+}
+
+.specialist-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 19px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.specialist-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+  transition: transform 0.45s ease;
+}
+
+.specialist-card:hover .specialist-img {
+  transform: scale(1.04);
+}
+
+/* Floating White Info Pill */
+.specialist-info-pill {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  z-index: 2;
+  transition: transform 0.2s ease;
+}
+
+.specialist-info-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.specialist-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.22;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.specialist-role {
+  font-size: 11px;
+  font-weight: 400;
+  color: #4b5563;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.specialist-socials {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.specialist-social-btn {
+  width: 27px;
+  height: 27px;
+  border-radius: 7px;
+  background: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0284c7;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.specialist-social-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.35);
+}
+
+/* =====================================================================
+   LATEST TRAVEL GUIDES & UMRAH TIPS (Insights Section)
+   ===================================================================== */
+.insights-feature-section {
+  padding: 60px 0 52px 0;
+  background: #f8fafc;
+  position: relative;
+  border-top: 1px solid #e2e8f0;
+}
+
+.insights-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+
+.insights-eyebrow {
+  color: #0284c7 !important;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+
+.insights-eyebrow-icon {
+  color: #0284c7;
+}
+
+.insights-view-all-btn {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 7px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.insights-view-all-btn:hover {
+  background: #0080f6;
+  color: #ffffff;
+  border-color: #0080f6;
+  box-shadow: 0 4px 12px rgba(0, 128, 246, 0.25);
+}
+
+.insights-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+/* ==========================================================================
+   UNIFIED BLOG CARD (Matches Reference Design)
+   ========================================================================== */
+.wt-blog-card,
+.insight-card-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  height: 100%;
+}
+
+.wt-blog-card:hover,
+.insight-card-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
+  border-color: #cbd5e1;
+}
+
+.wt-blog-card-media,
+.insight-card-media {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background-color: #f1f5f9;
+}
+
+.wt-blog-card-img,
+.insight-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+  display: block;
+}
+
+.wt-blog-card:hover .wt-blog-card-img,
+.insight-card-item:hover .insight-card-img {
+  transform: scale(1.04);
+}
+
+.wt-blog-card-badge,
+.insight-category-pill {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  left: auto;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 13px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  line-height: 1.4;
+  z-index: 2;
+}
+
+.wt-blog-card-body,
+.insight-card-body {
+  padding: 18px 20px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.wt-blog-card-meta,
+.insight-author-date-line,
+.insight-meta-row {
+  font-size: 12px;
+  color: #8c9ba8;
+  font-weight: 500;
+  margin-bottom: 8px;
+  letter-spacing: 0.01em;
+}
+
+.wt-blog-card-title,
+.insight-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+  margin: 0 0 8px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.7em;
+  height: auto;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.wt-blog-card-summary,
+.insight-card-summary {
+  font-size: 12.5px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 18px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+  min-height: 56px;
+}
+
+.wt-blog-card-footer,
+.insight-read-more-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 2px;
+  border: none;
+}
+
+.wt-blog-card-read-text,
+.insight-read-more-link span {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0080f6;
+}
+
+.wt-blog-card-arrow,
+.read-more-arrow {
+  color: #0080f6;
+  transition: transform 0.25s ease;
+}
+
+.wt-blog-card:hover .wt-blog-card-arrow,
+.insight-card-item:hover .read-more-arrow {
+  transform: translateX(4px);
+}
+
+.article-lead-summary {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.article-points-list {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.article-points-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.article-points-list ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.article-points-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.article-modal-footer-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.article-modal-footer-cta p {
+  font-size: 12.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+
+/* =====================================================================
+   CURATED HOLIDAY TOURS & GETAWAYS (Pixel Perfect to Screenshot)
+   ===================================================================== */
+.holidays-feature-section {
+  padding: 60px 0 52px 0;
+  background: #ffffff;
+  position: relative;
+}
+
+.holidays-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+
+.holiday-eyebrow {
+  color: #0080f6 !important;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.holiday-view-all-btn,
+.hotel-view-all-pill,
+.visa-view-all-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px;
+  padding: 0 20px;
+  height: 38px;
+  min-width: 144px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.holiday-view-all-btn:hover,
+.hotel-view-all-pill:hover,
+.visa-view-all-btn:hover {
+  background: #0080f6;
+  color: #ffffff;
+  border-color: #0080f6;
+  box-shadow: 0 4px 12px rgba(0, 128, 246, 0.25);
+}
+
+.holidays-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.holiday-tour-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  cursor: pointer;
+  text-align: left;
+}
+
+.holiday-tour-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.09);
+  border-color: #cbd5e1;
+}
+
+.holiday-media-box {
+  position: relative;
+  width: 100%;
+  height: 185px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.holiday-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+  display: block;
+}
+
+.holiday-tour-card:hover .holiday-card-img {
+  transform: scale(1.04);
+}
+
+.holiday-rating-pill {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  line-height: 1.2;
+}
+
+.rating-star-icon {
+  color: #0f172a;
+  fill: #0f172a;
+}
+
+.rating-val {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.rating-count {
+  font-weight: 600;
+  color: #0f172a;
+  opacity: 0.95;
+}
+
+.holiday-duration-pill {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3.5px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 2;
+  line-height: 1.2;
+}
+
+.holiday-clock-icon {
+  color: #ffffff;
+}
+
+.holiday-card-body {
+  padding: 14px 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.holiday-location-tag {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #0080f6;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.holiday-card-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+  margin-bottom: 10px;
+  min-height: 2.7em;
+  height: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.holiday-package-includes-wrapper {
+  margin-bottom: 12px;
+}
+
+.inclusions-box-title {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #0080f6;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.holiday-inclusions-box {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.holiday-inclusions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.holiday-inclusion-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.holiday-inclusion-item .inc-svg-icon {
+  color: #0f172a;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.holiday-pricing-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.holiday-price-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.holiday-price-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.holiday-price-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.holiday-price-currency {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.holiday-price-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+.per-person-unit {
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-left: 2px;
+}
+
+.holiday-view-btn {
+  background: #0080f6;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 128, 246, 0.22);
+}
+
+.holiday-view-btn:hover {
+  background: #0070e0;
+  box-shadow: 0 4px 12px rgba(0, 128, 246, 0.35);
+  transform: translateY(-1px);
+}
+
+/* =====================================================================
+   THE WORLD TRACK ADVANTAGE (Pixel Perfect to Screenshot)
+   ===================================================================== */
+.advantage-feature-section {
+  padding: 60px 0 52px 0;
+  background: #f8fafc;
+  position: relative;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.advantage-header-centered {
+  text-align: center;
+  max-width: 820px;
+  margin: 0 auto 32px auto;
+}
+
+.advantage-eyebrow {
+  color: #0284c7 !important;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+
+.advantage-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.advantage-card-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.advantage-card-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.advantage-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.advantage-card-title {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.advantage-card-desc {
+  font-size: 12.5px;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+/* =====================================================================
+   REVIEWS & SOCIAL PROOF SECTION (Pixel Perfect to Screenshot)
+   ===================================================================== */
+.reviews-social-section {
+  padding: 60px 0 60px 0;
+  background: #ffffff;
+  position: relative;
+  border-top: 1px solid #f1f5f9;
+}
+
+.reviews-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 36px;
+  gap: 24px;
+}
+
+.review-eyebrow {
+  color: #0284c7 !important;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+
+.review-eyebrow-icon {
+  color: #0284c7;
+}
+
+.reviews-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.reviews-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reviews-nav-arrow-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.reviews-nav-arrow-btn:hover:not(:disabled) {
+  background: #0080f6;
+  border-color: #0080f6;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 128, 246, 0.28);
+}
+
+.reviews-nav-arrow-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.reviews-nav-arrow-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+  box-shadow: none;
+}
+
+.reviews-slider-container {
+  position: relative;
+  width: 100%;
+}
+
+.reviews-slider-track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 8px 4px 20px 4px;
+  margin: -8px -4px 0 -4px;
+}
+
+.reviews-slider-track::-webkit-scrollbar {
+  display: none;
+}
+
+.reviews-slider-track .review-card-item {
+  flex: 0 0 calc((100% - 48px) / 3);
+  min-width: calc((100% - 48px) / 3);
+  max-width: calc((100% - 48px) / 3);
+  scroll-snap-align: start;
+}
+
+@media (max-width: 1024px) {
+  .reviews-slider-track .review-card-item {
+    flex: 0 0 calc((100% - 24px) / 2);
+    min-width: calc((100% - 24px) / 2);
+    max-width: calc((100% - 24px) / 2);
+  }
+}
+
+@media (max-width: 680px) {
+  .reviews-slider-track .review-card-item {
+    flex: 0 0 88%;
+    min-width: 88%;
+    max-width: 88%;
+  }
+  .reviews-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .reviews-header-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.reviews-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.review-card-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+  padding: 20px 22px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.review-card-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.09), 0 4px 12px rgba(15, 23, 42, 0.03);
+  border-color: #cbd5e1;
+}
+
+.review-card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.review-stars-row {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.star-gold-fill {
+  color: #f59e0b;
+  fill: #f59e0b;
+}
+
+.review-category-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #0f172a;
+  background: #f59e0b;
+  padding: 3.5px 12px;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.22);
+}
+
+.review-quote-text {
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.58;
+  margin-bottom: 16px;
+  flex: 1;
+  font-weight: 400;
+}
+
+.review-author-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.review-avatar-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.review-avatar-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fef3c7;
+  color: #b45309;
+  font-weight: 800;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.review-author-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.review-author-name {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.25;
+  letter-spacing: -0.15px;
+}
+
+.review-author-loc {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 450;
+  margin-top: 3px;
+}
+
+.reviews-stats-banner-card {
+  background: #0080f6;
+  border-radius: 18px;
+  padding: 26px 32px;
+  color: #ffffff;
+  margin-top: 36px;
+  margin-bottom: 0;
+  box-shadow: 0 14px 34px rgba(0, 128, 246, 0.25);
+}
+
+
+/* =====================================================================
+   ABOUT WORLD TRACK BRAND SECTION (Pixel Perfect to Screenshot)
+   ===================================================================== */
+.about-brand-section {
+  padding: 60px 0 52px 0;
+  background: #ffffff;
+  position: relative;
+}
+
+.about-header-centered {
+  text-align: center;
+  max-width: 820px;
+  margin: 0 auto 32px auto;
+}
+
+.about-eyebrow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  margin-bottom: 16px;
+}
+
+.about-badge-icon {
+  color: #0284c7;
+}
+
+.about-main-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.25;
+  margin-bottom: 12px;
+  letter-spacing: -0.015em;
+}
+
+.about-lead-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.65;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.about-story-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 46px;
+  align-items: center;
+  margin-bottom: 50px;
+}
+
+.about-story-lead {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.about-story-body {
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.65;
+  margin-bottom: 22px;
+}
+
+.about-mv-cards-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.about-mv-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.about-mv-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.about-mv-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-mv-icon-wrap.bg-blue-light {
+  background: #eff6ff;
+}
+
+.about-mv-icon-wrap.bg-amber-light {
+  background: #fffbeb;
+}
+
+.about-mv-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.about-mv-desc {
+  font-size: 11.5px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.about-certifications-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cert-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.6px;
+}
+
+.cert-items-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cert-badge-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.cert-check-icon {
+  color: #0284c7;
+}
+
+.cert-gov-icon {
+  color: #0f172a;
+}
+
+.cert-shield-icon {
+  color: #059669;
+}
+
+/* Media Column on Right */
+.about-media-column {
+  position: relative;
+}
+
+.about-media-frame {
+  position: relative;
+  width: 100%;
+  height: 330px;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.about-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.about-media-frame:hover .about-hero-img {
+  transform: scale(1.04);
+}
+
+.about-floating-rating {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.rating-star-icon {
+  color: #0f172a;
+  fill: #0f172a;
+}
+
+.about-floating-desk-card {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+  z-index: 3;
+  max-width: 320px;
+}
+
+.desk-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #0080f6;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.desk-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.desk-desc {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Bottom 4 Statistics Grid */
+.about-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.about-stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.03);
+}
+
+.about-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.stat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.stat-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-dot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.stat-number-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+}
+
+.stat-title-txt {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.stat-sub-txt {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+
+/* =====================================================================
+   VERIFIED UMRAH PACKAGES & HARAMAIN STAYS (Dark Luxury Section)
+   ===================================================================== */
+.umrah-feature-section {
+  background: #0b132b;
+  padding: 72px 0 72px 0;
+  position: relative;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.umrah-section-header {
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 40px auto;
+}
+
+.umrah-eyebrow-text {
+  color: #0284c7;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.umrah-main-title {
+  font-size: 38px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.22;
+  margin-bottom: 14px;
+  letter-spacing: -0.02em;
+}
+
+.umrah-sub-title {
+  font-size: 13.5px;
+  color: #94a3b8;
+  line-height: 1.6;
+  max-width: 680px;
+  margin: 0 auto;
+  font-weight: 400;
+}
+
+/* 3-Column Umrah Grid */
+.umrah-packages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 860px) {
+  .umrah-packages-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 16px !important;
+    margin-left: -16px !important;
+    margin-right: -16px !important;
+    padding: 10px 16px 24px 16px !important;
+    scrollbar-width: none !important;
+    scroll-padding-left: 16px !important;
+  }
+
+  .umrah-packages-grid::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .umrah-packages-grid .umrah-package-card {
+    flex: 0 0 84vw !important;
+    max-width: 330px !important;
+    min-width: 270px !important;
+    scroll-snap-align: start !important;
+    scroll-snap-stop: always !important;
+    margin-bottom: 0 !important;
+  }
+
+  .umrah-bottom-action-row {
+    margin-top: 16px !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .umrah-packages-grid .umrah-package-card {
+    flex: 0 0 86vw !important;
+    max-width: 310px !important;
+    min-width: 260px !important;
+  }
+}
+
+.umrah-package-card {
+  background: #ffffff;
+  border-radius: 22px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  cursor: pointer;
+  text-align: left;
+}
+
+.umrah-package-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.umrah-card-media {
+  position: relative;
+  width: 100%;
+  height: 185px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.umrah-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.umrah-package-card:hover .umrah-card-img {
+  transform: scale(1.04);
+}
+
+.umrah-badge-tier {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  background: #f5a623;
+  color: #000000;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 2;
+}
+
+.umrah-badge-duration {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  z-index: 2;
+}
+
+.umrah-card-body {
+  padding: 20px 22px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.umrah-card-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+  margin-bottom: 6px;
+  min-height: 2.7em;
+  height: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.umrah-card-tagline {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+  margin-bottom: 14px;
+  min-height: 35px;
+}
+
+/* Inner Hotel Details Panel */
+.umrah-hotels-panel {
+  background: #f3f4f6;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.umrah-hotel-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hotel-entry-icon {
+  color: #1e293b;
+  flex-shrink: 0;
+}
+
+.umrah-hotel-text-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hotel-city-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #0284c7;
+  display: block;
+  margin-bottom: 1px;
+}
+
+.hotel-name-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.umrah-pricing-cta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.umrah-price-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.umrah-price-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.umrah-price-val {
+  font-size: 19px;
+  font-weight: 800;
+  color: #f59e0b;
+  letter-spacing: -0.2px;
+}
+
+.umrah-book-btn {
+  background: #0080f6;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 128, 246, 0.25);
+}
+
+.umrah-book-btn:hover {
+  background: #0070e0;
+  box-shadow: 0 4px 14px rgba(0, 128, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.umrah-bottom-action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 36px;
+}
+
+.umrah-view-all-btn {
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 9px 22px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.umrah-view-all-btn:hover {
+  background: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Umrah Modal Styles */
+.umrah-modal-content-card {
+  background: #131c30;
+  border: 1px solid #23314f;
+  color: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 820px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.umrah-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.umrah-modal-close:hover {
+  background: #0f172a;
+}
+
+.umrah-modal-hero {
+  position: relative;
+  width: 100%;
+  height: 190px;
+}
+
+.umrah-modal-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.umrah-modal-hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(19, 28, 48, 0.95) 100%);
+}
+
+.umrah-modal-hero-content {
+  position: absolute;
+  bottom: 18px;
+  left: 24px;
+  right: 24px;
+}
+
+.umrah-modal-tag {
+  display: inline-block;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.umrah-modal-heading {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.umrah-modal-tagline {
+  font-size: 12.5px;
+  color: #cbd5e1;
+}
+
+.umrah-modal-scroll-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.umrah-modal-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .umrah-modal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.umrah-modal-price-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: #0f1728;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  margin-bottom: 18px;
+}
+
+.umrah-modal-price-lbl {
+  font-size: 11px;
+  color: #94a3b8;
+  display: block;
+}
+
+.umrah-modal-price-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fbbf24;
+}
+
+.per-person-txt {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.umrah-modal-permit-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.umrah-modal-section {
+  margin-bottom: 18px;
+}
+
+.umrah-modal-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.umrah-modal-hotel-card {
+  background: #0f1728;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-hotel-item strong {
+  display: block;
+  font-size: 13px;
+  color: #f8fafc;
+  margin: 2px 0;
+}
+
+.m-hotel-item p {
+  font-size: 11.5px;
+  color: #38bdf8;
+}
+
+.m-city-badge {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #fbbf24;
+}
+
+.umrah-modal-inclusions-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.umrah-modal-inclusions-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.inc-icon {
+  color: #34d399;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.umrah-modal-form-wrapper {
+  background: #0f1728;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.umrah-form-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.umrah-form-subtitle {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+  line-height: 1.35;
+}
+
+.umrah-booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.umrah-booking-form .form-group-field label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-bottom: 4px;
+}
+
+.umrah-booking-form .form-group-field input,
+.umrah-booking-form .form-group-field select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #ffffff;
+  background: #182238;
+}
+
+.umrah-booking-form .form-group-field input:focus,
+.umrah-booking-form .form-group-field select:focus {
+  border-color: #0080f6;
+  box-shadow: 0 0 0 3px rgba(0, 128, 246, 0.2);
+}
+
+.umrah-submit-action-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background: #0080f6;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.umrah-submit-action-btn:hover {
+  background: #0070ba;
+  box-shadow: 0 4px 14px rgba(0, 128, 246, 0.4);
+}
+
+.umrah-form-success {
+  text-align: center;
+  padding: 20px 10px;
+}
+
+.umrah-form-success h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 10px 0 6px 0;
+}
+
+.umrah-form-success p {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 18px;
+  line-height: 1.4;
+}
+
+
+/* =====================================================================
+   GLOBAL VISIT VISA SERVICES STYLES (Pixel Perfect to Screenshot)
+   ===================================================================== */
+.visa-feature-section {
+  padding: 60px 0 52px 0;
+  background: #ffffff;
+  position: relative;
+}
+
+.visa-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 30px;
+}
+
+.visa-eyebrow {
+  color: #0284c7 !important;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+
+.visa-eyebrow-icon {
+  color: #0284c7;
+}
+
+.text-emerald-bold {
+  color: #059669;
+  font-weight: 700;
+}
+
+.visa-filters-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.visa-filters-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: transparent;
+}
+
+.visa-filter-pill {
+  padding: 7px 15px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.visa-filter-pill:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.visa-filter-pill.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.28);
+}
+
+/* 4-Column Visa Grid */
+.visa-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  margin-bottom: 32px;
+}
+
+/* Individual Visa Card */
+.visa-card-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  position: relative;
+  cursor: pointer;
+  height: 100%;
+}
+
+.visa-card-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
+  border-color: #cbd5e1;
+}
+
+.visa-card-media {
+  position: relative;
+  width: 100%;
+  height: 195px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.visa-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+  display: block;
+}
+
+.visa-card-item:hover .visa-card-img {
+  transform: scale(1.04);
+}
+
+.visa-badge-top-right {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 13px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  line-height: 1.4;
+  z-index: 2;
+}
+
+.visa-duration-pill {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+
+.duration-clock-icon {
+  color: #94a3b8;
+}
+
+.visa-card-body {
+  padding: 18px 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.visa-card-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+  margin: 0 0 6px 0;
+  min-height: 2.7em;
+  height: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.visa-processing-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #8c9ba8;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.visa-clock-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.visa-pricing-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  margin-bottom: 14px;
+}
+
+.visa-price-text {
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.visa-price-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.visa-price-label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.visa-price-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-weight: 800;
+  color: #059669;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.visa-price-number {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.visa-price-approx {
+  font-size: 10.5px;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.visa-view-details-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e293b;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.visa-view-details-btn:hover {
+  color: #0080f6;
+}
+
+.view-details-arrow {
+  color: #1e293b;
+  transition: transform 0.25s ease, color 0.2s ease;
+}
+
+.visa-card-item:hover .view-details-arrow,
+.visa-view-details-btn:hover .view-details-arrow {
+  transform: translateX(4px);
+  color: #0080f6;
+}
+
+.visa-accent-gradient-bar {
+  width: 100%;
+  height: 5px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #f59e0b 0%, #84cc16 35%, #10b981 55%, #06b6d4 75%, #0080f6 100%);
+  margin-top: 0;
+}
+
+/* Trust / Guarantee Cards at Bottom */
+.visa-benefits-container {
+  margin-top: 10px;
+}
+
+.visa-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.visa-benefit-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.visa-benefit-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.visa-benefit-icon-wrapper {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.visa-benefit-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.visa-benefit-desc {
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+/* =====================================================================
+   VISA DETAILS & FAST APPLICATION MODAL
+   ===================================================================== */
+.visa-detail-modal-card {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 820px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.35);
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-close-btn-visa {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.modal-close-btn-visa:hover {
+  background: #ffffff;
+}
+
+.visa-modal-header {
+  position: relative;
+  width: 100%;
+  height: 190px;
+}
+
+.visa-modal-header-image-box {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.visa-modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.visa-modal-header-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.3) 0%, rgba(15, 23, 42, 0.88) 100%);
+}
+
+.visa-modal-header-content {
+  position: absolute;
+  bottom: 18px;
+  left: 24px;
+  right: 24px;
+  color: #ffffff;
+}
+
+.visa-modal-badge {
+  display: inline-block;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.visa-modal-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.visa-modal-meta-row {
+  display: flex;
+  gap: 18px;
+  font-size: 12.5px;
+  color: #cbd5e1;
+}
+
+.visa-modal-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.visa-modal-meta-item strong {
+  color: #ffffff;
+}
+
+.visa-modal-body-scroll {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.visa-modal-body-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .visa-modal-body-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.visa-modal-price-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.visa-modal-price-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: #059669;
+}
+
+.visa-modal-price-val span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.visa-processing-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.visa-modal-section-block {
+  margin-bottom: 20px;
+}
+
+.visa-modal-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.visa-modal-block-title .title-icon {
+  color: #0080f6;
+}
+
+.visa-modal-req-list,
+.visa-modal-feature-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.visa-modal-req-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.req-check-icon {
+  color: #059669;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.visa-modal-feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.bullet-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0080f6;
+  flex-shrink: 0;
+}
+
+/* Right Column: Form Box */
+.visa-modal-form-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.visa-form-heading {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.visa-form-sub {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 16px;
+  line-height: 1.35;
+}
+
+.visa-inquiry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.visa-inquiry-form .form-group-field label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.visa-inquiry-form .form-group-field input,
+.visa-inquiry-form .form-group-field select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.visa-inquiry-form .form-group-field input:focus,
+.visa-inquiry-form .form-group-field select:focus {
+  border-color: #0080f6;
+  box-shadow: 0 0 0 3px rgba(0, 128, 246, 0.12);
+}
+
+.form-group-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.visa-submit-btn {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.visa-form-divider {
+  text-align: center;
+  position: relative;
+  margin: 4px 0;
+}
+
+.visa-form-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.visa-form-divider span {
+  position: relative;
+  background: #ffffff;
+  padding: 0 10px;
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.whatsapp-inquiry-btn {
+  width: 100%;
+  padding: 9px 16px;
+  background: #25d366;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.whatsapp-inquiry-btn:hover {
+  background: #20bd5a;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+.visa-form-success {
+  text-align: center;
+  padding: 20px 10px;
+}
+
+.visa-form-success .success-icon {
+  color: #059669;
+  margin-bottom: 10px;
+}
+
+.visa-form-success h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.visa-form-success p {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 18px;
+  line-height: 1.4;
+}
+
+/* =====================================================================
+   FREQUENTLY ASKED QUESTIONS (FAQ Section - Pixel Perfect to Screenshot)
+   ===================================================================== */
+.faq-feature-section {
+  padding: 60px 0 56px 0;
+  background: #ffffff;
+  position: relative;
+  border-top: 1px solid #e2e8f0;
+}
+
+.faq-header-centered {
+  text-align: center;
+  max-width: 820px;
+  margin: 0 auto 36px auto;
+}
+
+.faq-eyebrow {
+  color: #0284c7 !important;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+
+.faq-eyebrow-icon {
+  color: #0284c7;
+}
+
+.faq-search-wrapper {
+  max-width: 720px;
+  margin: 22px auto 14px auto;
+}
+
+.faq-search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px;
+  padding: 6px 20px;
+  transition: all 0.2s ease;
+}
+
+.faq-search-bar:focus-within {
+  border-color: #0080f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 128, 246, 0.12);
+}
+
+.faq-search-icon {
+  color: #94a3b8;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.faq-search-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-size: 13.5px;
+  color: #0f172a;
+  padding: 8px 0;
+}
+
+.faq-clear-search {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.faq-clear-search:hover {
+  color: #0f172a;
+}
+
+.faq-filters-pill-group {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.faq-filter-pill {
+  padding: 6px 15px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.faq-filter-pill:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.faq-filter-pill.active {
+  background: #0080f6;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 128, 246, 0.28);
+}
+
+.faq-accordion-list {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-accordion-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.faq-accordion-item:hover {
+  border-color: #cbd5e1;
+}
+
+.faq-accordion-item.open {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 18px rgba(0, 128, 246, 0.06);
+}
+
+.faq-question-btn {
+  width: 100%;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+}
+
+.faq-question-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.faq-icon-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.faq-question-text {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.faq-chevron-icon {
+  color: #64748b;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.faq-answer-drawer {
+  padding: 0 20px 20px 58px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 14px;
+}
+
+.faq-answer-text {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.65;
+}
+
+.faq-empty-results {
+  text-align: center;
+  padding: 30px;
+  color: #64748b;
+}
+
+/* Bottom Support Callout Box */
+.faq-support-callout {
+  max-width: 860px;
+  margin: 36px auto 0 auto;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 18px;
+  padding: 28px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.faq-support-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.faq-support-desc {
+  font-size: 13px;
+  color: #64748b;
+  max-width: 600px;
+  margin-bottom: 8px;
+}
+
+.faq-support-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.faq-whatsapp-btn {
+  background: #10b981;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s ease;
+}
+
+.faq-whatsapp-btn:hover {
+  background: #059669;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+.faq-call-btn {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s ease;
+}
+
+.faq-call-btn:hover {
+  border-color: #0f172a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* =====================================================================
+   MASTER RESPONSIVE SYSTEM (Placed at the very end to guarantee cascade victory)
+   ===================================================================== */
+@media (min-width: 1440px) {
+  .section-container {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 1200px) {
+
+  .hotels-catalog-grid,
+  .visa-catalog-grid,
+  .holidays-catalog-grid,
+  .advantage-cards-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+  }
+
+  .team-members-grid,
+  .insights-catalog-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 18px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .mobile-appbar-categories-bar {
+    display: flex !important;
+  }
+
+  .hotels-catalog-grid,
+  .visa-catalog-grid,
+  .holidays-catalog-grid,
+  .advantage-cards-grid,
+  .team-members-grid,
+  .insights-catalog-grid,
+  .reviews-catalog-grid,
+  .about-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+  }
+
+  .search-inputs-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .dual-date-cell {
+    grid-column: 1 / -1 !important;
+  }
+
+  .header-nav-list {
+    display: none !important;
+  }
+
+  .header-contact-btn {
+    display: none !important;
+  }
+
+  .header-mobile-toggle {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .about-story-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+
+  .about-media-frame {
+    height: 320px !important;
+  }
+
+  .about-floating-desk-card {
+    position: static !important;
+    margin-top: 16px !important;
+    max-width: 100% !important;
+  }
+
+  .stats-banner-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  .stat-banner-cell:nth-child(2) {
+    border-right: none !important;
+  }
+
+  .footer-top-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 32px !important;
+  }
+
+  .newsletter-inner-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 24px !important;
+  }
+
+  .newsletter-form-row {
+    flex-direction: column !important;
+    border-radius: 14px !important;
+  }
+
+  .newsletter-email-input {
+    width: 100% !important;
+  }
+
+  .newsletter-subscribe-btn {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .footer-bottom-row {
+    flex-direction: column !important;
+    gap: 14px !important;
+    text-align: center !important;
+  }
+
+  .footer-payments-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .payment-badges-row {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .section-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+
+  .quote-callout-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-banner-bar {
+    padding: 6px 14px !important;
+  }
+
+  .top-banner-inner {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 5px !important;
+    text-align: center !important;
+  }
+
+  .social-pill-group {
+    justify-content: center !important;
+  }
+
+  .contact-pill-group {
+    font-size: 11px !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 4px 8px !important;
+  }
+
+  .navbar-floating-container {
+    top: 66px !important;
+    padding: 0 14px !important;
+  }
+
+  .hero-landing-wrapper {
+    padding-top: 92px !important;
+    padding-bottom: 24px !important;
+    min-height: auto !important;
+  }
+
+  .section-container {
+    padding: 0 16px !important;
+  }
+
+  .hotels-catalog-grid,
+  .visa-catalog-grid,
+  .visa-benefits-grid,
+  .holidays-catalog-grid,
+  .advantage-cards-grid,
+  .reviews-catalog-grid,
+  .team-members-grid,
+  .insights-catalog-grid,
+  .about-stats-grid,
+  .about-mv-cards-row {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+
+  .stats-banner-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .stat-banner-cell {
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding-bottom: 12px !important;
+  }
+
+  .stat-banner-cell:last-child {
+    border-bottom: none !important;
+  }
+
+  .section-main-title {
+    font-size: 26px !important;
+    letter-spacing: -0.4px !important;
+  }
+
+  .hero-main-title {
+    font-size: 30px !important;
+  }
+
+  .service-tab-container {
+    justify-content: center !important;
+    padding: 2px 4px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .service-tab-capsule {
+    padding: 3px !important;
+    gap: 2px !important;
+  }
+
+  .service-tab-pill {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    gap: 5px !important;
+  }
+
+  .filter-pill-group,
+  .visa-filters-pill-group,
+  .reviews-filter-tabs,
+  .faq-filters-pill-group {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    padding: 4px 0 8px 0 !important;
+    max-width: 100% !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .filter-pill-group::-webkit-scrollbar,
+  .visa-filters-pill-group::-webkit-scrollbar,
+  .reviews-filter-tabs::-webkit-scrollbar,
+  .faq-filters-pill-group::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .hotel-filter-pill,
+  .visa-filter-pill,
+  .review-tab-btn,
+  .faq-filter-pill {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .faq-support-actions {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .faq-whatsapp-btn,
+  .faq-call-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .insights-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+
+  .insights-view-all-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .top-banner-bar {
+    padding: 6px 12px !important;
+  }
+
+  .navbar-floating-container {
+    top: 68px !important;
+    padding: 0 10px !important;
+  }
+
+  .header-glass-pill {
+    padding: 5px 12px !important;
+  }
+
+  .hero-landing-wrapper {
+    padding-top: 88px !important;
+    padding-bottom: 20px !important;
+  }
+
+  .search-inputs-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dual-date-cell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero-search-card {
+    padding: 18px 14px !important;
+    border-radius: 18px !important;
+  }
+
+  .search-card-main-title {
+    font-size: 17px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .footer-top-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
+
+  .footer-bottom-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+    text-align: center !important;
+  }
+
+  .search-card-actions-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .find-package-blue-btn {
+    width: 100% !important;
+  }
+
+  .hotel-modal-card,
+  .visa-detail-modal-card,
+  .quote-modal-card,
+  .booking-modal-card {
+    max-height: 92vh !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    margin: 10px !important;
+  }
+
+  .hotel-modal-body,
+  .visa-modal-body-scroll,
+  .booking-modal-body {
+    padding: 16px !important;
+  }
+
+  .visa-modal-meta-row {
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  .team-stats-banner-card {
+    padding: 20px 16px !important;
+    margin-bottom: 36px !important;
+  }
+
+  .stat-banner-val {
+    font-size: 24px !important;
+  }
+
+  .team-leadership-section,
+  .insights-feature-section,
+  .faq-feature-section {
+    padding: 50px 0 60px 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-pill-group {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+
+  .contact-pipe-divider {
+    display: none !important;
+  }
+}
+
+/* =====================================================================
+   ACTIVE SEARCH FILTER BAR FOR HOMEPAGE SECTIONS
+   ===================================================================== */
+.section-active-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 24px;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.06);
+  animation: fadeIn 0.25s ease;
+}
+
+.section-active-filter-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-pill-label {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.filter-pill-desc {
+  font-size: 13.5px;
+  color: #0369a1;
+  font-weight: 500;
+}
+
+.filter-pill-desc strong {
+  color: #0c4a6e;
+  font-weight: 700;
+}
+
+.filter-pill-clear-btn {
+  background: #ffffff;
+  color: #0284c7;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-pill-clear-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+@media (max-width: 640px) {
+  .section-active-filter-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .filter-pill-clear-btn {
+    align-self: flex-start;
+  }
+}
+
+

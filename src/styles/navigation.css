@@ -1,0 +1,695 @@
+/* =====================================================================
+   1. TOP BLUE BANNER BAR (Pixel perfect to screenshot)
+   ===================================================================== */
+.top-banner-bar {
+  background: var(--blue-header);
+  color: #ffffff;
+  padding: 7px 0;
+  position: relative;
+  z-index: 30;
+}
+
+.top-banner-bar.top-banner-transparent {
+  background: #437bdc !important;
+  padding-top: 10px;
+  padding-bottom: 6px;
+  width: 100%;
+}
+
+.top-banner-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Left Social Group */
+.social-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.social-white-circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.social-white-circle:hover {
+  transform: scale(1.15);
+}
+
+/* Right Contact Group */
+.contact-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.contact-link-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffff;
+  transition: opacity 0.2s;
+}
+
+.contact-link-item:hover {
+  opacity: 0.9;
+}
+
+.contact-phone-icon {
+  display: flex;
+  align-items: center;
+}
+
+.contact-mail-svg {
+  display: flex;
+  align-items: center;
+}
+
+.contact-val {
+  font-size: 12.5px;
+}
+
+.contact-pipe-divider {
+  opacity: 0.6;
+  font-size: 11px;
+}
+
+/* =====================================================================
+   2. BRAND LOGO CAPSULE
+   ===================================================================== */
+.brand-logo-pill {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+}
+
+.white-logo-pill {
+  background: transparent;
+  box-shadow: none;
+}
+
+.brand-logo-img {
+  height: 38px;
+  width: auto;
+  aspect-ratio: 1024 / 317;
+  display: block;
+  object-fit: contain;
+  transition: filter 0.2s ease;
+}
+
+.white-logo-img {
+  filter: brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+/* =====================================================================
+   3. FLOATING GLASS NAVBAR (Header Capsule)
+   ===================================================================== */
+/* Hero zone: Navbar and HeroSection share one relative container */
+.hero-zone-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Container for TopBar + Floating Navbar over Hero */
+.hero-header-top-group {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0) 100%);
+  padding-bottom: 12px;
+}
+
+.hero-header-top-group .navbar-floating-container {
+  position: relative;
+  top: 0;
+  width: 100%;
+  padding-top: 14px;
+}
+
+.navbar-floating-container {
+  position: absolute;
+  top: 18px;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 0 32px;
+}
+
+/* Used on non-home pages: navbar sits in normal flow below the TopBar */
+.navbar-inline-container {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 12px 32px;
+  background: transparent;
+}
+
+.header-glass-pill {
+  width: 100%;
+  max-width: 1200px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 8px 10px 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+}
+
+.header-logo-anchor {
+  display: flex;
+  align-items: center;
+}
+
+.header-nav-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  margin: 0 auto;
+}
+
+.header-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 11px;
+  border-radius: 999px;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+}
+
+.header-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.header-nav-btn.active-nav-btn {
+  background: #ffffff !important;
+  color: #0080f6 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+}
+
+.header-nav-btn.active-nav-btn svg {
+  stroke: #0080f6 !important;
+}
+
+.header-contact-btn {
+  background: #f5a623;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 9px 22px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 3px 12px rgba(245, 166, 35, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.1px;
+}
+
+.header-contact-btn:hover {
+  background: #e09610;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(245, 166, 35, 0.5);
+}
+
+/* Category Filter Notice Bar when filtering on main screen */
+.category-filter-notice-bar {
+  max-width: 1240px;
+  margin: 32px auto 10px auto;
+  padding: 12px 20px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.06);
+}
+
+.category-filter-notice-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notice-badge {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 9px;
+  border-radius: 9999px;
+}
+
+.notice-text {
+  font-size: 14px;
+  color: #0369a1;
+}
+
+.notice-reset-btn {
+  background: #ffffff;
+  border: 1px solid #7dd3fc;
+  color: #0284c7;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.notice-reset-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+
+.nav-arrow {
+  opacity: 0.85;
+  transition: transform 0.2s ease;
+}
+
+.nav-item-dropdown-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-item-dropdown-container:hover .nav-arrow,
+.nav-item-dropdown-container[data-open="true"] .nav-arrow,
+.nav-arrow.nav-arrow-rotated {
+  transform: rotate(180deg);
+}
+
+.nav-item-dropdown-container:hover .nav-dropdown-flyout,
+.nav-item-dropdown-container[data-open="true"] .nav-dropdown-flyout {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.nav-dropdown-flyout {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #ffffff;
+  min-width: 260px;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16), 0 2px 6px rgba(15, 23, 42, 0.06);
+  padding: 8px 0;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hover bridge: ensures seamless cursor travel from button to flyout without mouseleave gap */
+.nav-dropdown-flyout::before {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: 0;
+  right: 0;
+  height: 16px;
+}
+
+.flyout-link {
+  padding: 10px 16px;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.flyout-link:hover {
+  background: #f0f9ff;
+  color: var(--blue-header);
+}
+
+.header-mobile-toggle {
+  display: none;
+  color: #ffffff;
+  padding: 6px;
+}
+
+/* ─── Simple & Sleek Mobile Navigation Drawer ─── */
+.mobile-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 999999;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  animation: drawerBackdropFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.mobile-drawer-panel {
+  position: relative;
+  width: 85vw;
+  max-width: 340px;
+  min-width: 0;
+  height: 100%;
+  height: 100dvh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.2);
+  animation: drawerSlideInRight 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-sizing: border-box;
+  overflow: hidden;
+  margin-left: auto;
+}
+
+.mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.mobile-drawer-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.mobile-drawer-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobile-drawer-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.mobile-drawer-body {
+  padding: 16px 18px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+.mobile-drawer-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.mobile-drawer-body::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+/* ─── Nav List ─── */
+.mobile-drawer-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #334155;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-decoration: none;
+}
+
+.mobile-nav-item:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.mobile-nav-item.active {
+  background: #fefce8;
+  color: #b45309;
+  font-weight: 600;
+}
+
+.mobile-nav-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mobile-nav-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: color 0.18s ease;
+}
+
+.mobile-nav-item:hover .mobile-nav-icon,
+.mobile-nav-item.active .mobile-nav-icon {
+  color: #d97706;
+}
+
+.mobile-nav-title {
+  font-size: 14.5px;
+  white-space: nowrap;
+}
+
+/* ─── Clean Accordion for Umrah ─── */
+.mobile-nav-accordion {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.mobile-nav-accordion-header {
+  cursor: pointer;
+}
+
+.mobile-accordion-chevron {
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobile-accordion-chevron.rotate-open {
+  transform: rotate(180deg);
+  color: #d97706;
+}
+
+.mobile-accordion-sublist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 36px;
+  padding-right: 8px;
+  padding-top: 4px;
+  padding-bottom: 6px;
+  border-left: 2px solid #f1f5f9;
+  margin-left: 20px;
+}
+
+.mobile-sub-nav-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.mobile-sub-nav-item:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.mobile-sub-nav-item.active {
+  color: #d97706;
+  font-weight: 600;
+}
+
+/* ─── Drawer Bottom / Actions ─── */
+.mobile-drawer-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: auto;
+}
+
+.mobile-drawer-contact-btn {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.mobile-drawer-contact-btn:hover {
+  background: #d97706;
+  color: #ffffff;
+}
+
+.mobile-drawer-quick-contacts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+
+.mobile-quick-contact-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.mobile-quick-contact-pill:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.mobile-quick-contact-pill.whatsapp:hover {
+  color: #16a34a;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.mobile-quick-contact-pill.call:hover {
+  color: #0284c7;
+  border-color: #bae6fd;
+  background: #f0f9ff;
+}
+
+@keyframes drawerBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes drawerSlideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+

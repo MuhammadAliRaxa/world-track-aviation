@@ -1,0 +1,39 @@
+{
+  "[project]/src/shared/components/AdvantageSection.jsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/src/shared/components/AdvantageSection.jsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/src_shared_components_AdvantageSection_jsx_1m28gcm._.js"
+    ]
+  },
+  "[project]/src/shared/components/ReviewsSection.jsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/src/shared/components/ReviewsSection.jsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/src_shared_components_ReviewsSection_jsx_1fv1rqw._.js"
+    ]
+  },
+  "[project]/src/features/team/index.js [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/src/features/team/index.js [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/src_features_team_index_0xefbjb.js"
+    ]
+  },
+  "[project]/src/features/insights/index.js [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/src/features/insights/index.js [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/src_0vgvq3c._.js",
+      "static/chunks/node_modules_lucide-react_dist_esm_icons_book-open_mjs_1-ibyrp._.js"
+    ]
+  },
+  "[project]/src/features/faq/index.js [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/src/features/faq/index.js [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/_0mdyv5f._.js"
+    ]
+  },
+  "[project]/src/shared/components/Modals.jsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/src/shared/components/Modals.jsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/src_shared_components_Modals_jsx_04eex82._.js"
+    ]
+  }
+}

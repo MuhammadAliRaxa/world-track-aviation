@@ -1,0 +1,114 @@
+{
+  "data": {
+    "all_destinations_count": 5,
+    "cities": [
+      {
+        "name": "Madina",
+        "hotels_count": 4
+      },
+      {
+        "name": "Makkah",
+        "hotels_count": 1
+      }
+    ],
+    "hotel_category": [
+      {
+        "value": "3 Star",
+        "hotels_count": 3
+      },
+      {
+        "value": "4 Star",
+        "hotels_count": 1
+      },
+      {
+        "value": "5 Star",
+        "hotels_count": 1
+      }
+    ],
+    "hotel_facilities": [
+      {
+        "id": 1,
+        "facility": "Shuttle Service"
+      },
+      {
+        "id": 2,
+        "facility": "Lift"
+      },
+      {
+        "id": 3,
+        "facility": "Wheel Chair"
+      },
+      {
+        "id": 4,
+        "facility": "Private Parking"
+      },
+      {
+        "id": 5,
+        "facility": "Smoking Area"
+      },
+      {
+        "id": 6,
+        "facility": "24/7 Front Desk"
+      },
+      {
+        "id": 7,
+        "facility": "Free Wi-Fi"
+      },
+      {
+        "id": 8,
+        "facility": "Air Condition"
+      },
+      {
+        "id": 9,
+        "facility": "Family Rooms"
+      },
+      {
+        "id": 10,
+        "facility": "Swimming Pool"
+      },
+      {
+        "id": 11,
+        "facility": "Gym / Fitness"
+      },
+      {
+        "id": 12,
+        "facility": "Restaurant"
+      },
+      {
+        "id": 13,
+        "facility": "Airport Shuttle"
+      },
+      {
+        "id": 14,
+        "facility": "Room Service"
+      },
+      {
+        "id": 15,
+        "facility": "Spa & Wellness"
+      },
+      {
+        "id": 16,
+        "facility": "Laundry Service"
+      }
+    ],
+    "room_types": [
+      {
+        "id": 1,
+        "room_type": "Triple"
+      },
+      {
+        "id": 2,
+        "room_type": "Double"
+      },
+      {
+        "id": 3,
+        "room_type": "Quad"
+      },
+      {
+        "id": 4,
+        "room_type": "Quint"
+      }
+    ]
+  },
+  "response": true
+}

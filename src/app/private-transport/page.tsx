@@ -1,0 +1,41 @@
+import type { Metadata } from 'next';
+import { buildMetadata } from '@/lib/seo';
+import { transportService } from '@/services';
+import { PrivateTransportPage } from '@/features/umrah/components/PrivateTransportPage';
+import { JsonLdScript } from '@/lib/jsonld';
+
+export const revalidate = 0;
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildMetadata({
+    pageKey: 'transport',
+    canonicalPath: 'https://worldtracktravel.com/private-transport/',
+    fallbackTitle: 'Private Transport in Makkah & Madinah | World Track Aviation',
+    fallbackDescription:
+      'Book private transfers between Makkah, Madinah, and Jeddah airport with a fixed-rate fleet. No hidden charges, available around the clock.',
+  });
+}
+
+export default async function Page() {
+  const listing = await transportService.getTransportListing();
+
+  const transportSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'Private Airport Transport — World Track Aviation',
+    serviceType: 'Airport Transfer',
+    areaServed: ['Jeddah', 'Makkah', 'Madinah'],
+    provider: {
+      '@type': 'TravelAgency',
+      name: 'World Track Aviation',
+      url: 'https://worldtracktravel.com',
+    },
+  };
+
+  return (
+    <>
+      <JsonLdScript schema={transportSchema} />
+      <PrivateTransportPage initialListing={listing} />
+    </>
+  );
+}

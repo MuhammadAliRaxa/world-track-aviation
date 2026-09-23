@@ -1,0 +1,11 @@
+{"timestamp":"00:00:01.738","source":"Server","level":"LOG","message":"- Experiments (use with caution):"}
+{"timestamp":"00:00:01.738","source":"Server","level":"LOG","message":"  · optimizePackageImports"}
+{"timestamp":"00:00:01.738","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:04.759","source":"Server","level":"LOG","message":"[hotelService] POST /hotel/minRate with filters: \"{\\\"filters\\\":{}}\""}
+{"timestamp":"00:00:05.329","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:00:05.337","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:00:05.447","source":"Browser","level":"LOG","message":"[hotelService] POST /hotel/minRate with filters: {\"filters\":{}}"}
+{"timestamp":"00:00:05.447","source":"Browser","level":"LOG","message":"[hotelService] POST /hotel/minRate with filters: {\"filters\":{}}"}
+{"timestamp":"00:00:05.988","source":"Server","level":"LOG","message":"[hotelService] Got 3 \"hotels back\""}
+{"timestamp":"00:00:06.056","source":"Browser","level":"LOG","message":"[hotelService] Got 3 hotels back"}
+{"timestamp":"00:00:06.056","source":"Browser","level":"LOG","message":"[hotelService] Got 3 hotels back"}

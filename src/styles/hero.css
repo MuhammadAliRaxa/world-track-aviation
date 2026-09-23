@@ -1,0 +1,686 @@
+/* =====================================================================
+   4. HERO LANDING & SEARCH
+   ===================================================================== */
+.hero-landing-wrapper {
+  position: relative;
+  height: 560px;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+  overflow: visible;
+}
+
+.hero-image-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.hero-main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.hero-dark-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0.25) 0%,
+      rgba(0, 0, 0, 0.05) 38%,
+      rgba(0, 0, 0, 0.35) 75%,
+      rgba(0, 0, 0, 0.50) 100%);
+}
+
+/* Interactive zone sits inside hero, title centered in middle with equal space */
+.hero-interactive-zone {
+  position: relative;
+  z-index: 10;
+  max-width: 1200px;
+  width: calc(100% - 64px);
+  margin: 0 auto;
+  height: 100%;
+  padding-top: 112px;
+  padding-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Hero title — perfectly centered with equal space above and below */
+.hero-headline-title {
+  font-size: 50px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.15;
+  margin: auto 0;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .hero-headline-title {
+    font-size: 24px;
+    margin-top: 10px;
+    margin-bottom: 14px;
+    line-height: 1.22;
+  }
+}
+
+/* Tab Selector */
+.service-tab-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 14px;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.service-tab-container::-webkit-scrollbar {
+  display: none;
+}
+
+.service-tab-capsule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+  padding: 5px;
+  gap: 3px;
+  flex-wrap: nowrap;
+  min-width: max-content;
+}
+
+.service-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14.5px;
+  font-weight: 600;
+  padding: 9px 22px;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+
+.service-tab-pill:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.service-tab-pill.active-pill {
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+}
+
+.service-tab-pill.active-pill .tab-icon-svg,
+.service-tab-pill.active-pill svg {
+  color: #0284c7 !important;
+}
+
+.tab-icon-svg {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* White Search Card */
+.hero-search-card {
+  background: #ffffff;
+  border-radius: var(--radius-card);
+  padding: 28px 36px;
+  box-shadow: var(--shadow-hero-card);
+}
+
+.search-card-main-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark-heading);
+  margin-bottom: 20px;
+}
+
+.search-inputs-row {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1.35fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.search-input-cell {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 64px;
+}
+
+.search-input-cell:focus-within {
+  border-color: var(--blue-header);
+  box-shadow: 0 0 0 3px rgba(0, 128, 246, 0.12);
+}
+
+.input-cell-label {
+  font-size: 11px;
+  color: var(--text-label);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.input-cell-select {
+  border: none;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+  background: transparent;
+  width: 100%;
+}
+
+.locked-cell {
+  background: #f8fafc;
+}
+
+.locked-cell-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.destination-bold-text {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.lock-svg-icon {
+  color: #94a3b8;
+}
+
+/* Dual Date Cell */
+.dual-date-cell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 16px;
+}
+
+.date-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.date-half-divider {
+  width: 1px;
+  height: 36px;
+  background: #e2e8f0;
+  margin: 0 12px;
+}
+
+.date-clean-input {
+  border: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+  background: transparent;
+  width: 100%;
+}
+
+/* Actions Row: Passengers + Blue Button */
+.search-card-actions-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.passenger-control-box {
+  position: relative;
+}
+
+.passenger-display-btn {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.passenger-display-btn:hover {
+  background: #f1f5f9;
+}
+
+.passenger-popup-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  width: 220px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-hover);
+  border: 1px solid var(--border-subtle);
+  z-index: 50;
+}
+
+.popup-counter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.popup-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.popup-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.counter-circle-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.counter-digit {
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 14px;
+  text-align: center;
+}
+
+.popup-apply-btn {
+  width: 100%;
+  background: var(--blue-header);
+  color: #ffffff;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.find-package-blue-btn {
+  background: var(--blue-cta);
+  color: #ffffff;
+  padding: 13px 30px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  box-shadow: 0 4px 14px rgba(0, 112, 186, 0.35);
+  transition: all 0.2s ease;
+}
+
+.find-package-blue-btn:hover {
+  background: var(--blue-cta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 112, 186, 0.45);
+}
+
+/* =====================================================================
+   FLAT HORIZONTAL HERO SEARCH BAR (Reference Image Match)
+   ===================================================================== */
+/* =====================================================================
+   FLAT HORIZONTAL HERO SEARCH BAR — Pixel Perfect Reference Match
+   ===================================================================== */
+.hero-flat-search-bar {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.22);
+  padding: 0 6px 0 0;
+  gap: 0;
+  height: 66px;
+  width: 100%;
+}
+
+/* Every field: identical height, flex, padding */
+.flat-search-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 22px;
+  flex: 1;
+  position: relative;
+  height: 100%;
+  min-width: 0;
+}
+
+/* Wider fields (city name, guests) */
+.flat-search-field-wide {
+  flex: 1.5;
+}
+
+/* First field — add left padding to start from pill edge */
+.flat-search-field:first-child {
+  padding-left: 28px;
+}
+
+/* Uppercase micro label */
+.flat-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.flat-field-value-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Uniform select + input value styling */
+.flat-field-select,
+.flat-field-input {
+  border: none;
+  background: transparent;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #1e293b;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+  padding: 0 20px 0 0;
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: inherit;
+  line-height: 1.2;
+}
+
+.flat-field-select option {
+  color: #0f172a;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+}
+
+.flat-field-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.flat-locked-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+/* Chevrons and icons: uniform color and size */
+.flat-field-chevron {
+  color: #94a3b8;
+  flex-shrink: 0;
+  pointer-events: none;
+  margin-left: -14px;
+}
+
+.flat-field-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+/* Thin vertical divider between fields */
+.flat-search-divider {
+  width: 1px;
+  height: 26px;
+  background: #e2e8f0;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* Guests button — same layout as other fields */
+.flat-guests-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+
+.flat-guests-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  flex: 1;
+  line-height: 1.2;
+}
+
+/* Guests popup */
+.guests-dropdown-popup {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.28);
+  z-index: 10000;
+  min-width: 250px;
+}
+
+.guests-counter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.guests-counter-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.guests-counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.guest-counter-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.guest-counter-btn:hover {
+  background: #0080f6;
+  color: #fff;
+  border-color: #0080f6;
+}
+
+.guest-counter-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  min-width: 22px;
+  text-align: center;
+}
+
+.guests-done-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: #0080f6;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.guests-done-btn:hover {
+  background: #0066cc;
+}
+
+/* Search button — blue pill at far right */
+.flat-search-btn {
+  background: #1a73e8;
+  color: #ffffff;
+  padding: 0 30px;
+  height: 54px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 4px 14px rgba(26, 115, 232, 0.38);
+  flex-shrink: 0;
+  margin: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.flat-search-btn:hover {
+  background: #1558b0;
+  box-shadow: 0 6px 20px rgba(26, 115, 232, 0.5);
+  transform: translateY(-1px);
+}
+
+
+
+/* =====================================================================
+   CONTINUOUS TICKER / MARQUEE: 19 PARTNER AIRLINES
+   ===================================================================== */
+.hero-trust-bar {
+  text-align: center;
+  padding: 30px 0 34px 0;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-trust-text {
+  font-size: 19px;
+  font-weight: 900 !important;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  margin-bottom: 22px;
+  line-height: 1.35;
+  padding: 0 20px;
+}
+
+/* Continuous Marquee Container with smooth edge fade masks */
+.airline-marquee-container {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  padding: 6px 0 8px 0;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,1) 6%, rgba(0,0,0,1) 94%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,1) 6%, rgba(0,0,0,1) 94%, transparent 100%);
+}
+
+.airline-marquee-track {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  width: max-content;
+  animation: continuousAirlinesScroll 46s linear infinite;
+  will-change: transform;
+}
+
+.airline-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes continuousAirlinesScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.airline-badge-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  white-space: nowrap;
+  user-select: none;
+  cursor: default;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  height: 48px;
+  box-sizing: border-box;
+}
+
+.airline-badge-card:hover {
+  border-color: #0080f6;
+  box-shadow: 0 6px 20px rgba(0, 128, 246, 0.12);
+  transform: translateY(-2px);
+}
+
+
