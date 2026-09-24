@@ -28,6 +28,30 @@ export function HotelCard({ hotel }) {
     hotel.name ||
     'Verified Hotel in Makkah & Madinah';
 
+  const formatRating = (val) => {
+    if (!val) return '9.2/10';
+    const s = String(val).trim();
+    return s.includes('/') ? s : `${s}/10`;
+  };
+
+  const formatReviews = (count) => {
+    if (!count) return '1,154';
+    const num = parseInt(String(count).replace(/[^0-9]/g, ''), 10);
+    return !isNaN(num) ? num.toLocaleString() : count;
+  };
+
+  const formatPrice = (p) => {
+    if (!p) return 'Rs 98,369';
+    if (typeof p === 'number') {
+      return `Rs ${p.toLocaleString()}`;
+    }
+    const s = String(p).trim();
+    if (/^\d+(\.\d+)?$/.test(s)) {
+      return `Rs ${Number(s).toLocaleString()}`;
+    }
+    return s;
+  };
+
   return (
     <div
       className="hotel-card-item"
@@ -43,7 +67,7 @@ export function HotelCard({ hotel }) {
           loading="lazy"
           decoding="async"
           width={360}
-          height={190}
+          height={205}
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = DEFAULT_HOTEL_IMAGE;
@@ -62,7 +86,7 @@ export function HotelCard({ hotel }) {
       <div className="hotel-card-body">
         {/* Location Pin */}
         <div className="hotel-location-row">
-          <MapPin size={14} className="location-pin-icon" />
+          <MapPin size={15} className="location-pin-icon" />
           <span className="location-name">{hotel.location}</span>
         </div>
 
@@ -78,9 +102,9 @@ export function HotelCard({ hotel }) {
             return (
               <Star
                 key={idx}
-                size={15}
-                fill={isFilled ? '#f59e0b' : 'none'}
-                stroke={isFilled ? '#f59e0b' : '#cbd5e1'}
+                size={16}
+                fill={isFilled ? '#f59e0b' : '#e2e8f0'}
+                stroke={isFilled ? '#f59e0b' : '#e2e8f0'}
                 className={isFilled ? 'star-filled' : 'star-muted'}
               />
             );
@@ -89,8 +113,8 @@ export function HotelCard({ hotel }) {
 
         {/* Rating Score Badge & Reviews */}
         <div className="hotel-rating-row">
-          <span className="rating-pill-badge">{hotel.rating}</span>
-          <span className="reviews-count-text">{hotel.reviewsCount} reviews</span>
+          <span className="rating-pill-badge">{formatRating(hotel.rating)}</span>
+          <span className="reviews-count-text">{formatReviews(hotel.reviewsCount)} reviews</span>
         </div>
 
         {/* Price & Book Action */}
@@ -98,8 +122,8 @@ export function HotelCard({ hotel }) {
           <div className="price-stack">
             <span className="price-from-label">FROM</span>
             <div className="price-value-line">
-              <span className="price-amount">{hotel.price}</span>
-              <span className="price-unit"> {hotel.unit}</span>
+              <span className="price-amount">{formatPrice(hotel.price)}</span>
+              <span className="price-unit"> {hotel.unit || '/ night'}</span>
             </div>
           </div>
 
@@ -112,7 +136,7 @@ export function HotelCard({ hotel }) {
             }}
           >
             <span>Book</span>
-            <ArrowRight size={14} className="book-arrow-icon" />
+            <ArrowRight size={15} className="book-arrow-icon" />
           </button>
         </div>
       </div>

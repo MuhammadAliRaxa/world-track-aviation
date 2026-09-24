@@ -55,7 +55,14 @@ export function HotelDetailPage({ initialHotel = null }) {
   const [allHotels, setAllHotels] = useState([]);
 
   useEffect(() => {
-    if (!initialHotel || String(initialHotel.id) !== String(id)) {
+    const isMatchingInitial =
+      initialHotel &&
+      (String(initialHotel.id) === String(id) ||
+        initialHotel.slug === id ||
+        initialHotel?.seo?.url_slug === id ||
+        (Array.isArray(initialHotel.aliases) && initialHotel.aliases.includes(id)));
+
+    if (!isMatchingInitial) {
       hotelService.getHotelById(id).then((h) => {
         if (h) setHotelState(h);
       });

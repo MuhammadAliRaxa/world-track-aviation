@@ -77,8 +77,8 @@ function HeroDropdownField({
       </div>
 
       <ChevronDown
-        size={16}
-        strokeWidth={2.8}
+        size={14}
+        strokeWidth={2.4}
         className={`pill-field-chevron ${isOpen ? 'is-open' : ''}`}
       />
 
@@ -160,11 +160,16 @@ export function HeroSection({
   const [lookupCities, setLookupCities] = useState(() => initialLookups?.cities || []);
   const [lookupRoomTypes, setLookupRoomTypes] = useState(() => initialLookups?.room_types || []);
   const [hotelDestination, setHotelDestination] = useState(
-    () => initialLookups?.cities?.[0]?.name || 'Madina'
+    () => initialLookups?.cities?.[0]?.name || 'Singapore'
   );
   const [hotelCheckIn, setHotelCheckIn] = useState(() => getTodayIso());
   const [hotelCheckOut, setHotelCheckOut] = useState(() => getFutureIso(3));
   const [hotelRoomType, setHotelRoomType] = useState('All Room Types');
+  const [hotelAdults, setHotelAdults] = useState(2);
+  const [hotelChildren, setHotelChildren] = useState(0);
+  const [hotelRooms, setHotelRooms] = useState(1);
+
+  const guestsDisplayLabel = `${hotelAdults} adults (${hotelRooms}Room)`;
 
   const handleHotelCheckInChange = (val) => {
     setHotelCheckIn(val);
@@ -309,15 +314,24 @@ export function HeroSection({
     }
   }
 
-  // Options configuration — Real API data only, zero hardcoded options
+  // Options configuration — Real API data + standard popular hubs
   const hotelDestOptions = useMemo(() => {
-    const list = [{ value: 'All Destinations', label: 'All Destinations' }];
+    const defaultList = [
+      { value: 'Singapore', label: 'Singapore' },
+      { value: 'Madina', label: 'Madina' },
+      { value: 'Makkah', label: 'Makkah' },
+      { value: 'Dubai', label: 'Dubai' },
+      { value: 'Istanbul', label: 'Istanbul' },
+      { value: 'All Destinations', label: 'All Destinations' },
+    ];
     if (Array.isArray(lookupCities) && lookupCities.length > 0) {
       lookupCities.forEach((c) => {
-        list.push({ value: c.name, label: c.name });
+        if (!defaultList.some((item) => item.value.toLowerCase() === c.name.toLowerCase())) {
+          defaultList.push({ value: c.name, label: c.name });
+        }
       });
     }
-    return list;
+    return defaultList;
   }, [lookupCities]);
 
   const hotelRoomTypeOptions = useMemo(() => {
@@ -451,6 +465,9 @@ export function HeroSection({
             roomType: hotelRoomType === 'All Room Types' ? '' : selectedRoomTypeLabel,
             checkIn: hotelCheckIn,
             checkOut: hotelCheckOut,
+            adults: hotelAdults,
+            children: hotelChildren,
+            rooms: hotelRooms,
             results: normalized,
           },
         });
@@ -683,7 +700,7 @@ export function HeroSection({
                   onChange={(e) => handleHotelCheckInChange(e.target.value)}
                   aria-label="Check-in Date"
                 />
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="pill-field-calendar-svg">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#000000" className="pill-field-calendar-svg">
                   <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
                 </svg>
               </div>
@@ -710,27 +727,125 @@ export function HeroSection({
                   onChange={(e) => handleHotelCheckOutChange(e.target.value)}
                   aria-label="Check-out Date"
                 />
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="pill-field-calendar-svg">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#000000" className="pill-field-calendar-svg">
                   <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
                 </svg>
               </div>
 
-              {/* Field 4: ROOM TYPE Dropdown */}
-              <HeroDropdownField
-                label="ROOM TYPE"
-                value={hotelRoomType}
-                displayValue={selectedRoomTypeLabel}
-                options={hotelRoomTypeOptions}
-                alignRight={true}
-                isOpen={openDropdown === 'hotel-room-type'}
-                onToggle={() =>
-                  setOpenDropdown((curr) => (curr === 'hotel-room-type' ? null : 'hotel-room-type'))
-                }
-                onSelect={(val) => {
-                  setHotelRoomType(val);
-                  setOpenDropdown(null);
+              {/* Field 4: GUESTS Dropdown / Popup */}
+              <div
+                className={`hero-pill-field ${openDropdown === 'hotel-guests' ? 'is-active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenDropdown((curr) => (curr === 'hotel-guests' ? null : 'hotel-guests'));
                 }}
-              />
+                role="button"
+                tabIndex={0}
+                aria-haspopup="dialog"
+                aria-expanded={openDropdown === 'hotel-guests'}
+              >
+                <div className="pill-field-content">
+                  <span className="pill-field-label">GUESTS</span>
+                  <span className="pill-field-value">{guestsDisplayLabel}</span>
+                </div>
+                <ChevronDown
+                  size={15}
+                  strokeWidth={2.5}
+                  className={`pill-field-chevron ${openDropdown === 'hotel-guests' ? 'is-open' : ''}`}
+                />
+
+                {openDropdown === 'hotel-guests' && (
+                  <div
+                    className="hero-pill-dropdown-menu align-right hero-guests-popover"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="hero-guest-row">
+                      <div className="guest-row-text">
+                        <span className="guest-row-title">Adults</span>
+                        <span className="guest-row-sub">Ages 12+</span>
+                      </div>
+                      <div className="guest-counter-ctrls">
+                        <button
+                          type="button"
+                          className="guest-count-btn"
+                          disabled={hotelAdults <= 1}
+                          onClick={() => setHotelAdults((a) => Math.max(1, a - 1))}
+                        >
+                          -
+                        </button>
+                        <span className="guest-count-num">{hotelAdults}</span>
+                        <button
+                          type="button"
+                          className="guest-count-btn"
+                          onClick={() => setHotelAdults((a) => a + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="hero-guest-row">
+                      <div className="guest-row-text">
+                        <span className="guest-row-title">Children</span>
+                        <span className="guest-row-sub">Ages 2-11</span>
+                      </div>
+                      <div className="guest-counter-ctrls">
+                        <button
+                          type="button"
+                          className="guest-count-btn"
+                          disabled={hotelChildren <= 0}
+                          onClick={() => setHotelChildren((c) => Math.max(0, c - 1))}
+                        >
+                          -
+                        </button>
+                        <span className="guest-count-num">{hotelChildren}</span>
+                        <button
+                          type="button"
+                          className="guest-count-btn"
+                          onClick={() => setHotelChildren((c) => c + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="hero-guest-row">
+                      <div className="guest-row-text">
+                        <span className="guest-row-title">Rooms</span>
+                        <span className="guest-row-sub">Total rooms</span>
+                      </div>
+                      <div className="guest-counter-ctrls">
+                        <button
+                          type="button"
+                          className="guest-count-btn"
+                          disabled={hotelRooms <= 1}
+                          onClick={() => setHotelRooms((r) => Math.max(1, r - 1))}
+                        >
+                          -
+                        </button>
+                        <span className="guest-count-num">{hotelRooms}</span>
+                        <button
+                          type="button"
+                          className="guest-count-btn"
+                          onClick={() => setHotelRooms((r) => r + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="hero-guest-done-row">
+                      <button
+                        type="button"
+                        className="hero-guest-done-btn"
+                        onClick={() => setOpenDropdown(null)}
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Search Button */}
               <button
@@ -788,7 +903,7 @@ export function HeroSection({
                   onChange={(e) => setVisaCheckIn(e.target.value)}
                   aria-label="Entry Date"
                 />
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="pill-field-calendar-svg">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#000000" className="pill-field-calendar-svg">
                   <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
                 </svg>
               </div>

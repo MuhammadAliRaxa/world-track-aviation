@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -32,8 +32,24 @@ export function VisaDetailPage({ initialVisa = null }) {
   const [visaState, setVisaState] = useState(initialVisa);
   const [allVisas, setAllVisas] = useState([]);
 
+  // Inquiry form states (declare before any early returns)
+  const [prevVisaId, setPrevVisaId] = useState(initialVisa?.id || id);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [contact, setContact] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('select visa');
+  const [message, setMessage] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
   useEffect(() => {
-    if (!initialVisa || (initialVisa.id !== id && initialVisa.aliasId !== id)) {
+    const isMatch =
+      initialVisa &&
+      (String(initialVisa.id) === String(id) ||
+        initialVisa.slug === id ||
+        initialVisa.seo?.url_slug === id ||
+        initialVisa.aliasId === id);
+
+    if (!isMatch) {
       visaService.getVisaById(id).then((v) => {
         if (v) setVisaState(v);
       });
@@ -41,12 +57,50 @@ export function VisaDetailPage({ initialVisa = null }) {
     visaService.getVisas().then(setAllVisas);
   }, [id, initialVisa]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [id]);
+
   // Find visa by id or aliasId
   const rawVisa =
     visaState ||
-    allVisas.find((v) => v.id === id || v.aliasId === id) ||
+    allVisas.find((v) => String(v.id) === String(id) || v.slug === id || v.aliasId === id) ||
     null;
 
+  // Reset form submission state during render if visa changes
+  if (rawVisa && rawVisa.id !== prevVisaId) {
+    setPrevVisaId(rawVisa.id);
+    setSubmitted(false);
+  }
+
+  const relatedVisas = useMemo(
+    () => allVisas.filter((v) => String(v.id) !== String(rawVisa ? rawVisa.id : id)).slice(0, 4),
+    [allVisas, rawVisa, id]
+  );
+
+  const handleSubmitInquiry = async (e) => {
+    e.preventDefault();
+    try {
+      await inquiryService.submitInquiry({
+        type: 'visa',
+        name: fullName,
+        email,
+        contact,
+        country_name: selectedCountry !== 'select visa'
+          ? selectedCountry
+          : (rawVisa?.country || rawVisa?.title || 'General'),
+        message: message || `Visa inquiry for ${rawVisa?.title || 'visa'}.`,
+      });
+    } catch (err) {
+      console.error('Visa detail inquiry submission error:', err);
+    }
+    setSubmitted(true);
+  };
+
+  const handleWhatsAppChat = () => {
+    const text = `Hello World Track Aviation, I am inquiring regarding the ${rawVisa?.detailTitle || rawVisa?.title || 'Visa'}. Please provide quotation and application guidance.`;
+    window.open(COMPANY_CONFIG.getWhatsAppUrl(text), '_blank');
+  };
 
   if (!rawVisa) {
     return (
@@ -79,54 +133,6 @@ export function VisaDetailPage({ initialVisa = null }) {
       pricePKR: rawVisa.specs?.pricePKR || `Rs ${rawVisa.pricePKR}`,
     }
   };
-
-  // Inquiry form states
-  const [prevVisaId, setPrevVisaId] = useState(visa.id);
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [contact, setContact] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('select visa');
-  const [message, setMessage] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-
-  // Reset form submission state during render if visa changes
-  if (visa.id !== prevVisaId) {
-    setPrevVisaId(visa.id);
-    setSubmitted(false);
-  }
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [id]);
-
-  const handleSubmitInquiry = async (e) => {
-    e.preventDefault();
-    try {
-      await inquiryService.submitInquiry({
-        type: 'visa',
-        name: fullName,
-        email,
-        contact,
-        country_name: selectedCountry !== 'select visa'
-          ? selectedCountry
-          : (visa?.country || visa?.title || 'General'),
-        message: message || `Visa inquiry for ${visa?.title || 'visa'}.`,
-      });
-    } catch (err) {
-      console.error('Visa detail inquiry submission error:', err);
-    }
-    setSubmitted(true);
-  };
-
-  const handleWhatsAppChat = () => {
-    const text = `Hello World Track Aviation, I am inquiring regarding the ${visa.detailTitle || visa.title}. Please provide quotation and application guidance.`;
-    window.open(COMPANY_CONFIG.getWhatsAppUrl(text), '_blank');
-  };
-
-  // 4 Related Visas (Dubai, Azerbaijan, Malaysia, Thailand or first 4)
-  const relatedVisas = allVisas.filter((v) => v.id !== (rawVisa ? rawVisa.id : id)).slice(0, 4);
-
-  if (!rawVisa) return null;
 
   return (
     <div className="visa-detail-page-root">

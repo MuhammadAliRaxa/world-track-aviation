@@ -113,9 +113,21 @@ export async function buildMetadata(
   const pageSeo = pageSeoData?.seo ?? null;
   const global = globalSeoData;
 
+  // Helper: clean markdown formatting like ** or ## from SEO text
+  const cleanSeoText = (str: string | null | undefined): string => {
+    if (!str || typeof str !== 'string') return '';
+    return str
+      .replace(/\*\*/g, '')
+      .replace(/^\*+|\*+$/g, '')
+      .replace(/^#+\s*/g, '')
+      .trim();
+  };
+
   // Helper: pick first non-empty value from candidates
-  const pick = (...candidates: (string | null | undefined)[]): string =>
-    candidates.find((v) => v && v.trim() !== '') ?? '';
+  const pick = (...candidates: (string | null | undefined)[]): string => {
+    const found = candidates.find((v) => v && v.trim() !== '') ?? '';
+    return cleanSeoText(found);
+  };
 
   // Priority order: Item SEO -> Page SEO -> Route Fallback -> Global CMS -> Site Default
   const titleCandidate = pick(
@@ -166,22 +178,22 @@ export async function buildMetadata(
   const ogImage = pick(
     itemSeo?.og_image,
     pageSeo?.og_image,
-    global?.default_og_image,
     defaultOgImage,
+    global?.default_og_image,
   );
 
   const ogTitle = pick(
     itemSeo?.og_title,
     pageSeo?.og_title,
-    global?.default_og_title,
     titleCandidate,
+    global?.default_og_title,
   );
 
   const ogDescription = pick(
     itemSeo?.og_description,
     pageSeo?.og_description,
-    global?.default_og_description,
     descriptionCandidate,
+    global?.default_og_description,
   );
 
   // Avoid duplicate brand suffix if already included in title

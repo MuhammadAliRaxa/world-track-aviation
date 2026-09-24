@@ -17,6 +17,7 @@ import { Modals } from '../../../shared/components/Modals';
 import { COMPANY_CONFIG } from '../../../config/company';
 import { umrahService, inquiryService } from '../../../services';
 import { GuestsPopup, RoomTypePopup } from '../../hotels';
+import { UmrahPackageCard } from './UmrahPackageCard';
 
 const sanitizeHtml = (html) =>
   typeof html === 'string'
@@ -31,12 +32,15 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
   const [allPackages, setAllPackages] = useState([]);
 
   useEffect(() => {
-    if (!initialPackage || (id && String(initialPackage.id) !== String(id))) {
-      if (id) {
-        umrahService.getUmrahPackageById(String(id)).then((p) => {
-          if (p) setCurrentPkg(p);
-        });
-      }
+    const isMatch = initialPackage && (
+      String(initialPackage.id) === String(id) ||
+      initialPackage.slug === id ||
+      initialPackage.seo?.url_slug === id
+    );
+    if (!isMatch && id) {
+      umrahService.getUmrahPackageById(String(id)).then((p) => {
+        if (p) setCurrentPkg(p);
+      });
     }
     umrahService.getUmrahPackages().then(setAllPackages);
   }, [id, initialPackage]);
@@ -235,8 +239,10 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
               <div className="upd-main-img-wrap">
                 <img
                   src={pkg.image}
-                  alt={pkg.title}
+                  alt={pkg.imageAlt || pkg.seo?.image_alt || `${pkg.title} - Umrah Package from Islamabad, Pakistan`}
                   className="upd-main-img"
+                  loading="eager"
+                  fetchPriority="high"
                 />
               </div>
 
@@ -458,58 +464,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
 
             <div className="upd-related-grid">
               {relatedPackages.map((relPkg) => (
-                <div key={relPkg.id} className="um-card">
-                  <div className="um-card-media">
-                    <img
-                      src={relPkg.image}
-                      alt={relPkg.title}
-                      className="um-card-img"
-                      loading="lazy"
-                    />
-                    <div className="um-card-badge-star">{relPkg.badge}</div>
-                    <div className="um-card-badge-duration">{relPkg.duration}</div>
-                  </div>
-
-                  <div className="um-card-body">
-                    <h4 className="um-card-title">{relPkg.title}</h4>
-                    <p className="um-card-tagline">{relPkg.tagline}</p>
-
-                    <div className="um-hotels-panel">
-                      <div className="um-hotel-entry">
-                        <Building2 size={14} className="um-hotel-icon" />
-                        <div className="um-hotel-text">
-                          <span className="um-hotel-label">MAKKAH HOTEL</span>
-                          <span className="um-hotel-name">{relPkg.makkahHotel.name}</span>
-                        </div>
-                      </div>
-
-                      <div className="um-hotel-entry">
-                        <Building2 size={14} className="um-hotel-icon" />
-                        <div className="um-hotel-text">
-                          <span className="um-hotel-label">MADINAH HOTEL</span>
-                          <span className="um-hotel-name">{relPkg.madinahHotel.name}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="um-card-footer">
-                      <div>
-                        <span className="um-card-pp">PER PERSON</span>
-                        <div className="um-card-price">{relPkg.price}</div>
-                      </div>
-                      <button
-                        type="button"
-                        className="um-card-btn"
-                        onClick={() => {
-                          router.push(`/umrah-packages/${relPkg.id}`);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                      >
-                        View Package
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <UmrahPackageCard key={relPkg.id} pkg={relPkg} />
               ))}
             </div>
           </div>

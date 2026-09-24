@@ -78,6 +78,7 @@ export function normalizeUmrahDetail(raw: any): UmrahPackage | null {
     price,
     priceNumeric,
     hotelCategory: `${stars}-Star Accommodation`,
+    slug: item.slug || item.seo?.url_slug || String(id),
     description: item.long_description || item.short_description || item.description || '',
     seo: item.seo || null,
   } as unknown as UmrahPackage;

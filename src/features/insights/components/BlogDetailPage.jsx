@@ -17,7 +17,11 @@ import { COMPANY_CONFIG } from '../../../config/company';
 
 const sanitizeHtml = (html) =>
   typeof html === 'string'
-    ? html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').replace(/on\w+="[^"]*"/g, '')
+    ? html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/on\w+="[^"]*"/g, '')
+        .replace(/<h1(\s|>)/gi, '<h2$1')
+        .replace(/<\/h1>/gi, '</h2>')
     : '';
 
 export function BlogDetailPage({ initialArticle = null }) {
@@ -153,8 +157,10 @@ export function BlogDetailPage({ initialArticle = null }) {
           <div className="blog-featured-media-wrapper">
             <img
               src={article.image}
-              alt={article.title}
+              alt={article.image_alt_text || article.alt_text || article.seo?.image_alt || `${article.title} - World Track Aviation`}
               className="blog-featured-media-img"
+              loading="eager"
+              fetchPriority="high"
             />
           </div>
 
@@ -354,7 +360,7 @@ export function BlogDetailPage({ initialArticle = null }) {
               <BlogCard
                 key={rel.id}
                 article={rel}
-                onClick={() => router.push(`/our-blogs/${rel.id}`)}
+                onClick={() => router.push(`/our-blogs/${rel.slug || rel.id}/`)}
               />
             ))}
           </div>

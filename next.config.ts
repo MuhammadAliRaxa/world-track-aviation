@@ -99,6 +99,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/tour-packages/tours/:slug*',
+        destination: '/tour-packages/:slug*/',
+        permanent: true,
+      },
+      {
         source: '/custom-umrah',
         destination: '/customize-umrah-package/',
         permanent: true,

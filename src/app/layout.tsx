@@ -74,7 +74,7 @@ export default async function RootLayout({
   const gscTag = globalSeo?.google_search_console_tag;
 
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`}>
+    <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`} data-scroll-behavior="smooth">
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />

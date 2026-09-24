@@ -39,21 +39,30 @@ const getVisaImage = (visa) => {
 export function VisaCard({ visa }) {
   const router = useRouter();
 
-  const slug = visa.seo?.url_slug || visa.id;
+  const slug = visa.seo?.url_slug || visa.slug || visa.id;
   const handleAction = (e) => {
     e.stopPropagation();
     router.push(`/visas/${slug}/`);
   };
 
   // Format processing time cleanly (e.g. "2-3 days")
-  const rawDuration = visa.processing_time || visa.duration || '2 - 3 Days';
-  const formattedDuration = rawDuration
+  const rawDuration = visa.processing_time || visa.processingTime || visa.duration || '2 - 3 Days';
+  const formattedDuration = String(rawDuration)
+    .replace(/^processing\s*time\s*:?\s*/i, '')
     .replace(/\s*-\s*/g, '-')
     .toLowerCase();
 
   const imageUrl = getVisaImage(visa);
-  const displayTitle = visa.title || visa.name || 'Tourist Visit Visa';
-  const displayPrice = visa.pricePKR || (visa.rate ? Number(visa.rate).toLocaleString() : (visa.price ? Number(visa.price).toLocaleString() : '44,500'));
+  const displayTitle = visa.title || visa.name || (visa.country ? `${visa.country} Visit Visa` : 'Tourist Visit Visa');
+
+  // Format price cleanly without duplicate "Rs"
+  const rawPrice = visa.pricePKR || visa.rate || visa.price || '44500';
+  let cleanPrice = String(rawPrice).trim();
+  if (cleanPrice.startsWith('Rs') || cleanPrice.startsWith('RS')) {
+    cleanPrice = cleanPrice.replace(/^Rs\.?\s*/i, '');
+  }
+  const numericPrice = parseInt(cleanPrice.replace(/[^0-9]/g, ''), 10);
+  const displayPrice = !isNaN(numericPrice) && numericPrice > 0 ? numericPrice.toLocaleString() : cleanPrice;
 
   return (
     <div
@@ -70,7 +79,7 @@ export function VisaCard({ visa }) {
           loading="lazy"
           decoding="async"
           width={360}
-          height={180}
+          height={205}
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = DEFAULT_VISA_IMAGE;
@@ -90,7 +99,7 @@ export function VisaCard({ visa }) {
 
         {/* Processing Time with Clock Icon */}
         <div className="visa-processing-row">
-          <Clock size={13} className="visa-clock-icon" />
+          <Clock size={14} className="visa-clock-icon" strokeWidth={2.4} />
           <span>Processing time {formattedDuration}</span>
         </div>
 
@@ -106,11 +115,10 @@ export function VisaCard({ visa }) {
             onClick={handleAction}
           >
             <span>View Details</span>
-            <ArrowRight size={14} className="view-details-arrow" />
           </button>
         </div>
 
-        {/* Bottom Multi-color Gradient Bar */}
+        {/* Bottom Multi-color Gradient Accent Bar */}
         <div
           className="visa-accent-gradient-bar"
           style={visa.accentGradient ? { background: visa.accentGradient } : undefined}

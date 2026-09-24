@@ -88,23 +88,25 @@
 
 .hotel-card-item {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: var(--radius-lg);
+  border: 1px solid #eef2f6;
+  border-radius: 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .hotel-card-item:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-hover);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  border-color: #e2e8f0;
 }
 
 .hotel-card-media {
   position: relative;
   width: 100%;
-  height: 190px;
+  height: 205px;
   overflow: hidden;
   background: #f1f5f9;
 }
@@ -122,22 +124,23 @@
 
 .hotel-tag-badge {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(6px);
+  top: 14px;
+  left: 14px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
   color: #ffffff;
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
-  padding: 4px 9px;
-  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
 }
 
 .hotel-fav-btn {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 14px;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -155,7 +158,7 @@
 }
 
 .hotel-card-body {
-  padding: 16px;
+  padding: 18px 20px 22px 20px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -164,25 +167,26 @@
 .hotel-location-row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: var(--text-muted);
-  font-size: 12px;
+  gap: 6px;
+  color: #8c9bb0;
+  font-size: 13.5px;
   font-weight: 500;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .location-pin-icon {
-  color: #94a3b8;
+  color: #8c9bb0;
+  flex-shrink: 0;
 }
 
 .hotel-title-text {
-  font-size: 14.5px;
+  font-family: var(--font-heading, inherit);
+  font-size: 18px;
   font-weight: 700;
-  color: var(--dark-heading);
+  color: #0f172a;
   line-height: 1.35;
-  margin-bottom: 8px;
-  min-height: 2.7em;
-  height: auto;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -194,8 +198,8 @@
 .hotel-stars-row {
   display: flex;
   align-items: center;
-  gap: 2px;
-  margin-bottom: 8px;
+  gap: 4px;
+  margin-bottom: 12px;
 }
 
 .star-filled {
@@ -204,28 +208,32 @@
 }
 
 .star-muted {
-  color: #cbd5e1;
+  color: #e2e8f0;
+  fill: #e2e8f0;
 }
 
 .hotel-rating-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .rating-pill-badge {
-  background: var(--blue-header);
+  background: #0284c7;
   color: #ffffff;
-  font-size: 11.5px;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
 }
 
 .reviews-count-text {
-  font-size: 11.5px;
-  color: var(--text-muted);
+  font-size: 13.5px;
+  color: #64748b;
   font-weight: 500;
 }
 
@@ -234,46 +242,73 @@
   align-items: flex-end;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid #f1f5f9;
+  padding-top: 0;
+  border-top: none;
+}
+
+.price-stack {
+  display: flex;
+  flex-direction: column;
 }
 
 .price-from-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-muted);
-  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8c9bb0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.price-value-line {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
 }
 
 .price-amount {
-  font-size: 14.5px;
+  font-size: 21px;
   font-weight: 800;
-  color: var(--dark-heading);
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 .price-unit {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 13px;
+  color: #8c9bb0;
   font-weight: 500;
 }
 
 .hotel-book-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: var(--blue-light-bg);
-  color: var(--blue-header);
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  font-size: 12.5px;
-  font-weight: 700;
+  gap: 8px;
+  background: #f0f7ff;
+  color: #0284c7;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
   transition: all 0.2s ease;
+  line-height: 1.3;
+}
+
+.hotel-book-btn .book-arrow-icon {
+  color: #0284c7;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .hotel-book-btn:hover {
-  background: var(--blue-header);
+  background: #0284c7;
   color: #ffffff;
-  transform: translateX(2px);
+}
+
+.hotel-book-btn:hover .book-arrow-icon {
+  color: #ffffff;
+  transform: translateX(3px);
 }
 
 /* =====================================================================
@@ -1224,13 +1259,13 @@
 .wt-blog-card,
 .insight-card-item {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #eef2f6;
   border-radius: 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
   height: 100%;
 }
@@ -1238,17 +1273,19 @@
 .wt-blog-card:hover,
 .insight-card-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
-  border-color: #cbd5e1;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  border-color: #e2e8f0;
 }
 
 .wt-blog-card-media,
 .insight-card-media {
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 205px;
   overflow: hidden;
   background-color: #f1f5f9;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 }
 
 .wt-blog-card-img,
@@ -1262,7 +1299,7 @@
 
 .wt-blog-card:hover .wt-blog-card-img,
 .insight-card-item:hover .insight-card-img {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
 .wt-blog-card-badge,
@@ -1272,21 +1309,21 @@
   right: 14px;
   left: auto;
   background: #f59e0b;
-  color: #0f172a;
-  font-size: 10px;
+  color: #000000;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  padding: 4px 13px;
+  padding: 5px 13px;
   border-radius: 9999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  line-height: 1.4;
+  line-height: 1.3;
   z-index: 2;
 }
 
 .wt-blog-card-body,
 .insight-card-body {
-  padding: 18px 20px 22px 20px;
+  padding: 20px 20px 22px 20px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1295,8 +1332,8 @@
 .wt-blog-card-meta,
 .insight-author-date-line,
 .insight-meta-row {
-  font-size: 12px;
-  color: #8c9ba8;
+  font-size: 13px;
+  color: #8c9bb0;
   font-weight: 500;
   margin-bottom: 8px;
   letter-spacing: 0.01em;
@@ -1304,33 +1341,30 @@
 
 .wt-blog-card-title,
 .insight-card-title {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
   color: #0f172a;
   line-height: 1.35;
-  margin: 0 0 8px 0;
+  margin: 0 0 10px 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 2.7em;
-  height: auto;
   word-break: break-word;
   overflow-wrap: break-word;
 }
 
 .wt-blog-card-summary,
 .insight-card-summary {
-  font-size: 12.5px;
-  color: #64748b;
+  font-size: 13px;
+  color: #8c9bb0;
   line-height: 1.5;
-  margin: 0 0 18px 0;
+  margin: 0 0 20px 0;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   flex: 1;
-  min-height: 56px;
 }
 
 .wt-blog-card-footer,
@@ -1339,21 +1373,25 @@
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 2px;
+  padding-top: 4px;
   border: none;
 }
 
 .wt-blog-card-read-text,
 .insight-read-more-link span {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #0080f6;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0284c7;
 }
 
 .wt-blog-card-arrow,
 .read-more-arrow {
-  color: #0080f6;
+  font-size: 18px;
+  color: #0284c7;
+  line-height: 1;
   transition: transform 0.25s ease;
+  display: inline-flex;
+  align-items: center;
 }
 
 .wt-blog-card:hover .wt-blog-card-arrow,
@@ -2482,35 +2520,38 @@
 
 .umrah-package-card {
   background: #ffffff;
-  border-radius: 22px;
+  border: 1px solid #eef2f6;
+  border-radius: 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   position: relative;
   cursor: pointer;
   text-align: left;
 }
 
 .umrah-package-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  border-color: #e2e8f0;
 }
 
 .umrah-card-media {
   position: relative;
   width: 100%;
-  height: 185px;
+  height: 205px;
   overflow: hidden;
-  background: #0f172a;
+  background: #f1f5f9;
 }
 
 .umrah-card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.45s ease;
+  transition: transform 0.4s ease;
+  display: block;
 }
 
 .umrah-package-card:hover .umrah-card-img {
@@ -2519,50 +2560,50 @@
 
 .umrah-badge-tier {
   position: absolute;
-  top: 12px;
+  top: 14px;
   left: 14px;
-  background: #f5a623;
-  color: #000000;
+  background: #f59e0b;
+  color: #0f172a;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 9999px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.28);
+  line-height: 1.2;
   z-index: 2;
 }
 
 .umrah-badge-duration {
   position: absolute;
-  top: 12px;
+  top: 14px;
   right: 14px;
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: #1e293b;
   color: #ffffff;
   font-size: 11.5px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 9999px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
   z-index: 2;
+  line-height: 1.2;
 }
 
 .umrah-card-body {
-  padding: 20px 22px 22px 22px;
+  padding: 20px 20px 22px 20px;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
 .umrah-card-title {
-  font-size: 17px;
-  font-weight: 800;
+  font-family: var(--font-heading, inherit);
+  font-size: 18px;
+  font-weight: 700;
   color: #0f172a;
   line-height: 1.35;
-  margin-bottom: 6px;
-  min-height: 2.7em;
-  height: auto;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.01em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -2572,16 +2613,19 @@
 }
 
 .umrah-card-tagline {
-  font-size: 12px;
+  font-size: 13px;
   color: #64748b;
   line-height: 1.45;
-  margin-bottom: 14px;
-  min-height: 35px;
+  margin: 0 0 14px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Inner Hotel Details Panel */
 .umrah-hotels-panel {
-  background: #f3f4f6;
+  background: #f4f6f8;
   border-radius: 14px;
   padding: 12px 14px;
   display: flex;
@@ -2593,11 +2637,11 @@
 .umrah-hotel-entry {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .hotel-entry-icon {
-  color: #1e293b;
+  color: #0f172a;
   flex-shrink: 0;
 }
 
@@ -2608,17 +2652,18 @@
 }
 
 .hotel-city-label {
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: #0284c7;
   display: block;
-  margin-bottom: 1px;
+  margin-bottom: 2px;
+  text-transform: uppercase;
 }
 
 .hotel-name-val {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 600;
   color: #0f172a;
   white-space: nowrap;
   overflow: hidden;
@@ -2630,7 +2675,7 @@
   justify-content: space-between;
   align-items: flex-end;
   margin-top: auto;
-  padding-top: 4px;
+  padding-top: 0;
 }
 
 .umrah-price-block {
@@ -2639,37 +2684,39 @@
 }
 
 .umrah-price-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #8c9bb0;
   text-transform: uppercase;
   margin-bottom: 2px;
 }
 
 .umrah-price-val {
-  font-size: 19px;
+  font-size: 22px;
   font-weight: 800;
   color: #f59e0b;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 .umrah-book-btn {
-  background: #0080f6;
+  background: #0284c7;
   color: #ffffff;
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 600;
   padding: 9px 18px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 128, 246, 0.25);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+  line-height: 1.3;
 }
 
 .umrah-book-btn:hover {
-  background: #0070e0;
-  box-shadow: 0 4px 14px rgba(0, 128, 246, 0.4);
+  background: #0070c0;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
   transform: translateY(-1px);
 }
 
@@ -3081,13 +3128,13 @@
 /* Individual Visa Card */
 .visa-card-item {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #eef2f6;
   border-radius: 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   position: relative;
   cursor: pointer;
   height: 100%;
@@ -3095,23 +3142,23 @@
 
 .visa-card-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
-  border-color: #cbd5e1;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  border-color: #e2e8f0;
 }
 
 .visa-card-media {
   position: relative;
   width: 100%;
-  height: 195px;
+  height: 205px;
   overflow: hidden;
-  background: #0f172a;
+  background: #f1f5f9;
 }
 
 .visa-card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.45s ease;
+  transition: transform 0.4s ease;
   display: block;
 }
 
@@ -3125,70 +3172,48 @@
   right: 14px;
   background: #f59e0b;
   color: #0f172a;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 4px 13px;
-  border-radius: 9999px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  line-height: 1.4;
-  z-index: 2;
-}
-
-.visa-duration-pill {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  background: rgba(15, 23, 42, 0.78);
-  backdrop-filter: blur(8px);
-  color: #ffffff;
   font-size: 11px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.28);
+  line-height: 1.2;
   z-index: 2;
-}
-
-.duration-clock-icon {
-  color: #94a3b8;
 }
 
 .visa-card-body {
-  padding: 18px 20px 20px 20px;
+  padding: 20px 20px 20px 20px;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
 .visa-card-title {
-  font-size: 17px;
-  font-weight: 800;
+  font-family: var(--font-heading, inherit);
+  font-size: 18px;
+  font-weight: 700;
   color: #0f172a;
   line-height: 1.35;
-  margin: 0 0 6px 0;
-  min-height: 2.7em;
-  height: auto;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.01em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
   overflow-wrap: break-word;
-  white-space: normal;
 }
 
 .visa-processing-row {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: #8c9ba8;
+  gap: 6px;
+  font-size: 13px;
+  color: #8c9bb0;
   font-weight: 500;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .visa-clock-icon {
@@ -3201,84 +3226,39 @@
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .visa-price-text {
-  font-size: 19px;
+  font-size: 21px;
   font-weight: 800;
   color: #0f172a;
-  letter-spacing: -0.01em;
-}
-
-.visa-price-block {
-  display: flex;
-  flex-direction: column;
-}
-
-.visa-price-label {
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 500;
-  margin-bottom: 2px;
-}
-
-.visa-price-amount {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  font-weight: 800;
-  color: #059669;
-  font-size: 17px;
-  line-height: 1;
-}
-
-.visa-price-number {
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.visa-price-approx {
-  font-size: 10.5px;
-  color: #94a3b8;
-  font-weight: 500;
-  margin-top: 3px;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 .visa-view-details-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   color: #1e293b;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .visa-view-details-btn:hover {
-  color: #0080f6;
-}
-
-.view-details-arrow {
-  color: #1e293b;
-  transition: transform 0.25s ease, color 0.2s ease;
-}
-
-.visa-card-item:hover .view-details-arrow,
-.visa-view-details-btn:hover .view-details-arrow {
-  transform: translateX(4px);
-  color: #0080f6;
+  color: #0284c7;
 }
 
 .visa-accent-gradient-bar {
   width: 100%;
   height: 5px;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #f59e0b 0%, #84cc16 35%, #10b981 55%, #06b6d4 75%, #0080f6 100%);
+  background: linear-gradient(90deg, #f59e0b 0%, #76a066 50%, #0077e6 100%);
   margin-top: 0;
 }
 

@@ -20,6 +20,7 @@ import { umrahService } from '../../../services';
 import {
   UMRAH_PRICE_TIERS,
 } from '../data/umrahData';
+import { UmrahPackageCard } from './UmrahPackageCard';
 
 export function UmrahPackagesPage({
   initialPackages = [],
@@ -393,59 +394,7 @@ export function UmrahPackagesPage({
               ) : packages.length > 0 ? (
                 <div className="um-cards-grid">
                   {packages.map((pkg) => (
-                  <div key={pkg.id} className="um-card">
-                    {/* Media */}
-                    <div className="um-card-media">
-                      <img
-                        src={pkg.image}
-                        alt={pkg.title}
-                        className="um-card-img"
-                        loading="lazy"
-                      />
-                      <div className="um-card-badge-star">{pkg.badge}</div>
-                      <div className="um-card-badge-duration">{pkg.duration}</div>
-                    </div>
-
-                    {/* Body */}
-                    <div className="um-card-body">
-                      <h3 className="um-card-title">{pkg.title}</h3>
-                      <p className="um-card-tagline">{pkg.tagline}</p>
-
-                      {/* Hotels Panel */}
-                      <div className="um-hotels-panel">
-                        <div className="um-hotel-entry">
-                          <Building2 size={14} className="um-hotel-icon" />
-                          <div className="um-hotel-text">
-                            <span className="um-hotel-label">MAKKAH HOTEL</span>
-                            <span className="um-hotel-name">{pkg.makkahHotel?.name || 'Makkah Hotel'}</span>
-                          </div>
-                        </div>
-
-                        <div className="um-hotel-entry">
-                          <Building2 size={14} className="um-hotel-icon" />
-                          <div className="um-hotel-text">
-                            <span className="um-hotel-label">MADINAH HOTEL</span>
-                            <span className="um-hotel-name">{pkg.madinahHotel?.name || 'Madinah Hotel'}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Footer */}
-                      <div className="um-card-footer">
-                        <div>
-                          <span className="um-card-pp">PER PERSON</span>
-                          <div className="um-card-price">{pkg.price}</div>
-                        </div>
-                        <button
-                          type="button"
-                          className="um-card-btn"
-                          onClick={() => router.push(`/umrah-packages/${pkg.id}`)}
-                        >
-                          View Package
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    <UmrahPackageCard key={pkg.id} pkg={pkg} />
                   ))}
                 </div>
               ) : (

@@ -279,6 +279,17 @@ export function getTouristTripSchema(trip: {
   };
 }
 
+function parseIsoDate(dateStr?: string): string {
+  if (!dateStr) return new Date().toISOString().split('T')[0];
+  try {
+    if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr.split('T')[0];
+    const cleaned = dateStr.replace(/(\d{1,2})\/([a-zA-Z]+)\/(\d{4})/, '$2 $1, $3');
+    const d = new Date(cleaned);
+    if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+  } catch {}
+  return dateStr;
+}
+
 export function getBlogPostingSchema(blog: {
   id?: string | number;
   title?: string;
@@ -286,22 +297,27 @@ export function getBlogPostingSchema(blog: {
   image?: string;
   publishedAt?: string;
   createdAt?: string;
+  author?: string;
 }) {
+  const publishedDate = parseIsoDate(blog.publishedAt || blog.createdAt);
+  const canonicalUrl = `https://worldtracktravel.com/our-blogs/${blog.id}/`;
+
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://worldtracktravel.com/our-blogs/${blog.id}/`,
+      '@id': canonicalUrl,
     },
+    url: canonicalUrl,
     headline: blog.title || 'Travel Guide',
     description: blog.summary || 'Travel insights and Umrah guide by World Track Aviation.',
     image: blog.image || 'https://worldtracktravel.com/assets/world_track_logo.png',
-    datePublished: blog.publishedAt || blog.createdAt || '2026-01-01',
+    datePublished: publishedDate,
+    dateModified: publishedDate,
     author: {
-      '@type': 'Organization',
-      name: 'World Track Aviation',
-      url: 'https://worldtracktravel.com',
+      '@type': 'Person',
+      name: blog.author || 'World Track Aviation',
     },
     publisher: {
       '@id': 'https://worldtracktravel.com/#organization',

@@ -53,8 +53,14 @@ function StarRating({ rating, count }) {
 
 function RelatedCard({ tour }) {
   const router = useRouter();
+  const rawSlug = tour.slug || tour.seo?.url_slug || tour.id;
+  const cleanSlug = String(rawSlug)
+    .replace(/^\/?(tours|tour-packages)\//i, '')
+    .replace(/^\/+|\/+$/g, '');
+  const path = `/tour-packages/${cleanSlug || tour.id}/`;
+
   return (
-    <div className="tdp-rel-card" onClick={() => router.push(`/tours/${tour.id}`)}>
+    <div className="tdp-rel-card" onClick={() => router.push(path)}>
       <div className="tdp-rel-img-wrap">
         <img src={tour.image} alt={tour.title} className="tdp-rel-img" loading="lazy" />
         <div className="tdp-rel-rating">
@@ -79,7 +85,7 @@ function RelatedCard({ tour }) {
         </div>
         <div className="tdp-rel-footer">
           <div className="tdp-rel-price">Rs {tour.pricePKR} <span className="tdp-rel-pp">/ person</span></div>
-          <button type="button" className="tdp-rel-btn" onClick={(e) => { e.stopPropagation(); router.push(`/tours/${tour.id}`); }}>
+          <button type="button" className="tdp-rel-btn" onClick={(e) => { e.stopPropagation(); router.push(path); }}>
             View Details
           </button>
         </div>
@@ -92,34 +98,34 @@ export function TourDetailPage({ initialTour = null }) {
   const { id } = useParams();
   const router = useRouter();
 
-  const [tour, setTour] = useState(initialTour);
+  const [tourState, setTourState] = useState(initialTour);
   const [allTours, setAllTours] = useState([]);
+  const [form, setForm] = useState({ name: '', email: '', pax: '', help: '', message: '' });
+  const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    if (!initialTour || initialTour.id !== id) {
+    if (!initialTour || (String(initialTour.id) !== String(id) && initialTour?.slug !== id)) {
       tourService.getTourById(id).then((t) => {
-        if (t) setTour(t);
+        if (t) setTourState(t);
       });
     }
     tourService.getTours().then(setAllTours);
   }, [id, initialTour]);
 
-  const activeTour = tour || allTours.find((t) => t.id === id) || allTours[0];
-
+  const tour =
+    tourState ||
+    allTours.find((t) => String(t.id) === String(id) || t?.slug === id) ||
+    allTours[0] ||
+    null;
 
   const related = useMemo(
-    () => allTours.filter((t) => t.id !== (activeTour ? activeTour.id : id)).slice(0, 4),
-    [allTours, activeTour, id]
+    () => allTours.filter((t) => String(t.id) !== String(tour ? tour.id : id)).slice(0, 4),
+    [allTours, tour, id]
   );
-
-  if (!activeTour) return null;
-
-  /* ── inquiry form ── */
-  const [form, setForm] = useState({ name: '', email: '', pax: '', help: '', message: '' });
-  const [sent, setSent] = useState(false);
 
   const handleSend = async (e) => {
     e.preventDefault();
+    if (!tour) return;
     try {
       await inquiryService.submitInquiry({
         type: 'tour',
@@ -140,6 +146,7 @@ export function TourDetailPage({ initialTour = null }) {
   };
 
   const handleWhatsApp = () => {
+    if (!tour) return;
     const msg = `Hi, I'd like to enquire about the "${tour.title}" tour package. Please share details.`;
     window.open(COMPANY_CONFIG.getWhatsAppUrl(msg), '_blank');
   };
@@ -147,6 +154,8 @@ export function TourDetailPage({ initialTour = null }) {
   const handleCall = () => {
     window.location.href = `tel:${COMPANY_CONFIG.phoneRaw}`;
   };
+
+  if (!tour) return null;
 
   return (
     <div className="app-layout-root">

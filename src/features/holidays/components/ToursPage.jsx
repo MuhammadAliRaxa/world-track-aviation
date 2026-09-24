@@ -21,105 +21,9 @@ import { AppBar } from '../../../shared/components/AppBar';
 import { Footer } from '../../../shared/components/Footer';
 import { PassportIcon, WhatsAppIcon } from '../../../shared';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
-import { COMPANY_CONFIG } from '../../../config/company';
 import { tourService } from '../../../services';
 import { PRICE_RANGES } from '../data/holidaysData';
-
-/* ── Icon map for package includes ─────────────────────────── */
-const INCLUDE_ICONS = {
-  hotel: <Building2 size={13} />,
-  visa: <PassportIcon size={13} />,
-  air: <Plane size={13} />,
-  transfer: <Car size={13} />,
-  insurance: <ShieldCheck size={13} />,
-};
-
-/* ── Tour card ────────────────────────────────────────────── */
-function TourCard({ tour }) {
-  const router = useRouter();
-
-  const handleViewDetails = () => {
-    const slug = tour.seo?.url_slug || tour.id;
-    router.push(`/tour-packages/${slug}/`);
-  };
-
-  return (
-    <div className="tr-card" onClick={handleViewDetails} role="button" tabIndex={0}>
-      {/* Image block */}
-      <div className="tr-card-img-wrap">
-        <img
-          src={tour.image}
-          alt={tour.imageAltText || tour?.seo?.image_alt || `${tour.title} - World Track Aviation`}
-          className="tr-card-img"
-          loading="lazy"
-          decoding="async"
-          width={360}
-          height={200}
-        />
-
-        {/* Rating badge – top right */}
-        {tour.rating > 0 && (
-          <div className="tr-rating-badge">
-            <Star size={11} className="tr-rating-star" />
-            <span>{tour.rating} ({tour.reviewCount})</span>
-          </div>
-        )}
-
-        {/* Duration pill – bottom left */}
-        <div className="tr-duration-pill">
-          <Clock size={11} />
-          <span>{tour.duration}</span>
-        </div>
-      </div>
-
-      {/* Card body */}
-      <div className="tr-card-body">
-        {/* Destination label */}
-        <div className="tr-destination-tag">{tour.location}</div>
-
-        {/* Title */}
-        <h3 className="tr-card-title">{tour.title}</h3>
-
-        {/* Package Includes */}
-        <div className="tr-pkg-label">PACKAGE INCLUDES</div>
-        <div className="tr-pkg-icons-row">
-          {tour.packageIncludes ? (
-            tour.packageIncludes.map((inc) => (
-              <div key={`tr-pkg-${tour.id}-${inc.label}`} className="tr-pkg-icon-item">
-                {INCLUDE_ICONS[inc.icon] || <ShieldCheck size={13} />}
-                <span>{inc.label}</span>
-              </div>
-            ))
-          ) : (
-            <>
-              <div className="tr-pkg-icon-item"><Building2 size={13} /><span>Hotel</span></div>
-              <div className="tr-pkg-icon-item"><PassportIcon size={13} /><span>Visa</span></div>
-              <div className="tr-pkg-icon-item"><Plane size={13} /><span>Air Ticket</span></div>
-              <div className="tr-pkg-icon-item"><Car size={13} /><span>Pick &amp; Drop</span></div>
-              <div className="tr-pkg-icon-item"><ShieldCheck size={13} /><span>Insurance</span></div>
-            </>
-          )}
-        </div>
-
-        {/* Price + CTA */}
-        <div className="tr-card-footer">
-          <div className="tr-price-block">
-            <span className="tr-starting-from">STARTING FROM</span>
-            <div className="tr-price">Rs {tour.pricePKR} <span className="tr-per">/ person</span></div>
-          </div>
-          <button
-            type="button"
-            className="tr-view-btn"
-            onClick={handleViewDetails}
-            id={`view-tour-${tour.id}`}
-          >
-            View Details
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { HolidayCard } from './HolidayCard';
 
 /* ── MAIN PAGE ────────────────────────────────────────────── */
 export function ToursPage({
@@ -529,7 +433,7 @@ export function ToursPage({
                 <>
                   <div className="tr-grid">
                     {tours.map(t => (
-                      <TourCard key={t.id} tour={t} />
+                      <HolidayCard key={t.id} tour={t} />
                     ))}
                   </div>
 

@@ -75,8 +75,18 @@ export function normalizeBlogDetail(item: any): BlogPost | null {
     }));
   }
 
+  const rawSlug = item.slug || item.seo?.url_slug || '';
+  const cleanSlug = rawSlug
+    ? String(rawSlug)
+        .replace(/^https?:\/\/[^/]+/i, '')
+        .replace(/^\/?(our-blogs|blogs)\//i, '')
+        .replace(/^\/+|\/+$/g, '')
+    : '';
+  const slug = cleanSlug || String(id);
+
   return {
     id,
+    slug,
     title,
     heroTitle: title,
     eyebrow: badge,
@@ -169,10 +179,25 @@ export const blogService = {
     try {
       const blogs = await this.getBlogs();
       if (!blogs || blogs.length === 0) return null;
-      const targetId = String(id).toLowerCase().trim();
-      const found = blogs.find(
-        (b) => String(b.id).toLowerCase().trim() === targetId || ((b as any).seo?.url_slug || '').toLowerCase().trim() === targetId,
-      );
+      const target = String(id)
+        .toLowerCase()
+        .replace(/^https?:\/\/[^/]+/i, '')
+        .replace(/^\/?(our-blogs|blogs)\//i, '')
+        .replace(/^\/+|\/+$/g, '')
+        .trim();
+
+      const found = blogs.find((b) => {
+        const bId = String(b.id).toLowerCase().trim();
+        const bSlug = String((b as any).slug || '').toLowerCase().trim();
+        const rawSeoSlug = String((b as any).seo?.url_slug || '')
+          .toLowerCase()
+          .replace(/^https?:\/\/[^/]+/i, '')
+          .replace(/^\/?(our-blogs|blogs)\//i, '')
+          .replace(/^\/+|\/+$/g, '')
+          .trim();
+
+        return bId === target || bSlug === target || rawSeoSlug === target;
+      });
       return found || null;
     } catch {
       return null;

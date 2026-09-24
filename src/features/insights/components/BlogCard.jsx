@@ -1,5 +1,4 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
 
 const DEFAULT_BLOG_IMAGE = 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80';
 
@@ -17,19 +16,37 @@ function stripHtmlTags(str) {
     .trim();
 }
 
+function formatBlogDate(dateStr) {
+  if (!dateStr) return 'Feb 18, 2026';
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+  } catch {}
+  return dateStr;
+}
+
 export function BlogCard({ article, onClick, className = '' }) {
   const imageUrl = article?.image || DEFAULT_BLOG_IMAGE;
   const rawTitle = article?.title || article?.name || 'Travel Guide';
   const displayTitle = stripHtmlTags(rawTitle);
 
-  const rawBadge = article?.badge || article?.category || 'GUIDE';
+  const rawBadge = article?.badge || article?.category || 'UMRAH GUIDE';
   const displayBadge = stripHtmlTags(rawBadge).toUpperCase();
 
   const rawSummary = article?.summary || article?.description || article?.short_description || 'Essential travel insights and guides.';
   const displaySummary = stripHtmlTags(rawSummary);
 
-  const rawAuthor = article?.author || 'World Track Aviation';
+  const rawAuthor = article?.author || 'Hafiz Umair Siddique';
   const displayAuthor = stripHtmlTags(rawAuthor);
+
+  const rawDate = article?.date || article?.created_at;
+  const displayDate = formatBlogDate(rawDate);
 
   return (
     <div
@@ -47,7 +64,7 @@ export function BlogCard({ article, onClick, className = '' }) {
           loading="lazy"
           decoding="async"
           width={360}
-          height={200}
+          height={205}
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = DEFAULT_BLOG_IMAGE;
@@ -62,7 +79,7 @@ export function BlogCard({ article, onClick, className = '' }) {
       <div className="wt-blog-card-body">
         {/* Date and Author */}
         <div className="wt-blog-card-meta">
-          {article?.date || 'Recent'} · By {displayAuthor}
+          {displayDate} · By {displayAuthor}
         </div>
 
         {/* Title */}
@@ -74,7 +91,7 @@ export function BlogCard({ article, onClick, className = '' }) {
         {/* Bottom Action Line */}
         <div className="wt-blog-card-footer">
           <span className="wt-blog-card-read-text">Read Full Guide</span>
-          <ArrowRight size={15} className="wt-blog-card-arrow" />
+          <span className="wt-blog-card-arrow">&rarr;</span>
         </div>
       </div>
     </div>

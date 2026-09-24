@@ -15,8 +15,42 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   'https://admin.worldtracktravel.com/api';
 
-/** Default request timeout in milliseconds. */
-const DEFAULT_TIMEOUT_MS = 8_000;
+/** Default request timeout in milliseconds. Increased from 8s to 15s for heavy rate calculations. */
+const DEFAULT_TIMEOUT_MS = 15_000;
+
+/** Cache TTL for read queries (in ms). */
+const CACHE_TTL_MS = 30_000; // 30 seconds
+
+/** Stale fallback TTL (in ms) when an API returns 429 or times out. */
+const STALE_TTL_MS = 5 * 60_000; // 5 minutes
+
+/** Maximum retries when server responds with 429 Too Many Requests. */
+const MAX_429_RETRIES = 2;
+
+// ---------------------------------------------------------------------------
+// In-Memory Cache & In-Flight Request Deduplication
+// ---------------------------------------------------------------------------
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const memoryCache = new Map<string, CacheEntry<any>>();
+const inFlightRequests = new Map<string, Promise<any>>();
+
+function isMutationEndpoint(endpoint: string, method?: string): boolean {
+  if (method === 'PUT' || method === 'DELETE' || method === 'PATCH') return true;
+  const lower = endpoint.toLowerCase();
+  if (lower.includes('/inquiry/submit') || lower.includes('/seo/404-log')) return true;
+  return false;
+}
+
+function buildCacheKey(endpoint: string, options: RequestInit): string {
+  const method = (options.method || 'GET').toUpperCase();
+  const body = options.body ? String(options.body) : '';
+  return `${method}:${endpoint}:${body}`;
+}
 
 // ---------------------------------------------------------------------------
 // Internal fetch with timeout
@@ -47,12 +81,13 @@ async function fetchWithTimeout(
 }
 
 // ---------------------------------------------------------------------------
-// Low-level raw client (returns full Response body as T, no envelope unwrap)
+// Core fetch executor with 429 retry
 // ---------------------------------------------------------------------------
 
-export async function apiClient<T>(
+async function executeFetch<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: RequestInit,
+  retryCount = 0,
 ): Promise<T> {
   const url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
@@ -66,6 +101,19 @@ export async function apiClient<T>(
     { ...options, headers },
     DEFAULT_TIMEOUT_MS,
   );
+
+  // Handle 429 Too Many Requests with exponential backoff retry
+  if (response.status === 429) {
+    if (retryCount < MAX_429_RETRIES) {
+      const retryAfterHeader = response.headers.get('Retry-After');
+      const delayMs = retryAfterHeader
+        ? (parseInt(retryAfterHeader, 10) * 1000 || 1200)
+        : (1000 * Math.pow(2, retryCount));
+      console.warn(`[apiClient] 429 Rate limited on ${endpoint}. Retrying in ${delayMs}ms (attempt ${retryCount + 1}/${MAX_429_RETRIES})...`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return executeFetch<T>(endpoint, options, retryCount + 1);
+    }
+  }
 
   if (!response.ok) {
     let errMessage = `API error ${response.status}`;
@@ -86,6 +134,67 @@ export async function apiClient<T>(
 }
 
 // ---------------------------------------------------------------------------
+// Low-level raw client (with in-flight deduplication and memory cache)
+// ---------------------------------------------------------------------------
+
+export interface ApiClientOptions extends RequestInit {
+  skipCache?: boolean;
+}
+
+export async function apiClient<T>(
+  endpoint: string,
+  options: ApiClientOptions = {},
+): Promise<T> {
+  const isMutation = isMutationEndpoint(endpoint, options.method);
+  const cacheKey = buildCacheKey(endpoint, options);
+
+  // 1. If not a mutation and not skipping cache, check memory cache
+  if (!isMutation && !options.skipCache) {
+    const cached = memoryCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data as T;
+    }
+
+    // 2. In-flight request deduplication: if identical request is pending, await it
+    const existing = inFlightRequests.get(cacheKey);
+    if (existing) {
+      return existing as Promise<T>;
+    }
+  }
+
+  const promise = (async () => {
+    try {
+      const result = await executeFetch<T>(endpoint, options);
+      if (!isMutation) {
+        memoryCache.set(cacheKey, {
+          data: result,
+          timestamp: Date.now(),
+        });
+      }
+      return result;
+    } catch (err) {
+      // Resilient fallback: if query fails (429 or timeout) and we have any stale cached data, use it!
+      if (!isMutation) {
+        const stale = memoryCache.get(cacheKey);
+        if (stale && Date.now() - stale.timestamp < STALE_TTL_MS) {
+          console.warn(`[apiClient] Request failed for ${endpoint}, using stale cached response:`, (err as Error).message);
+          return stale.data as T;
+        }
+      }
+      throw err;
+    } finally {
+      inFlightRequests.delete(cacheKey);
+    }
+  })();
+
+  if (!isMutation && !options.skipCache) {
+    inFlightRequests.set(cacheKey, promise);
+  }
+
+  return promise;
+}
+
+// ---------------------------------------------------------------------------
 // Higher-level helpers that unwrap { response, data } envelope
 // ---------------------------------------------------------------------------
 
@@ -95,7 +204,7 @@ export async function apiClient<T>(
  */
 export async function apiGet<T>(
   endpoint: string,
-  fetchOptions?: RequestInit,
+  fetchOptions?: ApiClientOptions,
 ): Promise<ApiResponse<T>> {
   const raw = await apiClient<ApiResponse<T>>(endpoint, {
     method: 'GET',
@@ -111,10 +220,10 @@ export async function apiGet<T>(
 export async function apiPost<T>(
   endpoint: string,
   body: unknown = {},
-  fetchOptions?: RequestInit,
+  fetchOptions?: ApiClientOptions,
 ): Promise<ApiResponse<T>> {
   // Strip next revalidate options on POST requests to avoid Next.js warnings/no-op
-  const { next: _next, ...safeOptions } = (fetchOptions || {}) as { next?: unknown } & RequestInit;
+  const { next: _next, ...safeOptions } = (fetchOptions || {}) as { next?: unknown } & ApiClientOptions;
 
   const raw = await apiClient<ApiResponse<T>>(endpoint, {
     method: 'POST',
@@ -123,4 +232,5 @@ export async function apiPost<T>(
   });
   return raw;
 }
+
 

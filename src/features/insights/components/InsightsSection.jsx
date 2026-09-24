@@ -84,7 +84,7 @@ export function InsightsSection({ initialBlogs = [] }) {
               <BlogCard
                 key={article.id}
                 article={article}
-                onClick={() => router.push(`/our-blogs/${article.id}`)}
+                onClick={() => router.push(`/our-blogs/${article.slug || article.id}/`)}
               />
             ))
           ) : null}

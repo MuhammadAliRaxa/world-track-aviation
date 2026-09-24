@@ -52,7 +52,11 @@ export function HolidayCard({ tour, onSelectTour }) {
   const router = useRouter();
 
   const handleCardClick = () => {
-    router.push(`/tours/${tour.id}`);
+    const rawSlug = tour.slug || tour.seo?.url_slug || tour.id;
+    const cleanSlug = String(rawSlug)
+      .replace(/^\/?(tours|tour-packages)\//i, '')
+      .replace(/^\/+|\/+$/g, '');
+    router.push(`/tour-packages/${cleanSlug || tour.id}/`);
   };
 
   const inclusions = tour.packageIncludes && tour.packageIncludes.length > 0

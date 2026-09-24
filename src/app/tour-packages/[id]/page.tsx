@@ -12,7 +12,20 @@ interface Props {
 export async function generateStaticParams() {
   const tours = await tourService.getTours();
   if (!Array.isArray(tours)) return [];
-  return tours.map((t) => ({ id: String(t.id) }));
+  const params: { id: string }[] = [];
+  tours.forEach((t) => {
+    params.push({ id: String(t.id) });
+    const slug = (t as any).slug || (t as any)?.seo?.url_slug;
+    if (slug) {
+      const clean = String(slug)
+        .replace(/^\/?(tours|tour-packages)\//i, '')
+        .replace(/^\/+|\/+$/g, '');
+      if (clean && clean !== String(t.id)) {
+        params.push({ id: clean });
+      }
+    }
+  });
+  return params;
 }
 
 export const revalidate = 86400; // 24 hours ISR

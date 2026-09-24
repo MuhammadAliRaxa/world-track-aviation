@@ -62,8 +62,14 @@ export function normalizeTourDetail(item: any): TourPackage | null {
         { icon: 'insurance', label: 'Travel Insurance' },
       ]);
 
+  const rawSlug = item.seo?.url_slug || item.slug;
+  const slug = rawSlug
+    ? String(rawSlug).replace(/^\/?(tours|tour-packages)\//, '').replace(/^\/+|\/+$/g, '')
+    : id;
+
   return {
     id,
+    slug,
     title,
     destination,
     location,
@@ -171,16 +177,31 @@ export const tourService = {
     }
   },
 
-  /**
-   * Fetch a single tour by ID or slug.
-   */
   async getTourById(id: string): Promise<TourPackage | null> {
     try {
+      const rawInput = String(id || '').trim();
+      const decodedInput = decodeURIComponent(rawInput).trim().toLowerCase();
+      const cleanTarget = decodedInput
+        .replace(/^\/?(tours|tour-packages)\//i, '')
+        .replace(/^\/+|\/+$/g, '');
+
       const res = await apiPost<ApiTour[]>('/tour/list', {}, { cache: 'no-store' } as RequestInit);
       const list = Array.isArray(res.data) ? res.data : [];
-      const found = list.find(
-        (t) => String(t.id) === id || (t.seo as any)?.url_slug === id,
-      );
+      const found = list.find((t) => {
+        if (String(t.id) === rawInput || String(t.id) === cleanTarget) return true;
+        const apiSlug = (t.seo as any)?.url_slug || (t as any)?.slug || t.name;
+        if (!apiSlug) return false;
+        const decodedApi = decodeURIComponent(String(apiSlug)).trim().toLowerCase();
+        const cleanApi = decodedApi
+          .replace(/^\/?(tours|tour-packages)\//i, '')
+          .replace(/^\/+|\/+$/g, '');
+        return (
+          decodedApi === decodedInput ||
+          cleanApi === cleanTarget ||
+          cleanApi === decodedInput ||
+          decodedApi === cleanTarget
+        );
+      });
       if (found) return normalizeTourDetail(found);
       return null;
     } catch {

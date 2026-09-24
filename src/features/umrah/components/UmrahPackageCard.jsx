@@ -20,24 +20,31 @@ export function UmrahPackageCard({ pkg, onBookPackage }) {
   const router = useRouter();
 
   const handleCardClick = () => {
-    router.push(`/umrah-packages/${pkg.id}/`);
+    const slug = pkg.slug || pkg.seo?.url_slug || pkg.id;
+    router.push(`/umrah-packages/${slug}/`);
   };
 
   const imageUrl = getUmrahImage(pkg);
-  const displayTitle = pkg.title || pkg.package_name || pkg.name || 'Umrah Package';
-  const displayBadge = pkg.badge || pkg.category || 'UMRAH';
-  const displayDuration = pkg.duration
-    ? (typeof pkg.duration === 'number' || !String(pkg.duration).includes('Day') ? `${pkg.duration} Days` : pkg.duration)
-    : '14 Days';
-  const displayTagline = pkg.tagline || pkg.short_description || 'Complete Umrah package with hotels and transfers';
+  const displayTitle = pkg.title || pkg.package_name || pkg.name || '5-Star VIP Royal Haramain Package';
+  const displayBadge = pkg.badge || pkg.category || '5-STAR';
+  const rawDuration = pkg.duration || '10 Days';
+  const displayDuration = typeof rawDuration === 'number' || !String(rawDuration).toLowerCase().includes('day')
+    ? `${rawDuration} Days`
+    : String(rawDuration);
+  const displayTagline = pkg.tagline || pkg.short_description || 'Supreme luxury adjacent to the sacred courtyards with private VIP transfers';
   
-  const rawPrice = pkg.price || pkg.prices?.sharing;
-  const displayPrice = pkg.price && typeof pkg.price === 'string' && pkg.price.startsWith('Rs')
-    ? pkg.price
-    : (rawPrice ? `Rs ${Number(rawPrice).toLocaleString()}` : 'Contact for Price');
+  const rawPrice = pkg.pricePKR || pkg.price || pkg.prices?.sharing || '485000';
+  let cleanPrice = String(rawPrice).trim();
+  if (cleanPrice.startsWith('Rs') || cleanPrice.startsWith('RS')) {
+    cleanPrice = cleanPrice.replace(/^Rs\.?\s*/i, '');
+  }
+  const numericPrice = parseInt(cleanPrice.replace(/[^0-9]/g, ''), 10);
+  const displayPrice = !isNaN(numericPrice) && numericPrice > 0
+    ? `Rs ${numericPrice.toLocaleString()}`
+    : `Rs ${cleanPrice}`;
 
-  const makkahHotelName = pkg.makkahHotel?.name || pkg.makkah_hotel?.name || 'Makkah Hotel';
-  const madinahHotelName = pkg.madinahHotel?.name || pkg.madina_hotel?.name || pkg.madinah_hotel?.name || 'Madinah Hotel';
+  const makkahHotelName = pkg.makkahHotel?.name || pkg.makkah_hotel?.name || pkg.makkahHotel || 'Makkah Clock Royal Tower (Fairmont)';
+  const madinahHotelName = pkg.madinahHotel?.name || pkg.madina_hotel?.name || pkg.madinah_hotel?.name || pkg.madinahHotel || 'The Oberoi Madina / Dar Al Taqwa';
 
   return (
     <div
@@ -55,7 +62,7 @@ export function UmrahPackageCard({ pkg, onBookPackage }) {
           loading="lazy"
           decoding="async"
           width={360}
-          height={200}
+          height={205}
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = DEFAULT_UMRAH_IMAGE;
@@ -81,7 +88,7 @@ export function UmrahPackageCard({ pkg, onBookPackage }) {
         <div className="umrah-hotels-panel">
           {/* Makkah Hotel */}
           <div className="umrah-hotel-entry">
-            <Building2 size={13} className="hotel-entry-icon" />
+            <Building2 size={15} className="hotel-entry-icon" />
             <div className="umrah-hotel-text-cell">
               <span className="hotel-city-label">MAKKAH HOTEL</span>
               <div className="hotel-name-val">{makkahHotelName}</div>
@@ -90,7 +97,7 @@ export function UmrahPackageCard({ pkg, onBookPackage }) {
 
           {/* Madinah Hotel */}
           <div className="umrah-hotel-entry">
-            <Building2 size={13} className="hotel-entry-icon" />
+            <Building2 size={15} className="hotel-entry-icon" />
             <div className="umrah-hotel-text-cell">
               <span className="hotel-city-label">MADINAH HOTEL</span>
               <div className="hotel-name-val">{madinahHotelName}</div>

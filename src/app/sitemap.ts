@@ -84,28 +84,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const tourRoutes: MetadataRoute.Sitemap = tours
     .filter(isIndexable)
-    .map((t) => ({
-      url: `${baseUrl}/tour-packages/${t.id}/`,
-      lastModified: parseItemDate(t),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    }));
+    .map((t) => {
+      const rawSlug = (t as any).slug || (t as any)?.seo?.url_slug || t.id;
+      const cleanSlug = String(rawSlug)
+        .replace(/^\/?(tours|tour-packages)\//i, '')
+        .replace(/^\/+|\/+$/g, '');
+      return {
+        url: `${baseUrl}/tour-packages/${cleanSlug || t.id}/`,
+        lastModified: parseItemDate(t),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      };
+    });
 
   const umrahRoutes: MetadataRoute.Sitemap = umrahs
     .filter(isIndexable)
-    .map((u) => ({
-      url: `${baseUrl}/umrah-packages/${u.id}/`,
-      lastModified: parseItemDate(u),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    }));
+    .map((u) => {
+      const slug = (u as any).slug || (u as any)?.seo?.url_slug;
+      return {
+        url: `${baseUrl}/umrah-packages/${slug || u.id}/`,
+        lastModified: parseItemDate(u),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      };
+    });
 
   const blogRoutes: MetadataRoute.Sitemap = blogs
     .filter(isIndexable)
     .map((b) => {
-      const slug = (b as any).slug || (b as any)?.seo?.url_slug;
+      const rawSlug = (b as any).slug || (b as any)?.seo?.url_slug || b.id;
+      const cleanSlug = String(rawSlug)
+        .replace(/^https?:\/\/[^/]+/i, '')
+        .replace(/^\/?(our-blogs|blogs)\//i, '')
+        .replace(/^\/+|\/+$/g, '');
       return {
-        url: `${baseUrl}/our-blogs/${slug || b.id}/`,
+        url: `${baseUrl}/our-blogs/${cleanSlug || b.id}/`,
         lastModified: parseItemDate(b),
         changeFrequency: 'monthly',
         priority: 0.7,

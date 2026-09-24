@@ -5,6 +5,7 @@ export interface TourIncludeItem {
 
 export interface TourPackage {
   id: string;
+  slug?: string;
   country: string;
   destination: string;
   location: string;
