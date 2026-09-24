@@ -1,30 +1,18 @@
 import type { Metadata } from 'next';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { HotelsMapPage } from '@/features/hotels/components/HotelsMapPage';
 
-export const metadata: Metadata = {
-  title: 'Verified Hotels Near Haramain Map | World Track Aviation',
-  description:
-    'Explore our verified hotels near Masjid al-Haram and Al-Masjid an-Nabawi on an interactive map. Compare distance, price, and availability before booking.',
-  keywords: [
-    'Verified hotels near Haramain',
-    'hotels near Haram map',
-    'Makkah Madinah hotel map',
-    'World Track Aviation',
-  ],
-  alternates: {
-    canonical: 'https://worldtracktravel.com/hotels-map/',
-  },
-  openGraph: {
-    title: 'Verified Hotels Near Haramain Map | World Track Aviation',
-    description:
-      'Explore our verified hotels near Masjid al-Haram and Al-Masjid an-Nabawi on an interactive map. Compare distance, price, and availability before booking.',
-    url: 'https://worldtracktravel.com/hotels-map/',
-    siteName: 'World Track Aviation',
-    type: 'website',
-  },
-};
+export const revalidate = 0;
 
-import { fetchPageSeo } from '@/lib/seo';
+export async function generateMetadata(): Promise<Metadata> {
+  return buildMetadata({
+    pageKey: 'hotels-map',
+    canonicalPath: 'https://worldtracktravel.com/hotels-map/',
+    fallbackTitle: 'Verified Hotels Near Haramain Map | World Track Aviation',
+    fallbackDescription:
+      'Explore our verified hotels near Masjid al-Haram and Al-Masjid an-Nabawi on an interactive map. Compare distance, price, and availability before booking.',
+  });
+}
 
 export default async function Page() {
   const pageSeo = await fetchPageSeo('hotels-map');

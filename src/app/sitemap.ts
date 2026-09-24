@@ -8,7 +8,8 @@ import {
   blogService,
 } from '@/services';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache for 1 hour, or regenerates dynamically
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_CONFIG.baseUrl;
