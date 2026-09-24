@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { HotelsMapPage } from '@/features/hotels/components/HotelsMapPage';
 
+import { hotelService } from '@/services/hotel.service';
+
 export const revalidate = 0;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -15,12 +17,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const pageSeo = await fetchPageSeo('hotels-map');
+  const [pageSeo, initialHotels] = await Promise.all([
+    fetchPageSeo('hotels-map'),
+    hotelService.getHotels().catch(() => []),
+  ]);
 
   return (
     <HotelsMapPage
       h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
       heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+      initialHotels={initialHotels}
     />
   );
 }

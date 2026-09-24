@@ -1,18 +1,10 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import {
-  CheckCircle2,
-  Flag,
-  Eye,
-  PlaneTakeoff,
-  Medal,
-  Star
-} from 'lucide-react';
+import { Flag, Eye, Star } from 'lucide-react';
 
-/* Mosque Silhouette Icon (Dedicated Haramain Desk & Govt. Ministry Lic) */
-function MosqueIcon({ size = 18, color = 'currentColor', className = '' }) {
+/* Mosque Silhouette Icon */
+function MosqueIcon({ size = 20, color = 'currentColor', className = '' }) {
   return (
     <svg
       width={size}
@@ -28,56 +20,27 @@ function MosqueIcon({ size = 18, color = 'currentColor', className = '' }) {
   );
 }
 
-/* Scalloped Badge with Checkmark (Used for Verified Visa Success Rate & IATA Member) */
-function ScallopedBadgeCheck({ size = 20, bgColor = '#10b981', checkColor = '#ffffff', className = '' }) {
+/* Checkmark badge for IATA Member */
+function IataCheckBadge({ size = 15, className = '' }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
-    >
-      <path
-        d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"
-        fill={bgColor}
-      />
-      <path
-        d="m9 12 2 2 4-4"
-        stroke={checkColor}
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="10" fill="#0f172a" />
+      <path d="M8 12.5l2.5 2.5 5.5-5.5" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-/* Dual Airplanes Icon for Airline Partners Fleet */
-function DualPlanesIcon({ size = 20, color = '#0284c7', className = '' }) {
+/* Classical Govt building icon */
+function BuildingGovIcon({ size = 15, color = '#0f172a', className = '' }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path
-        d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.8-.2-1.6.2-2 1-.3.5-.2 1.2.3 1.6l4.2 3.4-2.1 2.1-2.1-.4c-.4-.1-.8.1-1.1.4l-.3.3c-.3.3-.3.7 0 1l2.5 2.5c.3.3.7.3 1 0l.3-.3c.3-.3.5-.7.4-1.1l-.4-2.1 2.1-2.1 3.4 4.2c.4.5 1.1.6 1.6.3.8-.4 1.2-1.2 1-2Z"
-        transform="translate(4, -3) scale(0.72)"
-      />
-      <path
-        d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.8-.2-1.6.2-2 1-.3.5-.2 1.2.3 1.6l4.2 3.4-2.1 2.1-2.1-.4c-.4-.1-.8.1-1.1.4l-.3.3c-.3.3-.3.7 0 1l2.5 2.5c.3.3.7.3 1 0l.3-.3c.3-.3.5-.7.4-1.1l-.4-2.1 2.1-2.1 3.4 4.2c.4.5 1.1.6 1.6.3.8-.4 1.2-1.2 1-2Z"
-        transform="translate(-1, 9) scale(0.48)"
-      />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <line x1="3" y1="21" x2="21" y2="21" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <polygon points="12 3 2 10 22 10 12 3" fill={color} />
+      <line x1="6" y1="10" x2="6" y2="21" />
+      <line x1="10" y1="10" x2="10" y2="21" />
+      <line x1="14" y1="10" x2="14" y2="21" />
+      <line x1="18" y1="10" x2="18" y2="21" />
     </svg>
   );
 }
@@ -85,26 +48,52 @@ function DualPlanesIcon({ size = 20, color = '#0284c7', className = '' }) {
 /* DTS Approved Shield Icon */
 function ShieldCheckDark({ size = 15, color = '#0f172a', className = '' }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
-    >
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill={color} />
+      <path d="m9 12 2 2 4-4" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* Plane Departure Runway Icon for 150K+ */
+function PlaneDepartureIcon({ size = 22, color = '#0284c7', className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M2 20h20" />
+      <path d="M13.5 15.5L20 9l-1.5-1.5L14 10l-4-6-2 1 2 6-4 2-2-1-1.5 1 2.5 3.5 6.5-1z" />
+    </svg>
+  );
+}
+
+/* Medal Legacy Icon for 14+ Years */
+function MedalLegacyIcon({ size = 22, color = '#0284c7', className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <circle cx="12" cy="8" r="6" />
+      <path d="M12 2v1" />
+      <path d="M8.21 13.89L7 22l5-3 5 3-1.21-8.11" />
+    </svg>
+  );
+}
+
+/* Scalloped Badge with Checkmark (Blue) for 99.4% */
+function ScallopedBadgeBlue({ size = 22, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
       <path
-        d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-        fill={color}
+        d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"
+        fill="#0284c7"
       />
-      <path
-        d="m9 12 2 2 4-4"
-        stroke="#ffffff"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="m9 12 2 2 4-4" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* Plane In Flight Icon for 700+ */
+function PlaneFlightIcon({ size = 22, color = '#0284c7', className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.8-.2-1.6.2-2 1-.3.5-.2 1.2.3 1.6l4.2 3.4-2.1 2.1-2.1-.4c-.4-.1-.8.1-1.1.4l-.3.3c-.3.3-.3.7 0 1l2.5 2.5c.3.3.7.3 1 0l.3-.3c.3-.3.5-.7.4-1.1l-.4-2.1 2.1-2.1 3.4 4.2c.4.5 1.1.6 1.6.3.8-.4 1.2-1.2 1-2Z" />
     </svg>
   );
 }
@@ -113,40 +102,32 @@ export function AboutSection({ isAboutPage = false }) {
   const stats = [
     {
       id: 'travelers',
-      icon: <PlaneTakeoff size={20} className="text-sky-600" />,
-      wrapBg: '#eff6ff',
-      dotColor: '#0284c7',
-      value: isAboutPage ? '21,000+' : '30,000+',
-      title: isAboutPage ? 'Umrah Travelers Served' : 'Travelers Served',
-      subtitle: 'Across Pakistan and international routes'
+      icon: <PlaneDepartureIcon size={22} color="#0284c7" />,
+      value: '150K+',
+      title: 'Travelers Served',
+      subtitle: 'Across 42+ countries worldwide',
     },
     {
       id: 'legacy',
-      icon: <Medal size={20} className="text-amber-500" />,
-      wrapBg: '#fffbeb',
-      dotColor: '#f59e0b',
-      value: '4+ Years',
-      title: isAboutPage ? 'in the Industry' : 'Industry Legacy',
-      subtitle: 'Established and trusted since 2022'
+      icon: <MedalLegacyIcon size={22} color="#0284c7" />,
+      value: '14+ Years',
+      title: 'Industry Legacy',
+      subtitle: 'Established & trusted since 2012',
     },
     {
       id: 'visa-success',
-      icon: <ScallopedBadgeCheck size={20} bgColor="#10b981" checkColor="#ffffff" />,
-      wrapBg: '#ecfdf5',
-      dotColor: '#10b981',
+      icon: <ScallopedBadgeBlue size={22} />,
       value: '99.4%',
       title: 'Visa Success Rate',
-      subtitle: 'Thorough pre-audit verification'
+      subtitle: 'Thorough pre-audit verification',
     },
     {
       id: 'airlines',
-      icon: <DualPlanesIcon size={20} color="#0284c7" />,
-      wrapBg: '#eff6ff',
-      dotColor: '#0284c7',
-      value: '15+',
+      icon: <PlaneFlightIcon size={22} color="#0284c7" />,
+      value: '700+',
       title: 'Airline Partners',
-      subtitle: 'Direct wholesale connectivity'
-    }
+      subtitle: 'Direct GDS wholesale connectivity',
+    },
   ];
 
   return (
@@ -154,21 +135,18 @@ export function AboutSection({ isAboutPage = false }) {
       <div className="section-container">
         {/* Centered Eyebrow & Main Title Header */}
         <div className="about-header-centered">
-          <div className="about-eyebrow-badge">
-            <CheckCircle2 size={15} className="about-badge-icon" />
-            <span>{isAboutPage ? 'ABOUT WORLD TRACK AVIATION' : 'WHO WE ARE'}</span>
-          </div>
+          <div className="about-eyebrow-text">ABOUT WORLD TRACK</div>
 
           <h2 className="about-main-title">
-            {isAboutPage
-              ? 'Crafting Meaningful Journeys & Sacred Memories Since 2022'
-              : "Islamabad's Travel Agency for Umrah, Visas, Flights & Hotels"}
+            Crafting Meaningful Journeys &amp;
+            <br />
+            Sacred Memories Since 2012
           </h2>
 
           <p className="about-lead-subtitle">
-            {isAboutPage
-              ? 'World Track Aviation is an IATA-accredited travel company based in Islamabad, working with families, corporate travelers, and Umrah pilgrims across Pakistan on transparent, well-planned trips.'
-              : "World Track Aviation is a licensed, IATA-accredited travel company in Islamabad, built around one idea: booking a trip, a visa, or an Umrah package shouldn't feel complicated."}
+            World Track Travel &amp; Tourism (Pvt.) Ltd. is Pakistan&apos;s trusted IATA-accredited travel management and
+            pilgrimage services organization, connecting thousands of families, corporate leaders, and pilgrims to the
+            world with absolute integrity.
           </p>
         </div>
 
@@ -176,43 +154,30 @@ export function AboutSection({ isAboutPage = false }) {
         <div className="about-story-grid">
           {/* Left Column: Narrative & Mission/Vision Cards */}
           <div className="about-story-content">
-            {isAboutPage ? (
-              <p className="about-story-body" style={{ fontSize: '15px', lineHeight: '1.75', color: '#334155' }}>
-                We started as a small ticketing office with one goal: take the guesswork out of booking travel. Today the team handles everything from{' '}
-                <Link href="/umrah-packages" style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'underline' }}>
-                  Umrah trips to Makkah and Madinah
-                </Link>
-                , corporate delegations, and{' '}
-                <Link href="/tours" style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'underline' }}>
-                  family holidays
-                </Link>{' '}
-                to places like Baku, Dubai, and across the Far East. Every booking comes with clear pricing upfront and support you can actually reach, whether you're mid-flight or still deciding where to go.
-              </p>
-            ) : (
-              <>
-                <h3 className="about-story-lead">
-                  Built to make travel planning simple, World Track Aviation has grown from a small ticketing office into a full-service travel company for Pakistan.
-                </h3>
+            <h3 className="about-story-lead">
+              Founded with a vision to eliminate travel ambiguity, World Track has transformed from a boutique ticketing
+              house into a comprehensive global travel ecosystem.
+            </h3>
 
-                <p className="about-story-body">
-                  Since 2022, we've helped families, corporate teams, and pilgrims across the country plan trips that actually go the way they were supposed to. Whether it's an Umrah package with real hotel bookings near the Haramain, a visa application checked before it's submitted, or flights booked at rates that don't change at checkout, everything runs through one team, in one office, so you're never stuck explaining your booking to someone new.
-                </p>
-              </>
-            )}
+            <p className="about-story-body">
+              Whether you are embarking on a sacred pilgrimage to the Holy Haramain in Makkah and Madinah, organizing an
+              executive corporate delegation, or booking a rejuvenating family getaway to Baku, Dubai, or the Far East
+              — we ensure that every itinerary is engineered with precision, transparent pricing, and 24/7 human
+              concierge care.
+            </p>
 
             {/* Mission & Vision 2-Column Cards */}
             <div className="about-mv-cards-row">
               {/* Mission Card */}
               <div className="about-mv-card">
                 <div className="about-mv-icon-wrap bg-blue-light">
-                  <Flag size={18} fill="#2563eb" className="text-blue-600" />
+                  <Flag size={18} fill="#0284c7" stroke="#0284c7" />
                 </div>
                 <div className="about-mv-text">
                   <h4 className="about-mv-title">Our Mission</h4>
                   <p className="about-mv-desc">
-                    {isAboutPage
-                      ? 'To deliver honest, well-organized travel experiences using modern booking tools without losing the personal side of service.'
-                      : 'To make booking Umrah trips, visas, and flights simple, reliable, and backed by real support at every step.'}
+                    To deliver seamless, transparent, and spiritually elevating travel experiences through cutting-edge
+                    booking technology and personalized hospitality.
                   </p>
                 </div>
               </div>
@@ -220,14 +185,13 @@ export function AboutSection({ isAboutPage = false }) {
               {/* Vision Card */}
               <div className="about-mv-card">
                 <div className="about-mv-icon-wrap bg-amber-light">
-                  <Eye size={18} className="text-amber-600" />
+                  <Eye size={18} stroke="#d97706" />
                 </div>
                 <div className="about-mv-text">
                   <h4 className="about-mv-title">Our Vision</h4>
                   <p className="about-mv-desc">
-                    {isAboutPage
-                      ? "To become Pakistan's most trusted name in travel and Umrah management, known for straightforward pricing and clients who come back."
-                      : 'To be the travel company Pakistani families and pilgrims trust first, known for fair pricing and lasting service.'}
+                    To be the premier travel and pilgrimage management brand in the region, recognized for unwavering
+                    trust, ethical fare transparency, and customer loyalty.
                   </p>
                 </div>
               </div>
@@ -238,16 +202,16 @@ export function AboutSection({ isAboutPage = false }) {
               <span className="cert-label">CERTIFIED BY:</span>
               <div className="cert-items-group">
                 <div className="cert-badge-item">
-                  <ScallopedBadgeCheck size={15} bgColor="#0f172a" checkColor="#ffffff" />
-                  <span><strong>IATA Member</strong> #27351170</span>
+                  <IataCheckBadge size={16} />
+                  <span>IATA Member #27-2-8941</span>
                 </div>
                 <div className="cert-badge-item">
-                  <MosqueIcon size={14} color="#0f172a" />
-                  <span><strong>Govt. Ministry Lic</strong> No. ID-2637</span>
+                  <BuildingGovIcon size={16} color="#0f172a" />
+                  <span>Govt. Ministry Lic #4821</span>
                 </div>
                 <div className="cert-badge-item">
-                  <ShieldCheckDark size={14} color="#0f172a" />
-                  <span><strong>DTS Approved</strong></span>
+                  <ShieldCheckDark size={16} color="#0f172a" />
+                  <span>DTS Approved</span>
                 </div>
               </div>
             </div>
@@ -259,7 +223,7 @@ export function AboutSection({ isAboutPage = false }) {
               {/* Main Sunset Flight Image */}
               <img
                 src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1000&q=80"
-                alt="World Track Aviation Global Travel"
+                alt="World Track Global Flight Ecosystem"
                 className="about-hero-img"
                 loading="lazy"
                 decoding="async"
@@ -269,19 +233,19 @@ export function AboutSection({ isAboutPage = false }) {
 
               {/* Top-Right Star Rating Badge */}
               <div className="about-floating-rating">
-                <Star size={14} className="rating-star-icon" />
+                <Star size={13} fill="#000000" stroke="#000000" className="rating-star-icon" />
                 <span>4.9 / 5.0 Star Rating</span>
               </div>
+            </div>
 
-              {/* Bottom-Left Floating Haramain Desk Card */}
-              <div className="about-floating-desk-card">
-                <div className="desk-icon-box">
-                  <MosqueIcon size={22} color="#ffffff" />
-                </div>
-                <div className="desk-text-box">
-                  <h5 className="desk-title">Dedicated Haramain Desk</h5>
-                  <p className="desk-desc">Makkah &amp; Madinah Ground Coordinators 24/7</p>
-                </div>
+            {/* Bottom-Left Floating Haramain Desk Card */}
+            <div className="about-floating-desk-card">
+              <div className="desk-icon-box">
+                <MosqueIcon size={22} color="#ffffff" />
+              </div>
+              <div className="desk-text-box">
+                <h5 className="desk-title">Dedicated Haramain Desk</h5>
+                <p className="desk-desc">Makkah &amp; Madinah Ground Coordinators 24/7</p>
               </div>
             </div>
           </div>
@@ -291,21 +255,14 @@ export function AboutSection({ isAboutPage = false }) {
         <div className="about-stats-grid">
           {stats.map((stat) => (
             <div key={stat.id} className="about-stat-card">
-              <div className="stat-card-header">
-                <div
-                  className="stat-icon-wrap"
-                  style={{ backgroundColor: stat.wrapBg }}
-                >
-                  {stat.icon}
-                </div>
-                <span
-                  className="stat-dot-indicator"
-                  style={{ backgroundColor: stat.dotColor }}
-                />
+              <div className="stat-icon-wrap">
+                {stat.icon}
               </div>
-              <div className="stat-number-val">{stat.value}</div>
-              <h4 className="stat-title-txt">{stat.title}</h4>
-              <p className="stat-sub-txt">{stat.subtitle}</p>
+              <div className="stat-content-wrap">
+                <div className="stat-number-val">{stat.value}</div>
+                <h4 className="stat-title-txt">{stat.title}</h4>
+                <p className="stat-sub-txt">{stat.subtitle}</p>
+              </div>
             </div>
           ))}
         </div>

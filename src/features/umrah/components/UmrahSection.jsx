@@ -69,19 +69,31 @@ export function UmrahSection({ initialPackages = [], searchFilter = null, onClea
   return (
     <section className="umrah-feature-section" id="umrah">
       <div className="section-container">
-        {/* Centered Luxury Header */}
-        <div className="umrah-section-header">
-          <div className="umrah-eyebrow-text">
-            SACRED SPIRITUAL JOURNEYS
+        {/* Top Header Row with Title & View All Hotels CTA Matching Reference */}
+        <div className="umrah-header-row">
+          <div className="umrah-header-left">
+            <div className="umrah-eyebrow-text">
+              SACRED SPIRITUAL JOURNEYS 2026
+            </div>
+
+            <h2 className="umrah-main-title">
+              Verified Umrah Packages &amp; Haramain Stays
+            </h2>
+
+            <p className="umrah-sub-title">
+              Direct hotel contracting adjacent to Masjid al-Haram &amp; Al-Masjid an-Nabawi with VIP transfers, official Nusuk Rawdah permit assistance, and scholar-guided Ziyarat.
+            </p>
           </div>
 
-          <h2 className="umrah-main-title">
-            Verified Umrah Packages &amp; Haramain Stays
-          </h2>
-
-          <p className="umrah-sub-title">
-            Choose from family, VIP, or economy Umrah packages, with verified hotel bookings near the Haramain, private transfers, Nusuk Rawdah permit help, and scholar-led Ziyarat.
-          </p>
+          <div className="umrah-header-right">
+            <button
+              type="button"
+              className="umrah-header-view-all-btn"
+              onClick={() => router.push('/our-hotels')}
+            >
+              View All Hotels
+            </button>
+          </div>
         </div>
 
         {/* Active Filter Notice Bar if search filter was submitted from Hero */}

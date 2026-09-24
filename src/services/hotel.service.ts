@@ -86,19 +86,27 @@ export function normalizeHotelDetail(raw: any): Hotel | null {
   };
 
   const roomTypes = Array.isArray(item.room_rates) && item.room_rates.length > 0
-    ? item.room_rates.map((rr: any, idx: number) => ({
-        id: `r${idx + 1}`,
-        name: `${rr.room_type || 'Standard'} Bedroom`,
-        capacity: ROOM_CAPACITY_MAP[rr.room_type] || '2 Adults',
-        price: rr.price && Number(rr.price) > 0 ? `SAR ${rr.price}` : price,
-        unit: '/ night',
-      }))
+    ? (() => {
+        const seen = new Set<string>();
+        return item.room_rates
+          .filter((rr: any) => {
+            const type = String(rr.room_type || 'Standard').trim();
+            if (seen.has(type)) return false;
+            seen.add(type);
+            return true;
+          })
+          .map((rr: any, idx: number) => ({
+            id: `r${idx + 1}`,
+            name: `${rr.room_type || 'Standard'} Bedroom`,
+            capacity: ROOM_CAPACITY_MAP[rr.room_type] || '2 Adults',
+            price: rr.price && Number(rr.price) > 0 ? `SAR ${rr.price}` : price,
+            unit: '/ night',
+          }));
+      })()
     : (Array.isArray(item.roomTypes) && item.roomTypes.length > 0
         ? item.roomTypes
         : [
-            { id: 'r1', name: 'Double Bedroom', capacity: '2 Adults', price, unit: '/ night' },
-            { id: 'r2', name: 'Triple Bedroom', capacity: '3 Adults', price, unit: '/ night' },
-            { id: 'r3', name: 'Quad Bedroom', capacity: '4 Adults', price, unit: '/ night' },
+            { id: 'r1', name: 'Standard Room', capacity: '2 Adults', price, unit: '/ night' },
           ]);
 
   return {

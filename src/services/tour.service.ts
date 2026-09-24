@@ -54,13 +54,7 @@ export function normalizeTourDetail(item: any): TourPackage | null {
         icon: FACILITY_ICON_MAP[f.toLowerCase()] || 'hotel',
         label: f,
       }))
-    : (item.packageIncludes || [
-        { icon: 'hotel', label: 'Hotel Stay' },
-        { icon: 'visa', label: 'Tour Visa' },
-        { icon: 'air', label: 'Air Ticket' },
-        { icon: 'transfer', label: 'Pick & Drop' },
-        { icon: 'insurance', label: 'Travel Insurance' },
-      ]);
+    : (Array.isArray(item.packageIncludes) ? item.packageIncludes : []);
 
   const rawSlug = item.seo?.url_slug || item.slug;
   const slug = rawSlug
@@ -89,7 +83,7 @@ export function normalizeTourDetail(item: any): TourPackage | null {
     packageIncludes,
     tags: [],
     inclusions: Array.isArray(item.facilities) ? item.facilities : [],
-    description: item.description || `<p>Enjoy guided sightseeing, transfers, and accommodations on this ${title}.</p>`,
+    description: item.description || '',
     seo: item.seo || null,
   } as unknown as TourPackage;
 }

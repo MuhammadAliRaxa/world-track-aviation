@@ -21,103 +21,8 @@ import { AppBar } from '../../../shared/components/AppBar';
 import { Footer } from '../../../shared/components/Footer';
 import { Modals } from '../../../shared/components/Modals';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
-import { HOTELS_MAP_DATA, HOLY_CENTERS, DUAL_CITIES_BOUNDS } from '../data/hotelsMapData';
+import { HOLY_CENTERS, DUAL_CITIES_BOUNDS } from '../data/hotelsMapData';
 import { hotelService } from '../../../services/hotel.service';
-
-const CURATED_MAP_HOTELS = [
-  // Makkah verified hotels
-  {
-    id: 'makkah-clock-royal',
-    name: 'Makkah Clock Royal Tower',
-    shortName: 'Clock Royal Tower',
-    city: 'makkah',
-    badge: '5 STARS',
-    distance: '50m from Haram',
-    price: 'SAR 850',
-    unit: '/ night',
-    coordinates: [21.4189, 39.8264],
-    description: 'Iconic luxury hotel in Abraj Al Bait complex directly facing the Holy Kaaba.',
-    gate: 'King Abdulaziz Gate',
-    stars: 5,
-    image: 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'swissotel-makkah',
-    name: 'Swissôtel Al Maqam Makkah',
-    shortName: 'Swissôtel Al Maqam',
-    city: 'makkah',
-    badge: '5 STARS',
-    distance: '100m from Haram',
-    price: 'SAR 720',
-    unit: '/ night',
-    coordinates: [21.4195, 39.8248],
-    description: 'Prestigious Haram-facing tower offering direct covered access to the Holy Mosque.',
-    gate: 'Ajyad Tunnel Entrance',
-    stars: 5,
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'pullman-zamzam-makkah',
-    name: 'Pullman Zamzam Makkah',
-    shortName: 'Pullman Zamzam',
-    city: 'makkah',
-    badge: '5 STARS',
-    distance: '120m from Haram',
-    price: 'SAR 680',
-    unit: '/ night',
-    coordinates: [21.4198, 39.8255],
-    description: 'Modern 5-star sanctuary nestled in the Abraj Al Bait complex overlooking the Grand Mosque.',
-    gate: 'King Fahd Gate',
-    stars: 5,
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'hyatt-regency-makkah',
-    name: 'Jabal Omar Hyatt Regency',
-    shortName: 'Hyatt Regency Makkah',
-    city: 'makkah',
-    badge: '5 STARS',
-    distance: '200m from Haram',
-    price: 'SAR 640',
-    unit: '/ night',
-    coordinates: [21.4235, 39.8230],
-    description: 'Hospitality crafted for pilgrims with effortless prayer access and stunning views.',
-    gate: 'Ibrahim Al Khalil Road',
-    stars: 5,
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80',
-  },
-  // Madinah verified hotels
-  {
-    id: 'oberoi-madina',
-    name: 'The Oberoi Madina',
-    shortName: 'The Oberoi Madina',
-    city: 'madinah',
-    badge: '5 STARS',
-    distance: '50m from Nabawi',
-    price: 'SAR 790',
-    unit: '/ night',
-    coordinates: [24.4710, 39.6110],
-    description: 'Supreme luxury adjacent to the sacred courtyard of Al-Masjid an-Nabawi.',
-    gate: 'Women & Men Courtyard Gates',
-    stars: 5,
-    image: 'https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 'dar-al-taqwa-madina',
-    name: 'Dar Al Taqwa Hotel Madinah',
-    shortName: 'Dar Al Taqwa',
-    city: 'madinah',
-    badge: '5 STARS',
-    distance: '70m from Nabawi',
-    price: 'SAR 650',
-    unit: '/ night',
-    coordinates: [24.4700, 39.6105],
-    description: 'Unrivaled positioning just steps away from the Prophet’s Rawdah entrance.',
-    gate: 'Bab Al Salam',
-    stars: 5,
-    image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80',
-  },
-];
 
 function normalizeMapHotel(hotel, index) {
   const locStr = String(hotel.location || hotel.category || hotel.address || hotel.city || '').toLowerCase();
@@ -134,17 +39,26 @@ function normalizeMapHotel(hotel, index) {
 
   if (!lat || !lng || isNaN(lat) || isNaN(lng) || (Math.abs(lat) < 0.1 && Math.abs(lng) < 0.1)) {
     const center = isMadinah ? [24.4672, 39.6111] : [21.422487, 39.826206];
-    const angle = index * 2.39996323;
-    const radius = 0.0012 + (index % 6) * 0.0009;
+    const angle = (index || 0) * 2.39996323;
+    const radius = 0.0012 + ((index || 0) % 6) * 0.0009;
     lat = center[0] + Math.cos(angle) * radius;
     lng = center[1] + Math.sin(angle) * radius;
+  } else {
+    // If multiple hotels share identical rounded coordinates (e.g. 24.47, 39.61),
+    // apply a subtle radial offset based on index so each pin is distinct and individually clickable
+    const offsetAngle = (index || 0) * 1.57;
+    const offsetDist = ((index || 0) % 3) * 0.00045;
+    lat = lat + Math.cos(offsetAngle) * offsetDist;
+    lng = lng + Math.sin(offsetAngle) * offsetDist;
   }
 
   const rawName = hotel.name || 'Verified Hotel';
   const shortName = rawName.length > 20 ? rawName.substring(0, 18) + '...' : rawName;
+  const hotelSlug = hotel.slug || hotel.seo?.url_slug || hotel.id;
 
   return {
     id: hotel.id || String(index + 1),
+    slug: hotelSlug,
     name: rawName,
     shortName,
     city,
@@ -163,6 +77,7 @@ function normalizeMapHotel(hotel, index) {
 export function HotelsMapPage({
   h1 = 'Our Verified Hotels on the Map',
   heroIntro = "See exactly where each of our verified hotels sits in relation to the Haram in Makkah or Madinah before you commit to a booking. Every pin on this map reflects real availability, not a generic listing, so you know what's actually within walking distance of the Haramain.",
+  initialHotels = [],
 } = {}) {
   const router = useRouter();
 
@@ -175,10 +90,16 @@ export function HotelsMapPage({
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isCardVisible, setIsCardVisible] = useState(false);
-  const [mapHotels, setMapHotels] = useState(CURATED_MAP_HOTELS);
-  const [loading, setLoading] = useState(true);
+  const [mapHotels, setMapHotels] = useState(() =>
+    Array.isArray(initialHotels) && initialHotels.length > 0
+      ? initialHotels.map(normalizeMapHotel)
+      : []
+  );
+  const [loading, setLoading] = useState(
+    !(Array.isArray(initialHotels) && initialHotels.length > 0)
+  );
 
-  // Fetch API Hotels on mount
+  // Fetch live API Hotels on mount
   useEffect(() => {
     let isMounted = true;
     hotelService
@@ -186,20 +107,11 @@ export function HotelsMapPage({
       .then((items) => {
         if (!isMounted) return;
         const apiHotels = Array.isArray(items) && items.length > 0 ? items.map(normalizeMapHotel) : [];
-        const hasMakkah = apiHotels.some((h) => h.city === 'makkah');
-        const hasMadinah = apiHotels.some((h) => h.city === 'madinah');
-
-        const supplemental = [];
-        if (!hasMakkah) {
-          supplemental.push(...CURATED_MAP_HOTELS.filter((h) => h.city === 'makkah'));
-        }
-        if (!hasMadinah) {
-          supplemental.push(...CURATED_MAP_HOTELS.filter((h) => h.city === 'madinah'));
-        }
-
-        setMapHotels([...apiHotels, ...supplemental]);
+        setMapHotels(apiHotels);
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error('[HotelsMapPage] Error fetching hotels:', err);
+      })
       .finally(() => {
         if (isMounted) setLoading(false);
       });
@@ -644,7 +556,7 @@ export function HotelsMapPage({
               <button
                 type="button"
                 className="hm-back-btn"
-                onClick={() => router.push('/hotels')}
+                onClick={() => router.push('/our-hotels/')}
               >
                 <ChevronLeft size={16} />
                 <span>Hotels Map</span>
@@ -796,79 +708,10 @@ export function HotelsMapPage({
               </button>
             </div>
 
-            {/* Bottom-Center: Floating Hotel Card Popup (Exact Match to Screenshot) */}
-            {activeHotel && isCardVisible && (
-              <div className="hm-floating-hotel-popup animate-popup">
-                <div className="hm-popup-inner">
-                  {/* Hotel Thumbnail */}
-                  <div
-                    className="hm-popup-img-wrap"
-                    onClick={() => router.push(`/hotels/${activeHotel.id}`)}
-                    style={{ cursor: 'pointer' }}
-                    title={`View ${activeHotel.name} details`}
-                  >
-                    <img
-                      src={activeHotel.image}
-                      alt={activeHotel.name}
-                      className="hm-popup-img"
-                    />
-                  </div>
-
-                  {/* Middle Content */}
-                  <div
-                    className="hm-popup-content"
-                    onClick={() => router.push(`/hotels/${activeHotel.id}`)}
-                    style={{ cursor: 'pointer' }}
-                    title={`View ${activeHotel.name} details`}
-                  >
-                    <div className="hm-popup-badge-row">
-                      <span className="hm-popup-category-badge">
-                        {activeHotel.badge}
-                      </span>
-                    </div>
-
-                    <h4 className="hm-popup-title" title={activeHotel.name}>
-                      {activeHotel.name}
-                    </h4>
-
-                    <div className="hm-popup-distance-row">
-                      <Navigation size={12} className="hm-popup-nav-icon" />
-                      <span>{activeHotel.distance}</span>
-                    </div>
-
-                    <div className="hm-popup-price-row">
-                      <span className="hm-popup-price">{activeHotel.price}</span>
-                      <span className="hm-popup-unit"> {activeHotel.unit}</span>
-                    </div>
-                  </div>
-
-                  {/* Right Side Actions */}
-                  <div className="hm-popup-actions">
-                    <button
-                      type="button"
-                      className="hm-popup-close-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsCardVisible(false);
-                      }}
-                      title="Close"
-                    >
-                      <X size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      className="hm-popup-view-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/hotels/${activeHotel.id}`);
-                      }}
-                    >
-                      <span>View Details</span>
-                      <ArrowRight size={13} />
-                    </button>
-                  </div>
-                </div>
+            {filteredHotels.length === 0 && !loading && (
+              <div className="hm-empty-notice-toast">
+                <MapPin size={14} />
+                <span>No verified hotels currently available for this selection.</span>
               </div>
             )}
 
@@ -877,6 +720,82 @@ export function HotelsMapPage({
               Leaflet | WorldTrack Holy Map
             </div>
           </div>
+
+          {/* Bottom-Center: Floating Hotel Card Popup (Page Bottom Center) */}
+          {activeHotel && isCardVisible && (
+            <div className="hm-floating-hotel-popup animate-popup">
+              <div className="hm-popup-inner">
+                {/* Hotel Thumbnail */}
+                <div
+                  className="hm-popup-img-wrap"
+                  onClick={() => router.push(`/our-hotels/${activeHotel.slug || activeHotel.id}/`)}
+                  style={{ cursor: 'pointer' }}
+                  title={`View ${activeHotel.name} details`}
+                >
+                  <img
+                    src={activeHotel.image}
+                    alt={activeHotel.name}
+                    className="hm-popup-img"
+                  />
+                </div>
+
+                {/* Middle Content */}
+                <div
+                  className="hm-popup-content"
+                  onClick={() => router.push(`/our-hotels/${activeHotel.slug || activeHotel.id}/`)}
+                  style={{ cursor: 'pointer' }}
+                  title={`View ${activeHotel.name} details`}
+                >
+                  <div className="hm-popup-badge-row">
+                    <span className="hm-popup-category-badge">
+                      {activeHotel.badge}
+                    </span>
+                  </div>
+
+                  <h4 className="hm-popup-title" title={activeHotel.name}>
+                    {activeHotel.name}
+                  </h4>
+
+                  <div className="hm-popup-distance-row">
+                    <Navigation size={12} className="hm-popup-nav-icon" />
+                    <span>{activeHotel.distance}</span>
+                  </div>
+
+                  <div className="hm-popup-price-row">
+                    <span className="hm-popup-price">{activeHotel.price}</span>
+                    <span className="hm-popup-unit"> {activeHotel.unit}</span>
+                  </div>
+                </div>
+
+                {/* Right Side Actions */}
+                <div className="hm-popup-actions">
+                  <button
+                    type="button"
+                    className="hm-popup-close-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsCardVisible(false);
+                    }}
+                    title="Close"
+                  >
+                    <X size={15} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="hm-popup-view-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/our-hotels/${activeHotel.slug || activeHotel.id}/`);
+                    }}
+                  >
+                    <span>View Details</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

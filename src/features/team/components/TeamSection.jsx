@@ -80,11 +80,11 @@ export function TeamSection({ isAboutPage = false, initialTeam = null }) {
         <div className="team-marquee-track">
           {loading ? (
             /* Skeleton Loading State */
-            [1, 2, 3, 4].map((i) => (
+            [1, 2, 3, 4, 5].map((i) => (
               <div key={`team-skeleton-${i}`} className="specialist-card animate-pulse">
-                <div className="specialist-card-inner bg-slate-200 h-[340px] w-[280px] rounded-2xl flex flex-col justify-end p-4">
-                  <div className="h-5 bg-slate-300 rounded mb-2 w-3/4"></div>
-                  <div className="h-4 bg-slate-300 rounded w-1/2"></div>
+                <div className="specialist-card-inner bg-slate-800 flex flex-col justify-end items-center p-5 pb-6">
+                  <div className="h-5 bg-slate-700 rounded-full mb-2 w-3/4"></div>
+                  <div className="h-3.5 bg-slate-700/80 rounded-full w-1/2"></div>
                 </div>
               </div>
             ))
@@ -98,56 +98,14 @@ export function TeamSection({ isAboutPage = false, initialTeam = null }) {
                     className="specialist-img"
                     loading="lazy"
                     decoding="async"
-                    width={280}
-                    height={340}
+                    width={240}
+                    height={315}
                   />
 
-                  {/* Floating Bottom Info Pill Matching Reference Design */}
-                  <div className="specialist-info-pill">
-                    <div className="specialist-info-text">
-                      <h3 className="specialist-name">{member.name}</h3>
-                      <span className="specialist-role">{member.role}</span>
-                    </div>
-
-                    <div className="specialist-socials">
-                      <a
-                        href={member.facebookUrl || 'https://facebook.com'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="specialist-social-btn"
-                        aria-label={`Facebook - ${member.name}`}
-                        title={`Facebook - ${member.name}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z" />
-                        </svg>
-                      </a>
-                      <a
-                        href={member.instagramUrl || 'https://instagram.com'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="specialist-social-btn"
-                        aria-label={`Instagram - ${member.name}`}
-                        title={`Instagram - ${member.name}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <svg
-                          width="15"
-                          height="15"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                        </svg>
-                      </a>
-                    </div>
+                  {/* Bottom Dark Gradient with Centered Name & Role Matching Reference */}
+                  <div className="specialist-card-overlay">
+                    <h3 className="specialist-name" style={{ color: '#ffffff' }}>{member.name}</h3>
+                    <p className="specialist-role" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{member.role}</p>
                   </div>
                 </div>
               </div>

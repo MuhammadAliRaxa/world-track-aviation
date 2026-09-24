@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Star, ArrowRight } from 'lucide-react';
+import { MapPin, ArrowRight } from 'lucide-react';
 
 const DEFAULT_HOTEL_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
 
@@ -49,8 +49,17 @@ export function HotelCard({ hotel }) {
     if (/^\d+(\.\d+)?$/.test(s)) {
       return `Rs ${Number(s).toLocaleString()}`;
     }
+    const num = parseInt(s.replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(num) && num > 0) {
+      if (s.startsWith('SAR')) {
+        return `SAR ${num.toLocaleString()}`;
+      }
+      return `Rs ${num.toLocaleString()}`;
+    }
     return s;
   };
+
+  const starBadge = hotel.stars ? `${hotel.stars}-STAR` : (hotel.tag || '5-STAR');
 
   return (
     <div
@@ -74,42 +83,24 @@ export function HotelCard({ hotel }) {
           }}
         />
 
-        {/* Feature / Category Tag Badge */}
-        {hotel.tag && (
-          <div className="hotel-tag-badge">
-            <span>{hotel.tag}</span>
-          </div>
-        )}
+        {/* 5-STAR Top-Left Amber Badge */}
+        <div className="hotel-star-badge-top">
+          <span>{starBadge}</span>
+        </div>
       </div>
 
       {/* Content Body */}
       <div className="hotel-card-body">
         {/* Location Pin */}
         <div className="hotel-location-row">
-          <MapPin size={15} className="location-pin-icon" />
-          <span className="location-name">{hotel.location}</span>
+          <MapPin size={14} className="location-pin-icon" />
+          <span className="location-name">{hotel.location || hotel.city || 'Singapore'}</span>
         </div>
 
         {/* Hotel Name */}
         <h3 className="hotel-title-text" title={hotel.name}>
           {hotel.name}
         </h3>
-
-        {/* Stars */}
-        <div className="hotel-stars-row">
-          {[...Array(5)].map((_, idx) => {
-            const isFilled = idx < (hotel.stars || 0);
-            return (
-              <Star
-                key={idx}
-                size={16}
-                fill={isFilled ? '#f59e0b' : '#e2e8f0'}
-                stroke={isFilled ? '#f59e0b' : '#e2e8f0'}
-                className={isFilled ? 'star-filled' : 'star-muted'}
-              />
-            );
-          })}
-        </div>
 
         {/* Rating Score Badge & Reviews */}
         <div className="hotel-rating-row">
@@ -136,7 +127,7 @@ export function HotelCard({ hotel }) {
             }}
           >
             <span>Book</span>
-            <ArrowRight size={15} className="book-arrow-icon" />
+            <ArrowRight size={14} className="book-arrow-icon" strokeWidth={2.3} />
           </button>
         </div>
       </div>

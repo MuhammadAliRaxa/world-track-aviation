@@ -147,7 +147,7 @@ export function HolidayCard({ tour, onSelectTour }) {
         {/* Pricing & View Details Action Row */}
         <div className="holiday-pricing-action-row">
           <div className="holiday-price-col">
-            <span className="holiday-price-label">STATING FROM</span>
+            <span className="holiday-price-label">STARTING FROM</span>
             <div className="holiday-price-amount">
               <span className="holiday-price-val">Rs {formattedPrice}</span>
               <span className="per-person-unit">/ person</span>

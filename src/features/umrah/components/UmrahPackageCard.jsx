@@ -16,6 +16,24 @@ const getUmrahImage = (pkg) => {
   return 'https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?auto=format&fit=crop&w=800&q=80';
 };
 
+/* Kaaba Silhouette Icon */
+function KaabaIcon({ size = 15, color = '#0f172a', className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} className={className} aria-hidden="true">
+      <path d="M12 2L3 6.5V17.5L12 22L21 17.5V6.5L12 2ZM12 4.3L18.7 7.7L12 11.1L5.3 7.7L12 4.3ZM5 9.4L11 12.4V19.6L5 16.6V9.4ZM13 19.6V12.4L19 9.4V16.6L13 19.6Z" />
+    </svg>
+  );
+}
+
+/* Mosque Minaret Silhouette Icon */
+function MosqueSilhouetteIcon({ size = 15, color = '#0f172a', className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} className={className} aria-hidden="true">
+      <path d="M12 2C12 2 11.2 3.8 9.5 5C8 6 7.5 7.5 7.5 9.5V11H6V7.5L4.5 6L3 7.5V20.5C3 21 3.5 21.5 4 21.5H8.5V16.5C8.5 14.8 9.8 13.5 11.5 13.5H12.5C14.2 13.5 15.5 14.8 15.5 16.5V21.5H20C20.5 21.5 21 21 21 20.5V7.5L19.5 6L18 7.5V11H16.5V9.5C16.5 7.5 16 6 14.5 5C12.8 3.8 12 2 12 2Z" />
+    </svg>
+  );
+}
+
 export function UmrahPackageCard({ pkg, onBookPackage }) {
   const router = useRouter();
 
@@ -88,7 +106,7 @@ export function UmrahPackageCard({ pkg, onBookPackage }) {
         <div className="umrah-hotels-panel">
           {/* Makkah Hotel */}
           <div className="umrah-hotel-entry">
-            <Building2 size={15} className="hotel-entry-icon" />
+            <KaabaIcon size={15} color="#0f172a" className="hotel-entry-icon" />
             <div className="umrah-hotel-text-cell">
               <span className="hotel-city-label">MAKKAH HOTEL</span>
               <div className="hotel-name-val">{makkahHotelName}</div>
@@ -97,7 +115,7 @@ export function UmrahPackageCard({ pkg, onBookPackage }) {
 
           {/* Madinah Hotel */}
           <div className="umrah-hotel-entry">
-            <Building2 size={15} className="hotel-entry-icon" />
+            <MosqueSilhouetteIcon size={15} color="#0f172a" className="hotel-entry-icon" />
             <div className="umrah-hotel-text-cell">
               <span className="hotel-city-label">MADINAH HOTEL</span>
               <div className="hotel-name-val">{madinahHotelName}</div>

@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
-  Star,
   MapPin,
   Wifi,
   Clock,
@@ -26,10 +25,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Heart,
-  Footprints,
   CalendarCheck,
-  Building2,
   Navigation,
   X,
   Images,
@@ -285,7 +281,7 @@ export function HotelDetailPage({ initialHotel = null }) {
           <section className="hotel-page-hero">
             <div className="hotel-page-hero-overlay" />
             <div className="hotel-page-hero-content">
-              <p className="hotel-page-hero-title" role="doc-subtitle">{hotel.name}</p>
+              <p className="hotel-page-hero-title" role="doc-subtitle">Hotel Details</p>
             </div>
           </section>
         }
@@ -315,23 +311,43 @@ export function HotelDetailPage({ initialHotel = null }) {
       <div className="detail-container hotel-page-main-grid">
         {/* Left Column (Header Info, Photos, Room Types, Amenities, Description, Map) */}
         <div className="hotel-grid-left">
-          {/* Hotel Header Info (Title, Rating row, Address) */}
+          {/* Hotel Header Info (Amber Badge, Title, Rating row, Address) */}
           <div className="hotel-left-header">
+            <div
+              className="hotel-stars-badge"
+              style={{
+                background: '#f59e0b',
+                color: '#000000',
+                fontWeight: 800,
+                fontSize: '11px',
+                letterSpacing: '0.6px',
+                padding: '5px 13px',
+                borderRadius: '9999px',
+                textTransform: 'uppercase',
+                marginBottom: '10px',
+                display: 'inline-flex',
+                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.25)'
+              }}
+            >
+              <span>
+                {hotel.stars
+                  ? `${hotel.stars}-STAR`
+                  : (hotel.category
+                      ? String(hotel.category).toUpperCase().replace(/\s*STAR/i, '-STAR')
+                      : '5-STAR')}
+              </span>
+            </div>
+
             <h1 className="hotel-title-main">{hotel.name}</h1>
 
             <div className="hotel-header-rating-row">
               <span className="hotel-score-pill">{hotel.rating || '9.6/10'}</span>
               <span className="hotel-reviews-count">{hotel.reviewsCount || '3,190 reviews'} reviews</span>
-              <div className="hotel-header-stars">
-                {[...Array(hotel.stars || 5)].map((_, i) => (
-                  <Star key={`hotel-star-${hotel.id || 'curr'}-${i}`} size={14} fill="#f59e0b" stroke="#f59e0b" />
-                ))}
-              </div>
             </div>
 
             <div className="hotel-header-address">
               <MapPin size={14} className="address-pin-icon" />
-              <span>{hotel.address || '80 Bras Basah Road, Marina Bay District, Singapore 189560'}</span>
+              <span>{hotel.address || hotel.location || 'Makkah, Saudi Arabia'}</span>
               <a
                 href={hotelMapUrl}
                 target="_blank"
@@ -425,12 +441,12 @@ export function HotelDetailPage({ initialHotel = null }) {
 
           {/* Room Types Card */}
           <div className="hotel-room-types-box">
-            {(hotel.roomTypes || [
-              { id: 'r1', name: 'Double Bedroom', capacity: '2 Adults', price: 'PKR 16,500', unit: '/night' },
-              { id: 'r2', name: 'Triple Bedroom', capacity: '3 Adults', price: 'PKR 24,900', unit: '/night' },
-              { id: 'r3', name: 'Quad Bedroom', capacity: '4 Adults', price: 'PKR 31,900', unit: '/night' },
-              { id: 'r4', name: 'Quint Bedroom', capacity: '5 Adults', price: 'PKR 37,900', unit: '/night' }
-            ]).map((room) => {
+            {(hotel.roomTypes && hotel.roomTypes.length > 0
+              ? hotel.roomTypes
+              : [
+                  { id: 'r1', name: 'Standard Room', capacity: '2 Adults', price: hotel.price || 'Contact for Price', unit: '/ night' }
+                ]
+            ).map((room) => {
               const isSelected = selectedRoom === room.name;
               return (
                 <div

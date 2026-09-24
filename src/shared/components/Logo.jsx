@@ -8,8 +8,8 @@ export function Logo({ className = '', variant = 'white' }) {
         src={worldTrackLogo?.src || worldTrackLogo}
         alt="World Track Aviation & Tourism"
         className={`brand-logo-img ${variant === 'white' ? 'white-logo-img' : ''}`}
-        width={123}
-        height={38}
+        width={155}
+        height={48}
         decoding="async"
       />
     </div>
