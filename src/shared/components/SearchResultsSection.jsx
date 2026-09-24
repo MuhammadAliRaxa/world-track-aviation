@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, Calendar, MapPin, Sparkles, ArrowRight } from 'lucide-react';
 import { HotelCard } from '../../features/hotels/components/HotelCard';
-import { UmrahPackageCard } from '../../features/umrah/components/UmrahPackageCard';
+import { GroupUmrahCard } from '../../features/umrah/components/GroupUmrahCard';
 import { VisaCard } from '../../features/visas/components/VisaCard';
 
 function formatDisplayDate(dateStr) {
@@ -28,7 +28,7 @@ export function SearchResultsSection({ searchData, onClose }) {
       case 'hotels':
         return 'Hotels & Luxury Stays';
       case 'umrah':
-        return 'Umrah Packages';
+        return 'Group Umrah Packages';
       case 'visa':
         return 'Visit Visas';
       default:
@@ -41,7 +41,7 @@ export function SearchResultsSection({ searchData, onClose }) {
       case 'hotels':
         return '/hotels';
       case 'umrah':
-        return '/umrah-packages';
+        return '/umrah-group-packages';
       case 'visa':
         return '/visas';
       default:
@@ -56,7 +56,7 @@ export function SearchResultsSection({ searchData, onClose }) {
     }
     if (tab === 'umrah') {
       const route = params.route;
-      return route && route !== 'All Routes' ? `Umrah: ${route}` : 'Umrah Packages';
+      return route && route !== 'All Routes' ? `Group Umrah: ${route}` : 'Group Umrah Packages';
     }
     if (tab === 'visa') {
       const country = params.destinationCountry || params.country;
@@ -180,9 +180,9 @@ export function SearchResultsSection({ searchData, onClose }) {
             )}
 
             {tab === 'umrah' && (
-              <div className="umrah-packages-grid search-results-grid">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', marginBottom: '24px' }}>
                 {results.map((pkg) => (
-                  <UmrahPackageCard key={pkg.id} pkg={pkg} />
+                  <GroupUmrahCard key={pkg.id} pkg={pkg} />
                 ))}
               </div>
             )}

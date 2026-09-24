@@ -1,5 +1,6 @@
 export { UmrahSection } from './components/UmrahSection';
 export { UmrahPackageCard } from './components/UmrahPackageCard';
+export { GroupUmrahCard } from './components/GroupUmrahCard';
 export { GroupUmrahPage } from './components/GroupUmrahPage';
 export { UmrahPackagesPage } from './components/UmrahPackagesPage';
 export { UmrahPackageDetailPage } from './components/UmrahPackageDetailPage';
