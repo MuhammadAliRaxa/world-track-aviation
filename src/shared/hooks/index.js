@@ -1,1 +1,2 @@
-export { useDebounce } from './useDebounce';
+export { useDebounce, useDebouncedCallback, debounce } from './useDebounce';
+

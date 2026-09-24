@@ -167,7 +167,7 @@ export function HotelsMapPage() {
   const [selectedCity, setSelectedCity] = useState('all'); // 'all' | 'makkah' | 'madinah'
   const [activeHotel, setActiveHotel] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  const debouncedSearch = useDebounce(searchQuery, 800);
   const [mapStyle, setMapStyle] = useState('satellite'); // 'street' | 'satellite' | 'night'
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -323,6 +323,12 @@ export function HotelsMapPage() {
 
       // Render initial center rings and pins (no default hotel selected)
       renderCenterAndPins(L, map, 'all', null);
+
+      // Close active card when clicking on empty map area
+      map.on('click', () => {
+        setIsCardVisible(false);
+        setActiveHotel(null);
+      });
     }
 
     initMap();
@@ -554,16 +560,39 @@ export function HotelsMapPage() {
 
   // Enlarge / Expand mode toggle (Matches user's reference view)
   const toggleEnlarge = () => {
-    setIsEnlarged((prev) => {
-      const next = !prev;
+    setIsEnlarged((prev) => !prev);
+  };
+
+  // Lock body scroll, listen to Escape key, and trigger invalidateSize on enlarge toggle
+  useEffect(() => {
+    if (isEnlarged) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isEnlarged) {
+        setIsEnlarged(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Call invalidateSize across multiple ticks to smoothly handle layout reflow
+    const timers = [50, 150, 300, 500].map((delay) =>
       setTimeout(() => {
         if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
+          mapInstanceRef.current.invalidateSize({ pan: false, animate: false });
         }
-      }, 150);
-      return next;
-    });
-  };
+      }, delay)
+    );
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+      timers.forEach(clearTimeout);
+    };
+  }, [isEnlarged]);
 
   // Keep pins updated when search query, mapHotels, or city change
   useEffect(() => {
@@ -624,6 +653,19 @@ export function HotelsMapPage() {
 
           {/* Filter Pills Bar */}
           <div className={`hm-filter-bar-row ${isEnlarged ? 'hm-filter-bar-enlarged' : ''}`}>
+            {isEnlarged && (
+              <button
+                type="button"
+                className="hm-enlarge-exit-btn"
+                onClick={toggleEnlarge}
+                title="Exit Fullscreen (Esc)"
+              >
+                <ChevronLeft size={16} />
+                <span>Exit Fullscreen</span>
+                <kbd className="hm-esc-badge">ESC</kbd>
+              </button>
+            )}
+
             <div className="hm-filter-pills-group">
               <button
                 type="button"
@@ -660,7 +702,7 @@ export function HotelsMapPage() {
                 type="button"
                 className="hm-fullscreen-btn"
                 onClick={toggleEnlarge}
-                title={isEnlarged ? 'Exit Enlarge' : 'Enlarge Map'}
+                title={isEnlarged ? 'Exit Fullscreen (Esc)' : 'Enlarge Map'}
               >
                 {isEnlarged ? (
                   <Minimize2 size={16} />
@@ -683,10 +725,9 @@ export function HotelsMapPage() {
           </div>
 
           {/* ── 3. Interactive Map Canvas Container ── */}
-          <div
-            className={`hm-map-card-wrapper ${isEnlarged ? 'hm-map-enlarged' : ''}`}
-            ref={mapContainerRef}
-          >
+          <div className={`hm-map-card-wrapper ${isEnlarged ? 'hm-map-enlarged' : ''}`}>
+            {/* Dedicated Leaflet Map Canvas (clean DOM with no React JSX children inside) */}
+            <div className="hm-map-canvas" ref={mapContainerRef} />
             {/* Top-Left: Search Bar */}
             <div className="hm-map-overlay-search">
               <Search size={15} className="hm-search-icon" />
@@ -838,8 +879,8 @@ export function HotelsMapPage() {
         </div>
       </div>
 
-      {/* ── 4. Newsletter & Footer Section ── */}
-      <Footer onOpenContact={() => setIsContactOpen(true)} />
+      {/* ── 4. Newsletter & Footer Section (Hidden when in fullscreen enlarge mode) ── */}
+      {!isEnlarged && <Footer onOpenContact={() => setIsContactOpen(true)} />}
 
       {/* ── 5. Global Modals ── */}
       <Modals

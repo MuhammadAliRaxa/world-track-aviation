@@ -50,9 +50,11 @@ export function VisasPage({
       : VISA_COUNTRIES_FILTER;
 
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 350);
+  const debouncedSearch = useDebounce(searchQuery, 800);
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
+  const debouncedCountry = useDebounce(selectedCountry, 800);
+  const debouncedPrice = useDebounce(selectedPrice, 800);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,23 +92,23 @@ export function VisasPage({
 
     if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
 
-    if (selectedCountry !== 'all') {
+    if (debouncedCountry !== 'all') {
       // Look up the full country name from the countries list
-      const countryObj = countries.find(c => c.key === selectedCountry);
+      const countryObj = countries.find(c => c.key === debouncedCountry);
       if (countryObj && countryObj.key !== 'all') {
         filters.country = countryObj.label;
       } else {
         // Direct key match for API-driven countries
-        filters.country = selectedCountry;
+        filters.country = debouncedCountry;
       }
     }
 
-    if (selectedPrice !== 'all') {
-      if (selectedPrice === 'under-60k') filters.price_range = 'under_60000';
-      else if (selectedPrice === '60k-120k') filters.price_range = '60000_120000';
-      else if (selectedPrice === '120k-200k') filters.price_range = '120000_200000';
-      else if (selectedPrice === '200k-plus') filters.price_range = 'above_200000';
-      else filters.price_range = selectedPrice;
+    if (debouncedPrice !== 'all') {
+      if (debouncedPrice === 'under-60k') filters.price_range = 'under_60000';
+      else if (debouncedPrice === '60k-120k') filters.price_range = '60000_120000';
+      else if (debouncedPrice === '120k-200k') filters.price_range = '120000_200000';
+      else if (debouncedPrice === '200k-plus') filters.price_range = 'above_200000';
+      else filters.price_range = debouncedPrice;
     }
 
     filters.nextPage = page;
@@ -140,7 +142,7 @@ export function VisasPage({
       });
 
     return () => { active = false; };
-  }, [debouncedSearch, selectedCountry, selectedPrice]);
+  }, [debouncedSearch, debouncedCountry, debouncedPrice]);
 
   // Load More handler
   const handleLoadMore = async () => {

@@ -37,8 +37,9 @@ export function BlogsPage({
   );
 
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  const debouncedSearch = useDebounce(searchQuery, 800);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const debouncedCategory = useDebounce(selectedCategory, 800);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -73,7 +74,7 @@ export function BlogsPage({
   const buildApiFilters = (page = 1) => {
     const filters = {};
     if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
-    if (selectedCategory !== 'all') filters.category = selectedCategory;
+    if (debouncedCategory !== 'all') filters.category = debouncedCategory;
     filters.nextPage = page;
     filters.perPage = 12;
     return filters;
@@ -108,7 +109,7 @@ export function BlogsPage({
     return () => {
       active = false;
     };
-  }, [debouncedSearch, selectedCategory]);
+  }, [debouncedSearch, debouncedCategory]);
 
   const handleLoadMore = async () => {
     if (!pagination?.nextPage || isLoadingMore) return;

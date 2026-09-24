@@ -79,12 +79,15 @@ export function HotelsPage({
 
   // ── Filter State ──
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 350);
+  const debouncedSearch = useDebounce(searchQuery, 800);
   const [selectedCity, setSelectedCity] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [selectedRoomTypes, setSelectedRoomTypes] = useState([]);
+  const debouncedCategories = useDebounce(selectedCategories, 800);
+  const debouncedFacilities = useDebounce(selectedFacilities, 800);
+  const debouncedRoomTypes = useDebounce(selectedRoomTypes, 800);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -174,8 +177,8 @@ export function HotelsPage({
     }
 
     // Category → hotel_category ("5 Star", "4 Star", etc.) and hotel_rating (5, 4, etc.)
-    if (selectedCategories.length > 0) {
-      const selectedCat = selectedCategories[selectedCategories.length - 1];
+    if (debouncedCategories.length > 0) {
+      const selectedCat = debouncedCategories[debouncedCategories.length - 1];
       filters.hotel_category = selectedCat;
       const starMatch = selectedCat.match(/^(\d)/);
       if (starMatch) {
@@ -183,12 +186,12 @@ export function HotelsPage({
       }
     }
 
-    if (selectedFacilities.length > 0) {
-      filters.hotel_facilities = selectedFacilities;
+    if (debouncedFacilities.length > 0) {
+      filters.hotel_facilities = debouncedFacilities;
     }
 
-    if (selectedRoomTypes.length > 0) {
-      filters.room_types = selectedRoomTypes;
+    if (debouncedRoomTypes.length > 0) {
+      filters.room_types = debouncedRoomTypes;
     }
 
     filters.nextPage = page;
@@ -222,7 +225,7 @@ export function HotelsPage({
       });
 
     return () => { active = false; };
-  }, [debouncedSearch, selectedCity, selectedPrice, selectedCategories, selectedFacilities, selectedRoomTypes]);
+  }, [debouncedSearch, selectedCity, selectedPrice, debouncedCategories, debouncedFacilities, debouncedRoomTypes]);
 
   // ── Load More handler ──
   const handleLoadMore = async () => {

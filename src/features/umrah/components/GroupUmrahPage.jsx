@@ -16,10 +16,13 @@ export function GroupUmrahPage({ initialPackages = [], initialLookups = null }) 
   const [isFiltering, setIsFiltering] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  const debouncedSearch = useDebounce(searchQuery, 800);
   const [selectedDuration, setSelectedDuration] = useState([]);
   const [selectedAirlines, setSelectedAirlines] = useState([]);
   const [selectedSectors, setSelectedSectors] = useState([]);
+  const debouncedDuration = useDebounce(selectedDuration, 800);
+  const debouncedAirlines = useDebounce(selectedAirlines, 800);
+  const debouncedSectors = useDebounce(selectedSectors, 800);
 
   // Modal & Mobile Filter states
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -130,9 +133,9 @@ export function GroupUmrahPage({ initialPackages = [], initialLookups = null }) 
       try {
         const apiFilters = {};
         if (debouncedSearch.trim()) apiFilters.name = debouncedSearch.trim();
-        if (selectedDuration.length > 0) apiFilters.duration = selectedDuration;
-        if (selectedAirlines.length > 0) apiFilters.airlines = selectedAirlines;
-        if (selectedSectors.length > 0) apiFilters.routes = selectedSectors;
+        if (debouncedDuration.length > 0) apiFilters.duration = debouncedDuration;
+        if (debouncedAirlines.length > 0) apiFilters.airlines = debouncedAirlines;
+        if (debouncedSectors.length > 0) apiFilters.routes = debouncedSectors;
 
         const results = await umrahService.getGroupUmrahPackages(
           Object.keys(apiFilters).length > 0 ? apiFilters : undefined
@@ -152,7 +155,7 @@ export function GroupUmrahPage({ initialPackages = [], initialLookups = null }) 
     }
 
     fetchFiltered();
-  }, [debouncedSearch, selectedDuration, selectedAirlines, selectedSectors, initialPackages, hasFilters]);
+  }, [debouncedSearch, debouncedDuration, debouncedAirlines, debouncedSectors, initialPackages, hasFilters]);
 
   return (
     <div className="group-umrah-page-root" style={{ background: '#f8fafc', minHeight: '100vh', color: '#0f172a' }}>

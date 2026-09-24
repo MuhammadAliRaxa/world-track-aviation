@@ -29,10 +29,11 @@ export function UmrahPackagesPage({ initialPackages = [], initialLookups = null 
   const [isFiltering, setIsFiltering] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  const debouncedSearch = useDebounce(searchQuery, 800);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
   const [priceSlider, setPriceSlider] = useState(350000);
+  const debouncedPriceSlider = useDebounce(priceSlider, 800);
   const [selectedStars, setSelectedStars] = useState([]);
   const [isContactOpen, setIsContactOpen] = useState(false);
 
@@ -155,7 +156,7 @@ export function UmrahPackagesPage({ initialPackages = [], initialLookups = null 
           searchQuery: debouncedSearch,
           category: selectedCategory,
           priceRange: apiPriceRange,
-          maxPrice: priceSlider < 350000 ? priceSlider : undefined,
+          maxPrice: debouncedPriceSlider < 350000 ? debouncedPriceSlider : undefined,
           stars: selectedStars,
         });
         setPackages(results);
@@ -172,7 +173,7 @@ export function UmrahPackagesPage({ initialPackages = [], initialLookups = null 
     }
 
     fetchFilteredPackages();
-  }, [debouncedSearch, selectedCategory, selectedPrice, priceSlider, selectedStars, initialPackages, hasFilters]);
+  }, [debouncedSearch, selectedCategory, selectedPrice, debouncedPriceSlider, selectedStars, initialPackages, hasFilters]);
 
   return (
     <div className="app-layout-root">

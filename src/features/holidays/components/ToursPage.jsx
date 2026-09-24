@@ -152,8 +152,11 @@ export function ToursPage({
   const [selectedDest, setSelectedDest] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
   const [selectedStars, setSelectedStars] = useState([]);
+  const debouncedDest = useDebounce(selectedDest, 800);
+  const debouncedPrice = useDebounce(selectedPrice, 800);
+  const debouncedStars = useDebounce(selectedStars, 800);
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 350);
+  const debouncedSearch = useDebounce(searchQuery, 800);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const toggleStar = (n) =>
@@ -195,24 +198,24 @@ export function ToursPage({
 
       if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
 
-      if (selectedDest !== 'all') {
+      if (debouncedDest !== 'all') {
         // Parse "City, Country" format from destinations
-        const parts = selectedDest.split(',');
+        const parts = debouncedDest.split(',');
         if (parts[0]) filters.city = parts[0].trim();
         if (parts[1]) filters.country = parts[1].trim();
       }
 
-      if (selectedPrice !== 'all') {
+      if (debouncedPrice !== 'all') {
         // Map UI keys to API values
-        if (selectedPrice === 'under60') filters.price_range = 'under_60000';
-        else if (selectedPrice === '60to120') filters.price_range = '60000_120000';
-        else if (selectedPrice === '120to200') filters.price_range = '120000_200000';
-        else if (selectedPrice === 'above200') filters.price_range = 'above_200000';
-        else filters.price_range = selectedPrice;
+        if (debouncedPrice === 'under60') filters.price_range = 'under_60000';
+        else if (debouncedPrice === '60to120') filters.price_range = '60000_120000';
+        else if (debouncedPrice === '120to200') filters.price_range = '120000_200000';
+        else if (debouncedPrice === 'above200') filters.price_range = 'above_200000';
+        else filters.price_range = debouncedPrice;
       }
 
-      if (selectedStars.length > 0) {
-        filters.rating = selectedStars[0];
+      if (debouncedStars.length > 0) {
+        filters.rating = debouncedStars[0];
       }
 
       filters.nextPage = 1;
@@ -234,7 +237,7 @@ export function ToursPage({
       });
 
     return () => { active = false; };
-  }, [debouncedSearch, selectedDest, selectedPrice, selectedStars]);
+  }, [debouncedSearch, debouncedDest, debouncedPrice, debouncedStars]);
 
   // Load More: keep prior filters, update nextPage
   const handleLoadMore = async () => {
@@ -245,19 +248,19 @@ export function ToursPage({
       const filters = {};
 
       if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
-      if (selectedDest !== 'all') {
-        const parts = selectedDest.split(',');
+      if (debouncedDest !== 'all') {
+        const parts = debouncedDest.split(',');
         if (parts[0]) filters.city = parts[0].trim();
         if (parts[1]) filters.country = parts[1].trim();
       }
-      if (selectedPrice !== 'all') {
-        if (selectedPrice === 'under60') filters.price_range = 'under_60000';
-        else if (selectedPrice === '60to120') filters.price_range = '60000_120000';
-        else if (selectedPrice === '120to200') filters.price_range = '120000_200000';
-        else if (selectedPrice === 'above200') filters.price_range = 'above_200000';
-        else filters.price_range = selectedPrice;
+      if (debouncedPrice !== 'all') {
+        if (debouncedPrice === 'under60') filters.price_range = 'under_60000';
+        else if (debouncedPrice === '60to120') filters.price_range = '60000_120000';
+        else if (debouncedPrice === '120to200') filters.price_range = '120000_200000';
+        else if (debouncedPrice === 'above200') filters.price_range = 'above_200000';
+        else filters.price_range = debouncedPrice;
       }
-      if (selectedStars.length > 0) filters.rating = selectedStars[0];
+      if (debouncedStars.length > 0) filters.rating = debouncedStars[0];
       filters.nextPage = pagination.nextPage;
       filters.perPage = 12;
 

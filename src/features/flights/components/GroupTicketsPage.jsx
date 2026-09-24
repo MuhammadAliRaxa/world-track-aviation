@@ -172,12 +172,17 @@ export function GroupTicketsPage({
 
   // Client filter states
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 350);
+  const debouncedSearch = useDebounce(searchQuery, 800);
   const [selDurations, setSelDurations] = useState([]);
   const [selDates, setSelDates] = useState([]);
   const [selAirlines, setSelAirlines] = useState([]);
   const [selRoutes, setSelRoutes] = useState([]);
   const [selPriceRange, setSelPriceRange] = useState('');
+  const debouncedDurations = useDebounce(selDurations, 800);
+  const debouncedDates = useDebounce(selDates, 800);
+  const debouncedAirlines = useDebounce(selAirlines, 800);
+  const debouncedRoutes = useDebounce(selRoutes, 800);
+  const debouncedPriceRange = useDebounce(selPriceRange, 800);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Loading states
@@ -291,11 +296,11 @@ export function GroupTicketsPage({
 
     const filters = {};
     if (debouncedSearch.trim()) filters.name = debouncedSearch.trim();
-    if (selDurations.length > 0) filters.duration = selDurations;
-    if (selDates.length > 0) filters.departure_date = selDates;
-    if (selAirlines.length > 0) filters.airlines = selAirlines;
-    if (selRoutes.length > 0) filters.routes = selRoutes;
-    if (selPriceRange) filters.price_range = selPriceRange;
+    if (debouncedDurations.length > 0) filters.duration = debouncedDurations;
+    if (debouncedDates.length > 0) filters.departure_date = debouncedDates;
+    if (debouncedAirlines.length > 0) filters.airlines = debouncedAirlines;
+    if (debouncedRoutes.length > 0) filters.routes = debouncedRoutes;
+    if (debouncedPriceRange) filters.price_range = debouncedPriceRange;
     filters.nextPage = 1;
     filters.perPage = 12;
 
@@ -317,11 +322,11 @@ export function GroupTicketsPage({
     };
   }, [
     debouncedSearch,
-    selDurations,
-    selDates,
-    selAirlines,
-    selRoutes,
-    selPriceRange,
+    debouncedDurations,
+    debouncedDates,
+    debouncedAirlines,
+    debouncedRoutes,
+    debouncedPriceRange,
   ]);
 
   // Load More: keep prior filters, update nextPage
@@ -332,11 +337,11 @@ export function GroupTicketsPage({
     try {
       const filters = {};
       if (debouncedSearch.trim()) filters.name = debouncedSearch.trim();
-      if (selDurations.length > 0) filters.duration = selDurations;
-      if (selDates.length > 0) filters.departure_date = selDates;
-      if (selAirlines.length > 0) filters.airlines = selAirlines;
-      if (selRoutes.length > 0) filters.routes = selRoutes;
-      if (selPriceRange) filters.price_range = selPriceRange;
+      if (debouncedDurations.length > 0) filters.duration = debouncedDurations;
+      if (debouncedDates.length > 0) filters.departure_date = debouncedDates;
+      if (debouncedAirlines.length > 0) filters.airlines = debouncedAirlines;
+      if (debouncedRoutes.length > 0) filters.routes = debouncedRoutes;
+      if (debouncedPriceRange) filters.price_range = debouncedPriceRange;
       filters.nextPage = pagination.nextPage;
       filters.perPage = 12;
 
