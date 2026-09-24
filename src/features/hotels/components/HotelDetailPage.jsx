@@ -32,7 +32,8 @@ import {
   Building2,
   Navigation,
   X,
-  Images
+  Images,
+  ExternalLink
 } from 'lucide-react';
 import { hotelService, inquiryService } from '../../../services';
 import { AppBar, Footer, Modals } from '../../../shared';
@@ -227,6 +228,12 @@ export function HotelDetailPage({ initialHotel = null }) {
     ? hotel.gallery
     : (hotel.image ? [hotel.image] : []);
 
+  // Direct Google Maps location link
+  const hotelMapUrl =
+    hotel.lat && hotel.lng
+      ? `https://maps.google.com/?q=${hotel.lat},${hotel.lng}+(${encodeURIComponent(hotel.name)})`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotel.name}, ${hotel.address || hotel.location || ''}`)}`;
+
   // Amenities from API (hotel.amenities is mapped from facilities[] in the normalizer)
   const AMENITY_ICON_MAP = {
     'Free WiFi': Wifi, 'Free Wi-Fi': Wifi,
@@ -318,6 +325,25 @@ export function HotelDetailPage({ initialHotel = null }) {
             <div className="hotel-header-address">
               <MapPin size={14} className="address-pin-icon" />
               <span>{hotel.address || '80 Bras Basah Road, Marina Bay District, Singapore 189560'}</span>
+              <a
+                href={hotelMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: '#0284c7',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  marginLeft: '8px',
+                  textDecoration: 'underline',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>View on Map</span>
+                <ExternalLink size={11} />
+              </a>
             </div>
 
             {/* Info Pills: Distance, Available From */}
@@ -458,14 +484,34 @@ export function HotelDetailPage({ initialHotel = null }) {
 
           {/* Hotel Location & Map Section */}
           <div className="hotel-section-block map-section">
-            <h3 className="hotel-section-heading">Hotel Location</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <h3 className="hotel-section-heading" style={{ margin: 0 }}>Hotel Location</h3>
+              <a
+                href={hotelMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: '#0284c7',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>Open in Google Maps</span>
+                <ExternalLink size={13} />
+              </a>
+            </div>
 
             <div className="map-visual-container">
               {/* Real Google Maps Embed */}
               {hotel.lat && hotel.lng ? (
                 <iframe
                   className="map-embed-iframe"
-                  src={`https://maps.google.com/maps?q=${hotel.lat},${hotel.lng}&z=16&output=embed`}
+                  src={`https://maps.google.com/maps?q=${hotel.lat},${hotel.lng}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
@@ -477,7 +523,7 @@ export function HotelDetailPage({ initialHotel = null }) {
               ) : (
                 <iframe
                   className="map-embed-iframe"
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(hotel.address || hotel.name + ' ' + hotel.location)}&z=16&output=embed`}
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(hotel.address || hotel.name + ' ' + hotel.location)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
@@ -487,6 +533,36 @@ export function HotelDetailPage({ initialHotel = null }) {
                   title={`${hotel.name} location map`}
                 />
               )}
+
+              {/* Overlay Button to Open Location in Google Maps */}
+              <a
+                href={hotelMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="map-open-overlay-btn"
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  zIndex: 10,
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  border: '1px solid #e2e8f0',
+                  cursor: 'pointer'
+                }}
+              >
+                <ExternalLink size={13} color="#0284c7" />
+                <span>Open in Google Maps</span>
+              </a>
 
               {/* Floating Address Box */}
               <div className="map-floating-box">
@@ -499,15 +575,13 @@ export function HotelDetailPage({ initialHotel = null }) {
                   </p>
                 )}
                 <a
-                  href={
-                    hotel.lat && hotel.lng
-                      ? `https://maps.google.com/?q=${hotel.lat},${hotel.lng}`
-                      : `https://maps.google.com/?q=${encodeURIComponent(hotel.name + ' ' + (hotel.address || hotel.location))}`
-                  }
+                  href={hotelMapUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="map-box-link"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 >
+                  <ExternalLink size={12} />
                   <span>View on Google Maps</span>
                 </a>
               </div>

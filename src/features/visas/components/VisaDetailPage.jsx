@@ -12,8 +12,6 @@ import {
   CreditCard,
   Tag,
   Check,
-  Briefcase,
-  Building2,
   Phone,
   ChevronDown
 } from 'lucide-react';
@@ -79,28 +77,7 @@ export function VisaDetailPage({ initialVisa = null }) {
       visaType: rawVisa.specs?.visaType || rawVisa.processingType || rawVisa.badge || 'Electronic e-Visa',
       price: rawVisa.specs?.price || (rawVisa.priceUSD ? `From $${rawVisa.priceUSD}` : `From Rs ${rawVisa.pricePKR}`),
       pricePKR: rawVisa.specs?.pricePKR || `Rs ${rawVisa.pricePKR}`,
-      ...(rawVisa.specs || {})
-    },
-    eligibility: rawVisa.eligibility || [
-      'Valid passport with minimum 6 months validity from travel date.',
-      'Confirmed return flight tickets and hotel booking confirmation.',
-      'Sufficient financial funds demonstrated via 6-month bank statement.'
-    ],
-    requiredDocs: rawVisa.requiredDocs || [
-      { title: 'Passport Scan', icon: 'passport' },
-      { title: 'Photograph (White BG)', icon: 'passport' },
-      { title: 'Hotel Booking', icon: 'hotel' }
-    ],
-    includedServices: rawVisa.includedServices || [
-      'Direct Portal / Embassy Submission',
-      'Document Pre-Screening & Verification',
-      'Instant Email & SMS Status Updates',
-      '24/7 Dedicated Visa Specialist Support'
-    ],
-    importantNotes: rawVisa.importantNotes || [
-      'Single or Multiple entry valid as per consular immigration regulations.',
-      'All government fee requirements are processed through official channels.'
-    ]
+    }
   };
 
   // Inquiry form states
@@ -217,87 +194,6 @@ export function VisaDetailPage({ initialVisa = null }) {
                   'The official electronic visa allows effortless entry for travelers visiting cultural capitals, nature reserves, and historical destinations.'}
               </p>
             )}
-          </section>
-
-          {/* Eligibility Requirements */}
-          <section className="visa-detail-section">
-            <h2 className="visa-section-heading">Eligibility Requirements</h2>
-            <div className="visa-checklist">
-              {(
-                visa.eligibility || [
-                  'Valid passport with minimum 3 months beyond intended departure.',
-                  'Confirmed flight and hotel accommodation details.'
-                ]
-              ).map((item, idx) => (
-                <div key={idx} className="visa-check-item">
-                  <span className="visa-check-icon-wrap">
-                    <Check size={14} className="visa-check-icon" />
-                  </span>
-                  <span className="visa-check-text">{item}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Required Documents */}
-          <section className="visa-detail-section">
-            <h2 className="visa-section-heading">Required Documents</h2>
-            <div className="visa-doc-badges">
-              {(
-                visa.requiredDocs || [
-                  { title: 'Passport Copy', icon: 'passport' },
-                  { title: 'Hotel Booking', icon: 'hotel' }
-                ]
-              ).map((doc, idx) => (
-                <div key={idx} className="visa-doc-badge">
-                  {doc.icon === 'hotel' ? (
-                    <Building2 size={15} className="visa-doc-icon" />
-                  ) : (
-                    <Briefcase size={15} className="visa-doc-icon" />
-                  )}
-                  <span className="visa-doc-title">{doc.title}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Included Services */}
-          <section className="visa-detail-section">
-            <h2 className="visa-section-heading">Included services</h2>
-            <div className="visa-checklist">
-              {(
-                visa.includedServices || [
-                  'Direct ASAN portal submission',
-                  'Pre-verification check',
-                  'Email and SMS notification',
-                  '24/7 client support'
-                ]
-              ).map((srv, idx) => (
-                <div key={idx} className="visa-check-item">
-                  <span className="visa-check-icon-wrap">
-                    <Check size={14} className="visa-check-icon" />
-                  </span>
-                  <span className="visa-check-text">{srv}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Important Notes */}
-          <section className="visa-detail-section">
-            <h2 className="visa-section-heading">Important notes</h2>
-            <div className="visa-notes-list">
-              {(
-                visa.importantNotes || [
-                  'Single entry visa valid for 90 days from issue.',
-                  'Non-refundable once processed by Ministry of Foreign Affairs'
-                ]
-              ).map((note, idx) => (
-                <p key={idx} className="visa-note-item">
-                  {note}
-                </p>
-              ))}
-            </div>
           </section>
         </div>
 

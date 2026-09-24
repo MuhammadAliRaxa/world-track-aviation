@@ -7,7 +7,8 @@ import {
   MapPin,
   ChevronDown,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  ExternalLink
 } from 'lucide-react';
 import { AppBar } from './AppBar';
 import { Footer } from './Footer';
@@ -159,7 +160,27 @@ export function ContactPage({ contactInfo }) {
                 <MapPin size={20} />
               </div>
               <div className="contact-card-text">
-                <span className="contact-card-label">HEADQUARTERS</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <span className="contact-card-label">HEADQUARTERS</span>
+                  <a
+                    href={`https://maps.google.com/?q=${lat},${lng}+(${encodeURIComponent('World Track Aviation')})`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: '11px',
+                      color: '#0284c7',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '3px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <span>View Map</span>
+                    <ExternalLink size={11} />
+                  </a>
+                </div>
                 <span className="contact-card-val">
                   World Track Aviation
                 </span>
@@ -170,17 +191,47 @@ export function ContactPage({ contactInfo }) {
             </div>
           </div>
 
-          {/* City Map Iframe */}
-          <div className="contact-city-map-card" style={{ padding: 0, overflow: 'hidden', minHeight: '250px' }}>
+          {/* City Map Iframe with Click to Open */}
+          <div className="contact-city-map-card" style={{ padding: 0, overflow: 'hidden', minHeight: '260px', position: 'relative' }}>
             <iframe
               width="100%"
               height="100%"
-              style={{ border: 0, minHeight: '250px' }}
+              style={{ border: 0, minHeight: '260px' }}
               loading="lazy"
               allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"
               src={`https://maps.google.com/maps?q=${lat},${lng}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+              title="World Track Aviation Headquarters Map"
             />
+            {/* Overlay Button to Open Location in Google Maps */}
+            <a
+              href={`https://maps.google.com/?q=${lat},${lng}+(${encodeURIComponent('World Track Aviation')})`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="contact-map-overlay-btn"
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                zIndex: 10,
+                background: '#ffffff',
+                color: '#0f172a',
+                padding: '7px 12px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+                textDecoration: 'none',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer'
+              }}
+            >
+              <ExternalLink size={13} color="#0284c7" />
+              <span>Open in Google Maps</span>
+            </a>
           </div>
         </div>
 
