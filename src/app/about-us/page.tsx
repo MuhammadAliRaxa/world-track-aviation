@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { buildMetadata } from '@/lib/seo';
 import { AboutPage } from '@/shared/components';
 
+import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     pageKey: 'about-us',
@@ -13,5 +15,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function Page() {
-  return <AboutPage />;
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'About Us', path: '/about-us/' },
+  ];
+
+  return (
+    <>
+      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
+      <AboutPage />
+    </>
+  );
 }

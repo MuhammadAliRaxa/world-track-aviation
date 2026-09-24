@@ -3,6 +3,8 @@ import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { flightService } from '@/services';
 import { GroupTicketsPage } from '@/features/flights/components/GroupTicketsPage';
 
+import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+
 export const revalidate = 0;
 
 /**
@@ -30,16 +32,24 @@ export default async function Page() {
     fetchPageSeo('group-tickets'),
   ]);
 
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'Group Flight Tickets', path: '/group-tickets/' },
+  ];
+
   return (
-    <GroupTicketsPage
-      initialFlights={paginatedData.tickets}
-      initialPagination={paginatedData.pagination}
-      initialDates={dates}
-      initialAirlines={airlines}
-      initialSectors={sectors}
-      initialDurations={durations}
-      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
-      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
-    />
+    <>
+      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
+      <GroupTicketsPage
+        initialFlights={paginatedData.tickets}
+        initialPagination={paginatedData.pagination}
+        initialDates={dates}
+        initialAirlines={airlines}
+        initialSectors={sectors}
+        initialDurations={durations}
+        h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+        heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+      />
+    </>
   );
 }

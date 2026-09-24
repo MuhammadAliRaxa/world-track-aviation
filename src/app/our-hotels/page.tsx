@@ -3,6 +3,8 @@ import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { hotelService } from '@/services';
 import { HotelsPage } from '@/features/hotels/components/HotelsPage';
 
+import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+
 export const revalidate = 0;
 
 /**
@@ -28,14 +30,35 @@ export default async function Page() {
     fetchPageSeo('hotels'),
   ]);
 
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'Hotels', path: '/our-hotels/' },
+  ];
+
+  const faqSchema = Array.isArray(faqs) && faqs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f: any) => ({
+      '@type': 'Question',
+      name: f.question || f.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: f.answer || f.a,
+      },
+    })),
+  } : null;
+
   return (
-    <HotelsPage
-      initialHotels={paginatedData.hotels}
-      initialPagination={paginatedData.pagination}
-      initialLookups={lookups}
-      initialFaqs={faqs}
-      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
-      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
-    />
+    <>
+      <JsonLdScript schema={[getBreadcrumbSchema(breadcrumbs), ...(faqSchema ? [faqSchema] : [])]} />
+      <HotelsPage
+        initialHotels={paginatedData.hotels}
+        initialPagination={paginatedData.pagination}
+        initialLookups={lookups}
+        initialFaqs={faqs}
+        h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+        heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+      />
+    </>
   );
 }

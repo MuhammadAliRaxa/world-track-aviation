@@ -78,6 +78,8 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://admin.worldtracktravel.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://admin.worldtracktravel.com" />
         {gscTag && <meta name="google-site-verification" content={gscTag} />}
         {gaId && (
           <>

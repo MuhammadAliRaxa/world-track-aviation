@@ -136,15 +136,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0) 100%);
-  padding-bottom: 12px;
+  background: transparent;
+  padding-bottom: 8px;
+}
+
+.hero-header-top-group .top-banner-bar {
+  display: none !important;
 }
 
 .hero-header-top-group .navbar-floating-container {
   position: relative;
   top: 0;
   width: 100%;
-  padding-top: 14px;
+  padding-top: 18px;
 }
 
 .navbar-floating-container {
@@ -170,13 +174,13 @@
 
 .header-glass-pill {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1140px;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   border: 1.5px solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
-  padding: 8px 10px 8px 20px;
+  padding: 6px 10px 6px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;

@@ -575,20 +575,20 @@ export function HeroSection({
 
   const TABS = [
     {
-      id: 'hotels',
-      label: 'Hotels',
-      icon: <Building2 size={18} className="tab-icon-svg" />,
-    },
-    {
       id: 'visa',
       label: 'Visas',
-      icon: <PassportIcon size={18} className="tab-icon-svg" />,
+      icon: <PassportIcon size={17} className="tab-icon-svg" />,
+    },
+    {
+      id: 'hotels',
+      label: 'Hotels',
+      icon: <Building2 size={17} className="tab-icon-svg" />,
     },
     {
       id: 'umrah',
-      label: 'Group Umrah',
+      label: 'Umrah',
       icon: (
-        <svg className="tab-icon-svg" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="tab-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2.5a.75.75 0 0 1 .75.75v1.05c2.14.41 3.75 2.25 3.75 4.45v2.75h1a.75.75 0 0 1 .75.75v7.5H4.75v-7.5a.75.75 0 0 1 .75-.75h1V8.75c0-2.2 1.61-4.04 3.75-4.45V3.25A.75.75 0 0 1 12 2.5zM4 20.5h16v1.5H4v-1.5zm8-8.5a2 2 0 0 0-2 2v4.5h4v-4.5a2 2 0 0 0-2-2z"/>
         </svg>
       ),

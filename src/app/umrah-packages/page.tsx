@@ -3,6 +3,8 @@ import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { umrahService } from '@/services';
 import { UmrahPackagesPage } from '@/features/umrah/components/UmrahPackagesPage';
 
+import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+
 export const revalidate = 0;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -26,13 +28,21 @@ export default async function Page() {
   const lookups = lookupsRes.status === 'fulfilled' ? lookupsRes.value : null;
   const pageSeo = pageSeoRes.status === 'fulfilled' ? pageSeoRes.value : null;
 
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'Umrah Packages', path: '/umrah-packages/' },
+  ];
+
   return (
-    <UmrahPackagesPage
-      initialPackages={packages}
-      initialLookups={lookups}
-      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
-      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
-    />
+    <>
+      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
+      <UmrahPackagesPage
+        initialPackages={packages}
+        initialLookups={lookups}
+        h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+        heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+      />
+    </>
   );
 }
 

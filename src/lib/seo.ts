@@ -60,7 +60,7 @@ async function _fetchPageSeo(pageKey: string): Promise<ApiPageSeo | null> {
 export const fetchGlobalSeo = unstable_cache(
   _fetchGlobalSeo,
   ['global-seo'],
-  { revalidate: false, tags: ['seo', 'global-seo'] },
+  { revalidate: 3600, tags: ['seo', 'global-seo'] },
 );
 
 /**
@@ -71,7 +71,7 @@ export const fetchGlobalSeo = unstable_cache(
 export const fetchPageSeo = unstable_cache(
   _fetchPageSeo,
   ['page-seo'],
-  { revalidate: false, tags: ['seo', 'page-seo'] },
+  { revalidate: 3600, tags: ['seo', 'page-seo'] },
 );
 
 // ---------------------------------------------------------------------------
@@ -83,7 +83,7 @@ export interface BuildMetadataOptions {
   itemSeo?: ApiSeoObject | null;
   /** Page key for /seo/page/{key} lookup (used when itemSeo is null). */
   pageKey?: string;
-  /** Additional path segment for canonical URL normalization (e.g. '/hotels/my-slug'). */
+  /** Additional path segment for canonical URL normalization (e.g. '/our-hotels/my-slug/'). */
   canonicalPath?: string;
   /** Fallback title if all SEO sources are null. */
   fallbackTitle?: string;
@@ -93,7 +93,7 @@ export interface BuildMetadataOptions {
 
 /**
  * Builds a Next.js Metadata object from the documented fallback chain:
- * item SEO → page SEO → global SEO → hardcoded defaults.
+ * item SEO → page SEO → route-specific fallback → global SEO → hardcoded defaults.
  */
 export async function buildMetadata(
   opts: BuildMetadataOptions = {},
@@ -117,77 +117,85 @@ export async function buildMetadata(
   const pick = (...candidates: (string | null | undefined)[]): string =>
     candidates.find((v) => v && v.trim() !== '') ?? '';
 
-  const title = pick(
+  // Priority order: Item SEO -> Page SEO -> Route Fallback -> Global CMS -> Site Default
+  const titleCandidate = pick(
     itemSeo?.seo_title,
     pageSeo?.seo_title,
+    fallbackTitle !== SITE_CONFIG.defaultTitle ? fallbackTitle : undefined,
     global?.default_site_seo_title,
     fallbackTitle,
+    SITE_CONFIG.defaultTitle,
   );
 
-  const description = pick(
+  const descriptionCandidate = pick(
     itemSeo?.meta_description,
     pageSeo?.meta_description,
+    fallbackDescription !== SITE_CONFIG.defaultDescription ? fallbackDescription : undefined,
     global?.default_site_seo_description,
     fallbackDescription,
+    SITE_CONFIG.defaultDescription,
   );
 
-  const canonicalUrl = buildCanonicalUrl(
-    pick(
-      itemSeo?.canonical_url,
-      pageSeo?.canonical_url,
-      canonicalPath
-        ? canonicalPath.startsWith('http://') || canonicalPath.startsWith('https://')
-          ? canonicalPath
-          : `${SITE_CONFIG.baseUrl}${canonicalPath}`
-        : undefined,
-      global?.default_canonical_url,
-      SITE_CONFIG.baseUrl,
-    ),
+  // Canonical resolution: ignore global admin domain fallback
+  const rawCanonical = pick(
+    itemSeo?.canonical_url,
+    pageSeo?.canonical_url,
+    canonicalPath,
   );
+  const canonicalUrl = buildCanonicalUrl(rawCanonical || canonicalPath || SITE_CONFIG.baseUrl);
 
-  const robotsIndex = pick(
+  // Robots indexing logic: robust against boolean strings, "index, follow", "all", etc.
+  const rawIndex = pick(
     itemSeo?.robots_index,
     pageSeo?.robots_index,
     global?.default_robots_index,
     'index',
-  );
+  ).toLowerCase().trim();
 
-  const robotsFollow = pick(
+  const rawFollow = pick(
     itemSeo?.robots_follow,
     pageSeo?.robots_follow,
     global?.default_robots_follow,
     'follow',
+  ).toLowerCase().trim();
+
+  const isIndex = !rawIndex.includes('noindex') && rawIndex !== 'false' && rawIndex !== '0';
+  const isFollow = !rawFollow.includes('nofollow') && rawFollow !== 'false' && rawFollow !== '0';
+
+  const defaultOgImage = `${SITE_CONFIG.baseUrl}/assets/world_track_logo.png`;
+  const ogImage = pick(
+    itemSeo?.og_image,
+    pageSeo?.og_image,
+    global?.default_og_image,
+    defaultOgImage,
   );
 
   const ogTitle = pick(
     itemSeo?.og_title,
     pageSeo?.og_title,
     global?.default_og_title,
-    title,
+    titleCandidate,
   );
 
   const ogDescription = pick(
     itemSeo?.og_description,
     pageSeo?.og_description,
     global?.default_og_description,
-    description,
+    descriptionCandidate,
   );
 
-  const ogImage = pick(
-    itemSeo?.og_image,
-    pageSeo?.og_image,
-    global?.default_og_image,
-  );
+  // Avoid duplicate brand suffix if already included in title
+  const hasBrand = titleCandidate.toLowerCase().includes('world track');
 
   const metadata: Metadata = {
-    title,
-    description,
+    title: hasBrand ? { absolute: titleCandidate } : titleCandidate,
+    description: descriptionCandidate,
     alternates: {
       canonical: canonicalUrl,
     },
     robots: {
-      index: robotsIndex === 'index',
-      follow: robotsFollow === 'follow',
+      index: isIndex,
+      follow: isFollow,
     },
     openGraph: {
       title: ogTitle,
@@ -213,19 +221,30 @@ export async function buildMetadata(
 // ---------------------------------------------------------------------------
 
 /**
- * Normalizes a canonical URL to be absolute and without trailing slash.
- * If given a relative path, prepends SITE_CONFIG.baseUrl.
+ * Normalizes a canonical URL to be absolute with trailing slash to match next.config.ts trailingSlash: true.
+ * Protects against admin CMS domain leaks.
  */
 export function buildCanonicalUrl(urlOrPath: string): string {
-  if (!urlOrPath) return SITE_CONFIG.baseUrl;
+  if (!urlOrPath) return `${SITE_CONFIG.baseUrl}/`;
 
-  // Already absolute
-  if (urlOrPath.startsWith('http://') || urlOrPath.startsWith('https://')) {
-    return urlOrPath.replace(/\/$/, '');
+  // Protect against admin backend domain leak
+  let clean = urlOrPath.replace(/^https?:\/\/admin\.worldtracktravel\.com/, SITE_CONFIG.baseUrl);
+
+  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    try {
+      const u = new URL(clean);
+      if (u.pathname === '' || u.pathname === '/') {
+        return `${u.origin}/`;
+      }
+      const pathnameWithSlash = u.pathname.endsWith('/') ? u.pathname : `${u.pathname}/`;
+      return `${u.origin}${pathnameWithSlash}${u.search}`;
+    } catch {
+      return clean.endsWith('/') ? clean : `${clean}/`;
+    }
   }
 
   // Relative path
   const base = SITE_CONFIG.baseUrl.replace(/\/$/, '');
-  const path = urlOrPath.startsWith('/') ? urlOrPath : `/${urlOrPath}`;
-  return `${base}${path}`.replace(/\/$/, '');
+  const path = clean.startsWith('/') ? clean : `/${clean}`;
+  return `${base}${path.endsWith('/') ? path : `${path}/`}`;
 }

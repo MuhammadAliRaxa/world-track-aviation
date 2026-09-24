@@ -123,7 +123,9 @@ export function normalizeHotelDetail(raw: any): Hotel | null {
     distance: item.distance,
     available_from: item.available_from,
     lat: item.lat,
-    lng: item.lng
+    lng: item.lng,
+    seo: item.seo || null,
+    slug: item.seo?.url_slug || item.slug || '',
   } as unknown as Hotel;
 }
 
@@ -175,12 +177,33 @@ export const hotelService = {
   },
 
   /**
-   * Fetch a single hotel by ID.
+   * Helper to resolve a numeric hotel ID from either an ID or an SEO slug.
+   */
+  async resolveHotelId(idOrSlug: string | number): Promise<string> {
+    const raw = String(idOrSlug).trim();
+    if (/^\d+$/.test(raw)) return raw;
+
+    try {
+      const { hotels } = await fetchHotelListing({});
+      const found = hotels.find(
+        (h) =>
+          String(h.id) === raw ||
+          h.seo?.url_slug?.toLowerCase().trim() === raw.toLowerCase(),
+      );
+      return found ? String(found.id) : raw;
+    } catch {
+      return raw;
+    }
+  },
+
+  /**
+   * Fetch a single hotel by ID or SEO slug.
    * GET /hotel/{hotel_id}
    */
-  async getHotelById(id: string): Promise<Hotel | null> {
+  async getHotelById(idOrSlug: string): Promise<Hotel | null> {
     try {
-      const res = await apiGet<unknown>(`/hotel/${id}`, {
+      const targetId = await this.resolveHotelId(idOrSlug);
+      const res = await apiGet<unknown>(`/hotel/${targetId}`, {
         cache: "no-store",
       } as RequestInit);
       const normalized = normalizeHotelDetail(res.data || res);
@@ -192,13 +215,14 @@ export const hotelService = {
   },
 
   /**
-   * Fetch a single hotel by ID, returning the raw API shape with seo intact.
+   * Fetch a single hotel by ID or SEO slug, returning the raw API shape with seo intact.
    * GET /hotel/{hotel_id}
    * Use for buildMetadata() in route pages.
    */
-  async getHotelDetail(id: string | number): Promise<ApiHotelDetail | null> {
+  async getHotelDetail(idOrSlug: string | number): Promise<ApiHotelDetail | null> {
     try {
-      const res = await apiGet<ApiHotelDetail>(`/hotel/${id}`, {
+      const targetId = await this.resolveHotelId(idOrSlug);
+      const res = await apiGet<ApiHotelDetail>(`/hotel/${targetId}`, {
         cache: "no-store",
       } as RequestInit);
       const item = res.data;

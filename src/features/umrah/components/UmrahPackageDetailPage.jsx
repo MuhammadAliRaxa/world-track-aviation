@@ -194,7 +194,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
             <div className="upd-hero-bg" />
             <div className="upd-hero-overlay" />
             <div className="upd-hero-body">
-              <h1 className="upd-hero-h1">Package Details</h1>
+              <div className="upd-hero-h1">Package Details</div>
             </div>
           </div>
         }
@@ -228,7 +228,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
               </div>
 
               {/* Title & Tagline */}
-              <h2 className="upd-title">{pkg.title}</h2>
+              <h1 className="upd-title">{pkg.title}</h1>
               <p className="upd-subtitle">{pkg.tagline}</p>
 
               {/* Main Image */}

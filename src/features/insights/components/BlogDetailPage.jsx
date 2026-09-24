@@ -103,9 +103,9 @@ export function BlogDetailPage({ initialArticle = null }) {
           <section className="blog-page-hero">
             <div className="blog-page-hero-overlay" />
             <div className="blog-page-hero-content">
-              <h1 className="blog-page-hero-title">
+              <p className="blog-page-hero-title" role="doc-subtitle">
                 {article.heroTitle || article.title || 'Travel Insights'}
-              </h1>
+              </p>
             </div>
           </section>
         }

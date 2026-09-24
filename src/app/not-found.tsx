@@ -1,7 +1,17 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Compass, Plane, Building2, ShieldCheck, Home } from 'lucide-react';
 import NotFoundTracker from '@/shared/components/NotFoundTracker';
+
+export const metadata: Metadata = {
+  title: '404 - Page Not Found | World Track Aviation',
+  description: 'The requested page could not be found.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function NotFound() {
   return (

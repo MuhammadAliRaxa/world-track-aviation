@@ -3,6 +3,8 @@ import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { blogService } from '@/services';
 import { BlogsPage } from '@/features/insights/components/BlogsPage';
 
+import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+
 export const revalidate = 0;
 
 /**
@@ -27,13 +29,21 @@ export default async function Page() {
     fetchPageSeo('blogs'),
   ]);
 
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'Blogs & Guides', path: '/our-blogs/' },
+  ];
+
   return (
-    <BlogsPage
-      initialBlogs={paginatedData.blogs}
-      initialPagination={paginatedData.pagination}
-      initialLookups={lookups}
-      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
-      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
-    />
+    <>
+      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
+      <BlogsPage
+        initialBlogs={paginatedData.blogs}
+        initialPagination={paginatedData.pagination}
+        initialLookups={lookups}
+        h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+        heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+      />
+    </>
   );
 }

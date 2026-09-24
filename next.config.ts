@@ -23,6 +23,39 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(self)',
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       {
@@ -73,6 +106,51 @@ const nextConfig: NextConfig = {
       {
         source: '/transport',
         destination: '/private-transport/',
+        permanent: true,
+      },
+      {
+        source: '/visa',
+        destination: '/visas/',
+        permanent: true,
+      },
+      {
+        source: '/visa/:id',
+        destination: '/visas/:id/',
+        permanent: true,
+      },
+      {
+        source: '/umrah',
+        destination: '/umrah-packages/',
+        permanent: true,
+      },
+      {
+        source: '/umrah/:id',
+        destination: '/umrah-packages/:id/',
+        permanent: true,
+      },
+      {
+        source: '/umrah-group',
+        destination: '/umrah-group-packages/',
+        permanent: true,
+      },
+      {
+        source: '/flights',
+        destination: '/group-tickets/',
+        permanent: true,
+      },
+      {
+        source: '/tickets',
+        destination: '/group-tickets/',
+        permanent: true,
+      },
+      {
+        source: '/about',
+        destination: '/about-us/',
+        permanent: true,
+      },
+      {
+        source: '/contact',
+        destination: '/contact-us/',
         permanent: true,
       },
     ];

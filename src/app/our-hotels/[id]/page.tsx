@@ -12,7 +12,15 @@ interface Props {
 export async function generateStaticParams() {
   const hotels = await hotelService.getHotels();
   if (!Array.isArray(hotels)) return [];
-  return hotels.map((h) => ({ id: String(h.id) }));
+  const params: { id: string }[] = [];
+  hotels.forEach((h) => {
+    params.push({ id: String(h.id) });
+    const slug = (h as any).slug || (h as any)?.seo?.url_slug;
+    if (slug && slug !== String(h.id)) {
+      params.push({ id: String(slug) });
+    }
+  });
+  return params;
 }
 
 export const revalidate = 86400; // 24 hours ISR
@@ -30,10 +38,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     hotelService.getHotelById(id),
   ]);
 
+  const preferredSlug = rawHotel?.seo?.url_slug || (normalizedHotel as any)?.slug || id;
+
   return buildMetadata({
     itemSeo: rawHotel?.seo ?? null,
     pageKey: 'hotels',
-    canonicalPath: rawHotel?.seo?.canonical_url || `https://worldtracktravel.com/our-hotels/${id}/`,
+    canonicalPath: rawHotel?.seo?.canonical_url || `https://worldtracktravel.com/our-hotels/${preferredSlug}/`,
     fallbackTitle: normalizedHotel
       ? `${normalizedHotel.name} - ${normalizedHotel.location} | World Track Aviation`
       : 'Hotel Details | World Track Aviation',

@@ -3,6 +3,8 @@ import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { tourService } from '@/services';
 import { ToursPage } from '@/features/holidays/components/ToursPage';
 
+import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+
 export const revalidate = 0;
 
 /**
@@ -27,13 +29,21 @@ export default async function Page() {
     fetchPageSeo('tours'),
   ]);
 
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'Tour Packages', path: '/tour-packages/' },
+  ];
+
   return (
-    <ToursPage
-      initialTours={paginatedData.tours}
-      initialPagination={paginatedData.pagination}
-      initialDestinations={destinations}
-      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
-      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
-    />
+    <>
+      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
+      <ToursPage
+        initialTours={paginatedData.tours}
+        initialPagination={paginatedData.pagination}
+        initialDestinations={destinations}
+        h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+        heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+      />
+    </>
   );
 }

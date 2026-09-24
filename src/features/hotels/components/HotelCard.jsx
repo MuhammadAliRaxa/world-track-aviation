@@ -10,7 +10,8 @@ export function HotelCard({ hotel }) {
   const router = useRouter();
 
   const handleSelectHotel = () => {
-    router.push(`/our-hotels/${hotel.id}/`);
+    const target = hotel.slug || hotel?.seo?.url_slug || hotel.id;
+    router.push(`/our-hotels/${target}/`);
   };
 
   const firstImage = Array.isArray(hotel.images) && hotel.images[0];

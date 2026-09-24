@@ -278,7 +278,7 @@ export function HotelDetailPage({ initialHotel = null }) {
           <section className="hotel-page-hero">
             <div className="hotel-page-hero-overlay" />
             <div className="hotel-page-hero-content">
-              <h1 className="hotel-page-hero-title">{hotel.name}</h1>
+              <p className="hotel-page-hero-title" role="doc-subtitle">{hotel.name}</p>
             </div>
           </section>
         }

@@ -52,6 +52,9 @@ function TourCard({ tour }) {
           alt={tour.imageAltText || tour?.seo?.image_alt || `${tour.title} - World Track Aviation`}
           className="tr-card-img"
           loading="lazy"
+          decoding="async"
+          width={360}
+          height={200}
         />
 
         {/* Rating badge – top right */}

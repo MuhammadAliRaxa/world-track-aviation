@@ -51,20 +51,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return true;
   };
 
+  const parseItemDate = (item: unknown): Date => {
+    const anyItem = item as { updated_at?: string; created_at?: string; date?: string };
+    const raw = anyItem?.updated_at || anyItem?.created_at || anyItem?.date;
+    if (raw) {
+      const parsed = new Date(raw);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return new Date();
+  };
+
   const hotelRoutes: MetadataRoute.Sitemap = hotels
     .filter(isIndexable)
-    .map((h) => ({
-      url: `${baseUrl}/our-hotels/${h.id}/`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    }));
+    .map((h) => {
+      const slug = (h as any).slug || (h as any)?.seo?.url_slug;
+      return {
+        url: `${baseUrl}/our-hotels/${slug || h.id}/`,
+        lastModified: parseItemDate(h),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      };
+    });
 
   const visaRoutes: MetadataRoute.Sitemap = visas
     .filter(isIndexable)
     .map((v) => ({
       url: `${baseUrl}/visas/${v.id}/`,
-      lastModified: new Date(),
+      lastModified: parseItemDate(v),
       changeFrequency: 'weekly',
       priority: 0.8,
     }));
@@ -73,7 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter(isIndexable)
     .map((t) => ({
       url: `${baseUrl}/tour-packages/${t.id}/`,
-      lastModified: new Date(),
+      lastModified: parseItemDate(t),
       changeFrequency: 'weekly',
       priority: 0.8,
     }));
@@ -82,19 +95,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter(isIndexable)
     .map((u) => ({
       url: `${baseUrl}/umrah-packages/${u.id}/`,
-      lastModified: new Date(),
+      lastModified: parseItemDate(u),
       changeFrequency: 'weekly',
       priority: 0.8,
     }));
 
   const blogRoutes: MetadataRoute.Sitemap = blogs
     .filter(isIndexable)
-    .map((b) => ({
-      url: `${baseUrl}/our-blogs/${b.id}/`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    }));
+    .map((b) => {
+      const slug = (b as any).slug || (b as any)?.seo?.url_slug;
+      return {
+        url: `${baseUrl}/our-blogs/${slug || b.id}/`,
+        lastModified: parseItemDate(b),
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      };
+    });
 
   return [
     ...staticRoutes,

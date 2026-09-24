@@ -3,6 +3,8 @@ import { buildMetadata } from '@/lib/seo';
 import { ContactPage } from '@/shared/components/ContactPage';
 import { contentService } from '@/services/content.service';
 
+import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+
 export const revalidate = 0;
 
 /**
@@ -22,6 +24,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ContactUsPage() {
   const contactInfo = await contentService.getContactInfo();
+
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'Contact Us', path: '/contact-us/' },
+  ];
 
   const contactSchema = {
     '@context': 'https://schema.org',
@@ -46,10 +53,7 @@ export default async function ContactUsPage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
-      />
+      <JsonLdScript schema={[getBreadcrumbSchema(breadcrumbs), contactSchema]} />
       <ContactPage contactInfo={contactInfo} />
     </>
   );

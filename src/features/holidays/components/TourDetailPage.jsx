@@ -157,7 +157,7 @@ export function TourDetailPage({ initialTour = null }) {
             <div className="tdp-hero-bg" style={{ backgroundImage: `url(${tour.image})` }} />
             <div className="tdp-hero-overlay" />
             <div className="tdp-hero-body">
-              <h1 className="tdp-hero-h1">Tour Details</h1>
+              <div className="tdp-hero-h1">Tour Details</div>
             </div>
           </div>
         }
