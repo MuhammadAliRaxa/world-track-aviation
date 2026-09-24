@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { hotelService } from '@/services';
 import { HotelsPage } from '@/features/hotels/components/HotelsPage';
 
@@ -21,10 +21,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const [paginatedData, lookups, faqs] = await Promise.all([
+  const [paginatedData, lookups, faqs, pageSeo] = await Promise.all([
     hotelService.getHotelsPaginated({ perPage: 12, nextPage: 1 }),
     hotelService.getHotelLookups(),
     hotelService.getHotelFaqs({ category: 'Hotel' }),
+    fetchPageSeo('hotels'),
   ]);
 
   return (
@@ -33,6 +34,8 @@ export default async function Page() {
       initialPagination={paginatedData.pagination}
       initialLookups={lookups}
       initialFaqs={faqs}
+      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
     />
   );
 }

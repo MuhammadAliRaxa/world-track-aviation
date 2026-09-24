@@ -2896,8 +2896,57 @@
 }
 
 .blog-block-text {
-  font-size: 12.5px;
-  color: #64748b;
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.65;
+}
+
+.blog-block-text a,
+.rich-editorial-content a {
+  color: #0080f6;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.blog-block-text a:hover,
+.rich-editorial-content a:hover {
+  color: #0056b3;
+}
+
+.blog-block-text h2,
+.rich-editorial-content h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 22px 0 10px;
+}
+
+.blog-block-text h3,
+.rich-editorial-content h3 {
+  font-size: 16.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 18px 0 8px;
+}
+
+.blog-block-text ul,
+.rich-editorial-content ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.blog-block-text ol,
+.rich-editorial-content ol {
+  list-style-type: decimal;
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.blog-block-text li,
+.rich-editorial-content li {
+  margin-bottom: 6px;
   line-height: 1.6;
 }
 

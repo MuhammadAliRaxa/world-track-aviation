@@ -108,14 +108,14 @@ export function Footer() {
           <div className="footer-col">
             <h4 className="footer-heading">TRAVEL SERVICES</h4>
             <ul className="footer-nav-list">
-              <li><Link href="/umrah-packages">Umrah Packages</Link></li>
-              <li><Link href="/umrah-group-packages">Group Umrah Packages</Link></li>
-              <li><Link href="/customize-umrah-package">Custom Umrah Packages</Link></li>
-              <li><Link href="/visas">Umrah and Visit Visas</Link></li>
-              <li><Link href="/our-hotels">Hotel Bookings</Link></li>
-              <li><Link href="/private-transport">Private Transport</Link></li>
-              <li><Link href="/tour-packages">Tour Packages</Link></li>
-              <li><Link href="/group-tickets">Group Tickets</Link></li>
+              <li><Link href="/umrah-packages/">Umrah Packages</Link></li>
+              <li><Link href="/umrah-group-packages/">Group Umrah Packages</Link></li>
+              <li><Link href="/customize-umrah-package/">Custom Umrah Packages</Link></li>
+              <li><Link href="/visas/">Umrah and Visit Visas</Link></li>
+              <li><Link href="/our-hotels/">Hotel Bookings</Link></li>
+              <li><Link href="/private-transport/">Private Transport</Link></li>
+              <li><Link href="/tour-packages/">Tour Packages</Link></li>
+              <li><Link href="/group-tickets/">Group Tickets</Link></li>
             </ul>
           </div>
 
@@ -124,13 +124,13 @@ export function Footer() {
             <h4 className="footer-heading">QUICK LINKS</h4>
             <ul className="footer-nav-list">
               <li><Link href="/">Home</Link></li>
-              <li><Link href="/about-us">About Us</Link></li>
-              <li><Link href="/our-hotels">Hotels</Link></li>
-              <li><Link href="/hotels-map">Hotels Map</Link></li>
-              <li><Link href="/our-blogs">Blogs &amp; Articles</Link></li>
-              <li><Link href="/contact-us">Contact Us</Link></li>
-              <li><Link href="/privacy-policy">Privacy Policy</Link></li>
-              <li><Link href="/terms-and-conditions">Terms &amp; Conditions</Link></li>
+              <li><Link href="/about-us/">About Us</Link></li>
+              <li><Link href="/our-hotels/">Hotels</Link></li>
+              <li><Link href="/hotels-map/">Hotels Map</Link></li>
+              <li><Link href="/our-blogs/">Blogs &amp; Articles</Link></li>
+              <li><Link href="/contact-us/">Contact Us</Link></li>
+              <li><Link href="/privacy-policy/">Privacy Policy</Link></li>
+              <li><Link href="/terms-and-conditions/">Terms &amp; Conditions</Link></li>
             </ul>
           </div>
 

@@ -18,6 +18,8 @@ export function BlogsPage({
   initialBlogs = [],
   initialPagination = undefined,
   initialLookups = null,
+  h1 = 'Umrah Guides & Travel Tips',
+  heroIntro = 'Everything here comes from questions our own clients actually ask us, visa rules that changed last season, Nusuk booking steps that confuse people, or which airport transfer makes sense for a tight schedule. Pick a topic below to read the full guide.',
 }) {
   const router = useRouter();
 
@@ -139,10 +141,8 @@ export function BlogsPage({
             <img src={blogsHero} alt="Blogs" className="blogs-hero-img" />
             <div className="blogs-hero-overlay" />
             <div className="blogs-hero-content">
-              <h1 className="blogs-hero-title">Umrah Guides &amp; Travel Tips</h1>
-              <p className="tr-hero-intro">
-                Everything here comes from questions our own clients actually ask us, visa rules that changed last season, Nusuk booking steps that confuse people, or which airport transfer makes sense for a tight schedule. Pick a topic below to read the full guide.
-              </p>
+              <h1 className="blogs-hero-title">{h1}</h1>
+              <p className="tr-hero-intro">{heroIntro}</p>
             </div>
           </section>
         }
@@ -267,7 +267,7 @@ export function BlogsPage({
                   <BlogCard
                     key={article.id}
                     article={article}
-                    onClick={() => router.push(`/our-blogs/${article.id}`)}
+                    onClick={() => router.push(`/our-blogs/${article.id}/`)}
                   />
                 ))}
               </div>

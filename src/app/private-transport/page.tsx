@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { transportService } from '@/services';
 import { PrivateTransportPage } from '@/features/umrah/components/PrivateTransportPage';
 import { JsonLdScript } from '@/lib/jsonld';
@@ -17,7 +17,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const listing = await transportService.getTransportListing();
+  const [listing, pageSeo] = await Promise.all([
+    transportService.getTransportListing(),
+    fetchPageSeo('transport'),
+  ]);
 
   const transportSchema = {
     '@context': 'https://schema.org',
@@ -35,7 +38,11 @@ export default async function Page() {
   return (
     <>
       <JsonLdScript schema={transportSchema} />
-      <PrivateTransportPage initialListing={listing} />
+      <PrivateTransportPage
+        initialListing={listing}
+        h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+        heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+      />
     </>
   );
 }

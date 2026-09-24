@@ -178,6 +178,15 @@ export function BlogDetailPage({ initialArticle = null }) {
                   )}
                 </div>
               ))
+            ) : (article.content || article.body || article.description) ? (
+              <div className="blog-section-block">
+                <div
+                  className="blog-block-text rich-editorial-content space-y-3"
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(article.content || article.body || article.description || ''),
+                  }}
+                />
+              </div>
             ) : article.summary ? (
               <div className="blog-section-block">
                 <p className="blog-block-text">{article.summary}</p>

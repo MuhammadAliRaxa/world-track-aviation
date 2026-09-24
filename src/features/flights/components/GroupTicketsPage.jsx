@@ -152,6 +152,8 @@ export function GroupTicketsPage({
   initialAirlines = [],
   initialSectors = [],
   initialDurations = [],
+  h1 = 'Group Flight Tickets',
+  heroIntro = 'Booking ten seats one at a time rarely gets you the best price, or a guarantee everyone sits together. We handle group bookings directly with the airline, so your whole group travels on the same flight, at a rate that reflects the group size.',
 }) {
   const [flights, setFlights] = useState(initialFlights);
   const [pagination, setPagination] = useState(
@@ -374,13 +376,8 @@ export function GroupTicketsPage({
             <div className="gt-hero-bg" />
             <div className="gt-hero-overlay" />
             <div className="gt-hero-body">
-              <h1 className="gt-hero-h1">Group Flight Tickets</h1>
-              <p className="gt-hero-intro">
-                Booking ten seats one at a time rarely gets you the best price,
-                or a guarantee everyone sits together. We handle group bookings
-                directly with the airline, so your whole group travels on the
-                same flight, at a rate that reflects the group size.
-              </p>
+              <h1 className="gt-hero-h1">{h1}</h1>
+              <p className="gt-hero-intro">{heroIntro}</p>
             </div>
           </div>
         }

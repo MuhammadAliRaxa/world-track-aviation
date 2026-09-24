@@ -111,20 +111,26 @@
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    min-width: unset !important;
+    max-width: 100% !important;
   }
 
   .service-tab-pill {
-    padding: 6px 13px !important;
-    font-size: 12.5px !important;
+    min-width: unset !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     gap: 5px !important;
     border-radius: 999px !important;
+    flex: 1 1 auto !important;
+    text-align: center !important;
   }
 
   .service-tab-pill.active-pill {
-    font-size: 13px !important;
+    min-width: unset !important;
+    font-size: 12.5px !important;
     font-weight: 700 !important;
-    padding: 6px 15px !important;
+    padding: 6px 14px !important;
     background: #ffffff !important;
     color: #0f172a !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14) !important;
@@ -514,15 +520,24 @@
     display: block !important;
   }
 
+  .service-tab-capsule {
+    min-width: unset !important;
+    max-width: 100% !important;
+  }
+
   /* Service tab pills: smaller */
   .service-tab-pill {
-    padding: 5px 10px !important;
+    min-width: unset !important;
+    padding: 5px 8px !important;
     font-size: 11px !important;
     gap: 4px !important;
+    flex: 1 1 auto !important;
   }
 
   .service-tab-pill.active-pill {
-    font-size: 12px !important;
+    min-width: unset !important;
+    font-size: 11.5px !important;
+    padding: 5px 10px !important;
   }
 
   .tab-icon-svg,

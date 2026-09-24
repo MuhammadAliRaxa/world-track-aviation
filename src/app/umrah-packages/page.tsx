@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { umrahService } from '@/services';
 import { UmrahPackagesPage } from '@/features/umrah/components/UmrahPackagesPage';
 
@@ -16,14 +16,23 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const [packagesRes, lookupsRes] = await Promise.allSettled([
+  const [packagesRes, lookupsRes, pageSeoRes] = await Promise.allSettled([
     umrahService.getUmrahPackages(),
     umrahService.getUmrahPackageLookups(),
+    fetchPageSeo('umrah-packages'),
   ]);
 
   const packages = packagesRes.status === 'fulfilled' ? packagesRes.value : [];
   const lookups = lookupsRes.status === 'fulfilled' ? lookupsRes.value : null;
+  const pageSeo = pageSeoRes.status === 'fulfilled' ? pageSeoRes.value : null;
 
-  return <UmrahPackagesPage initialPackages={packages} initialLookups={lookups} />;
+  return (
+    <UmrahPackagesPage
+      initialPackages={packages}
+      initialLookups={lookups}
+      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+    />
+  );
 }
 

@@ -44,6 +44,9 @@ export interface ApiSeoObject {
   schema_type?: string;
   /** Pre-built JSON-LD object — may be empty `{}`. */
   custom_schema_json: Record<string, unknown>;
+  h1_heading?: string;
+  hero_intro?: string;
+  image_alt?: string;
 }
 
 export interface ApiGlobalSeo {
@@ -57,6 +60,8 @@ export interface ApiGlobalSeo {
   default_og_description: string;
   default_og_image: string;
   default_schema_json: Record<string, unknown>;
+  google_analytics_id?: string;
+  google_search_console_tag?: string;
 }
 
 export interface ApiPageSeo {
@@ -64,6 +69,8 @@ export interface ApiPageSeo {
   page_name: string;
   path: string;
   seo: ApiSeoObject;
+  h1_heading?: string;
+  hero_intro?: string;
 }
 
 export interface ApiSeoRedirect {

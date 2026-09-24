@@ -8,7 +8,12 @@ import { AppBar, Footer, Modals, WhatsAppIcon } from '../../../shared';
 import { COMPANY_CONFIG } from '../../../config/company';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
 
-export function GroupUmrahPage({ initialPackages = [], initialLookups = null }) {
+export function GroupUmrahPage({
+  initialPackages = [],
+  initialLookups = null,
+  h1 = 'Group Umrah Packages',
+  heroIntro = 'Traveling as a group usually means better hotel rates and one person handling the whole booking instead of everyone arranging their own visa and transport. These packages are built for that: fixed group pricing, shared transfers between Jeddah, Makkah, and Madinah, and rooms blocked together at the same hotel.',
+}) {
   const router = useRouter();
 
   const [packages, setPackages] = useState(initialPackages);
@@ -167,10 +172,8 @@ export function GroupUmrahPage({ initialPackages = [], initialLookups = null }) 
             <div className="tr-hero-bg" />
             <div className="tr-hero-overlay" />
             <div className="tr-hero-body">
-              <h1 className="tr-hero-h1">Group Umrah Packages</h1>
-              <p className="tr-hero-intro">
-                Traveling as a group usually means better hotel rates and one person handling the whole booking instead of everyone arranging their own visa and transport. These packages are built for that: fixed group pricing, shared transfers between Jeddah, Makkah, and Madinah, and rooms blocked together at the same hotel.
-              </p>
+              <h1 className="tr-hero-h1">{h1}</h1>
+              <p className="tr-hero-intro">{heroIntro}</p>
             </div>
           </div>
         }

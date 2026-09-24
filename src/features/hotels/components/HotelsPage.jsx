@@ -61,6 +61,8 @@ export function HotelsPage({
   initialPagination = undefined,
   initialLookups = null,
   initialFaqs = [],
+  h1 = 'Hotel Booking in Makkah & Madinah',
+  heroIntro = 'Every hotel listed here is checked by our team before it goes live. Use the filters to sort by price, star rating, or distance from the Haram, and book with instant confirmation.',
 }) {
   const router = useRouter();
 
@@ -261,10 +263,8 @@ export function HotelsPage({
             />
             <div className="tr-hero-overlay" />
             <div className="tr-hero-body">
-              <h1 className="tr-hero-h1">Hotel Booking in Makkah &amp; Madinah</h1>
-              <p className="tr-hero-intro">
-                Every hotel listed here is checked by our team before it goes live. Use the filters to sort by price, star rating, or distance from the Haram, and book with instant confirmation.
-              </p>
+              <h1 className="tr-hero-h1">{h1}</h1>
+              <p className="tr-hero-intro">{heroIntro}</p>
             </div>
           </div>
         }

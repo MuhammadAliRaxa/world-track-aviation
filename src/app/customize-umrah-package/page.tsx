@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { CustomUmrahPage } from '@/features/umrah/components/CustomUmrahPage';
 
 export const revalidate = 0;
@@ -14,6 +14,13 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default function Page() {
-  return <CustomUmrahPage />;
+export default async function Page() {
+  const pageSeo = await fetchPageSeo('custom-umrah-packages');
+
+  return (
+    <CustomUmrahPage
+      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+    />
+  );
 }

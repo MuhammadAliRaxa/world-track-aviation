@@ -42,7 +42,7 @@ export function BlogCard({ article, onClick, className = '' }) {
       <div className="wt-blog-card-media">
         <img
           src={imageUrl}
-          alt={article?.image_alt_text || article?.alt_text || displayTitle}
+          alt={article?.image_alt_text || article?.alt_text || article?.seo?.image_alt || `${displayTitle} - World Track Aviation`}
           className="wt-blog-card-img"
           loading="lazy"
           decoding="async"

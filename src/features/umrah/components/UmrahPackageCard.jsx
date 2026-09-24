@@ -20,7 +20,7 @@ export function UmrahPackageCard({ pkg, onBookPackage }) {
   const router = useRouter();
 
   const handleCardClick = () => {
-    router.push(`/umrah-packages/${pkg.id}`);
+    router.push(`/umrah-packages/${pkg.id}/`);
   };
 
   const imageUrl = getUmrahImage(pkg);
@@ -50,7 +50,7 @@ export function UmrahPackageCard({ pkg, onBookPackage }) {
       <div className="umrah-card-media">
         <img
           src={imageUrl}
-          alt={displayTitle}
+          alt={pkg.imageAlt || pkg.seo?.image_alt || `${displayTitle} - World Track Aviation`}
           className="umrah-card-img"
           loading="lazy"
           decoding="async"

@@ -9,7 +9,11 @@ import { COMPANY_CONFIG } from '../../../config/company';
 
 import { transportService, inquiryService } from '../../../services';
 
-export function PrivateTransportPage({ initialListing = null } = {}) {
+export function PrivateTransportPage({
+  initialListing = null,
+  h1 = 'Private Transport for Umrah Pilgrims',
+  heroIntro = "Skip the shared shuttles and long waits. Every ride is a private, air-conditioned vehicle for your group only, whether you're heading from Jeddah airport to your hotel or making the trip between Makkah and Madinah. Rates are fixed upfront, so there's nothing to negotiate at the curb.",
+} = {}) {
   const router = useRouter();
 
   const [listing, setListing] = useState(initialListing);
@@ -107,10 +111,8 @@ export function PrivateTransportPage({ initialListing = null } = {}) {
             <div className="tr-hero-bg" />
             <div className="tr-hero-overlay" />
             <div className="tr-hero-body">
-              <h1 className="tr-hero-h1">Private Transport for Umrah Pilgrims</h1>
-              <p className="tr-hero-intro">
-                Skip the shared shuttles and long waits. Every ride is a private, air-conditioned vehicle for your group only, whether you're heading from Jeddah airport to your hotel or making the trip between Makkah and Madinah. Rates are fixed upfront, so there's nothing to negotiate at the curb.
-              </p>
+              <h1 className="tr-hero-h1">{h1}</h1>
+              <p className="tr-hero-intro">{heroIntro}</p>
             </div>
           </div>
         }

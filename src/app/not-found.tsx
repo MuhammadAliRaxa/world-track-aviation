@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Compass, Plane, Building2, ShieldCheck, Home } from 'lucide-react';
+import NotFoundTracker from '@/shared/components/NotFoundTracker';
 
 export default function NotFound() {
   return (
@@ -14,6 +15,7 @@ export default function NotFound() {
         backgroundColor: '#f8fafc',
       }}
     >
+      <NotFoundTracker />
       <div
         style={{
           maxWidth: '640px',
@@ -90,7 +92,7 @@ export default function NotFound() {
           }}
         >
           <Link
-            href="/group-tickets"
+            href="/group-tickets/"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -109,7 +111,7 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/hotels"
+            href="/our-hotels/"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -128,7 +130,7 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/umrah-packages"
+            href="/umrah-packages/"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -147,7 +149,7 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/visa"
+            href="/visas/"
             style={{
               display: 'flex',
               flexDirection: 'column',

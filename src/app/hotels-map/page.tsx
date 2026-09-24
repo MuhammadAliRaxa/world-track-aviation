@@ -24,6 +24,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <HotelsMapPage />;
+import { fetchPageSeo } from '@/lib/seo';
+
+export default async function Page() {
+  const pageSeo = await fetchPageSeo('hotels-map');
+
+  return (
+    <HotelsMapPage
+      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+    />
+  );
 }

@@ -27,6 +27,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/about-us/`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/contact-us/`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/our-blogs/`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${baseUrl}/privacy-policy/`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+    { url: `${baseUrl}/terms-and-conditions/`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ];
 
   const [hotels, visas, tours, umrahs, blogs] = await Promise.all([
@@ -37,40 +39,61 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     blogService.getBlogs(),
   ]);
 
-  const hotelRoutes: MetadataRoute.Sitemap = hotels.map((h) => ({
-    url: `${baseUrl}/our-hotels/${h.id}/`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
+  // Filter items where SEO robots_index is set to noindex in admin
+  const isIndexable = (item: unknown): boolean => {
+    if (!item || typeof item !== 'object') return true;
+    const anyItem = item as { seo?: { robots_index?: string }; robots_index?: string };
+    const robots = anyItem.seo?.robots_index || anyItem.robots_index;
+    if (typeof robots === 'string' && robots.toLowerCase().includes('noindex')) {
+      return false;
+    }
+    return true;
+  };
 
-  const visaRoutes: MetadataRoute.Sitemap = visas.map((v) => ({
-    url: `${baseUrl}/visas/${v.id}/`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
+  const hotelRoutes: MetadataRoute.Sitemap = hotels
+    .filter(isIndexable)
+    .map((h) => ({
+      url: `${baseUrl}/our-hotels/${h.id}/`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
 
-  const tourRoutes: MetadataRoute.Sitemap = tours.map((t) => ({
-    url: `${baseUrl}/tour-packages/${t.id}/`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
+  const visaRoutes: MetadataRoute.Sitemap = visas
+    .filter(isIndexable)
+    .map((v) => ({
+      url: `${baseUrl}/visas/${v.id}/`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
 
-  const umrahRoutes: MetadataRoute.Sitemap = umrahs.map((u) => ({
-    url: `${baseUrl}/umrah-packages/${u.id}/`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
+  const tourRoutes: MetadataRoute.Sitemap = tours
+    .filter(isIndexable)
+    .map((t) => ({
+      url: `${baseUrl}/tour-packages/${t.id}/`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
 
-  const blogRoutes: MetadataRoute.Sitemap = blogs.map((b) => ({
-    url: `${baseUrl}/our-blogs/${b.id}/`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }));
+  const umrahRoutes: MetadataRoute.Sitemap = umrahs
+    .filter(isIndexable)
+    .map((u) => ({
+      url: `${baseUrl}/umrah-packages/${u.id}/`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
+
+  const blogRoutes: MetadataRoute.Sitemap = blogs
+    .filter(isIndexable)
+    .map((b) => ({
+      url: `${baseUrl}/our-blogs/${b.id}/`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    }));
 
   return [
     ...staticRoutes,

@@ -21,7 +21,12 @@ import {
   UMRAH_PRICE_TIERS,
 } from '../data/umrahData';
 
-export function UmrahPackagesPage({ initialPackages = [], initialLookups = null }) {
+export function UmrahPackagesPage({
+  initialPackages = [],
+  initialLookups = null,
+  h1 = 'Umrah Packages from Pakistan',
+  heroIntro = 'Every package below includes the Umrah visa, hotel stay near the Haramain, and transport between Jeddah, Makkah, and Madinah. Compare durations and hotel tiers to find one that fits your budget, then book directly with our team on WhatsApp or by phone.',
+}) {
   const router = useRouter();
 
   const [packages, setPackages] = useState(initialPackages);
@@ -185,10 +190,8 @@ export function UmrahPackagesPage({ initialPackages = [], initialLookups = null 
             <div className="tr-hero-bg" />
             <div className="tr-hero-overlay" />
             <div className="tr-hero-body">
-              <h1 className="tr-hero-h1">Umrah Packages from Pakistan</h1>
-              <p className="tr-hero-intro">
-                Every package below includes the Umrah visa, hotel stay near the Haramain, and transport between Jeddah, Makkah, and Madinah. Compare durations and hotel tiers to find one that fits your budget, then book directly with our team on WhatsApp or by phone.
-              </p>
+              <h1 className="tr-hero-h1">{h1}</h1>
+              <p className="tr-hero-intro">{heroIntro}</p>
             </div>
           </div>
         }

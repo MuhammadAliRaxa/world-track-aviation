@@ -28,6 +28,8 @@ export function VisasPage({
   initialVisas = [],
   initialPagination = undefined,
   initialCountries = [],
+  h1 = 'Umrah and Visit Visa Services',
+  heroIntro = "Whether you need an Umrah visa or a tourist visa for another country, every application goes through a document check before it's submitted, so avoidable mistakes get caught early. Pick your visa type below to see processing time and price.",
 }) {
   const router = useRouter();
 
@@ -178,10 +180,8 @@ export function VisasPage({
             />
             <div className="tr-hero-overlay" />
             <div className="tr-hero-body">
-              <h1 className="tr-hero-h1">Umrah and Visit Visa Services</h1>
-              <p className="tr-hero-intro">
-                Whether you need an Umrah visa or a tourist visa for another country, every application goes through a document check before it&apos;s submitted, so avoidable mistakes get caught early. Pick your visa type below to see processing time and price.
-              </p>
+              <h1 className="tr-hero-h1">{h1}</h1>
+              <p className="tr-hero-intro">{heroIntro}</p>
             </div>
           </div>
         }

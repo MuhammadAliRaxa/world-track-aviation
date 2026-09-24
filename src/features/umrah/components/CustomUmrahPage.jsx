@@ -11,7 +11,10 @@ import { UmrahFareInputs } from './custom/UmrahFareInputs';
 import { UmrahContactInputs } from './custom/UmrahContactInputs';
 import { UmrahCalculationSummary } from './custom/UmrahCalculationSummary';
 
-export function CustomUmrahPage() {
+export function CustomUmrahPage({
+  h1 = 'Build Your Own Umrah Package',
+  heroIntro = "Not every trip fits a fixed package. Tell us your travel dates, how many people are going, which hotel tier you want in Makkah and Madinah, and whether you need a private or shared transfer, and we'll put together a price based on exactly that, not a one-size-fits-all deal.",
+} = {}) {
   // Inclusion Checkboxes
   const [includeVisa, setIncludeVisa] = useState(true);
   const [includeTransport, setIncludeTransport] = useState(true);
@@ -193,10 +196,8 @@ export function CustomUmrahPage() {
             <div className="tr-hero-bg" />
             <div className="tr-hero-overlay" />
             <div className="tr-hero-body">
-              <h1 className="tr-hero-h1">Build Your Own Umrah Package</h1>
-              <p className="tr-hero-intro">
-                Not every trip fits a fixed package. Tell us your travel dates, how many people are going, which hotel tier you want in Makkah and Madinah, and whether you need a private or shared transfer, and we'll put together a price based on exactly that, not a one-size-fits-all deal.
-              </p>
+              <h1 className="tr-hero-h1">{h1}</h1>
+              <p className="tr-hero-intro">{heroIntro}</p>
             </div>
           </div>
         }

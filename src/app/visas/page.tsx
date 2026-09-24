@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { visaService } from '@/services';
 import { VisasPage } from '@/features/visas/components/VisasPage';
 
@@ -21,9 +21,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const [paginatedData, countries] = await Promise.all([
+  const [paginatedData, countries, pageSeo] = await Promise.all([
     visaService.getVisasPaginated(),
     visaService.getVisaCountries(),
+    fetchPageSeo('visas'),
   ]);
 
   return (
@@ -31,6 +32,8 @@ export default async function Page() {
       initialVisas={paginatedData.visas}
       initialPagination={paginatedData.pagination}
       initialCountries={countries}
+      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
     />
   );
 }

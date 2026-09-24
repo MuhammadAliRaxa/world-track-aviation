@@ -10,7 +10,7 @@ export function HotelCard({ hotel }) {
   const router = useRouter();
 
   const handleSelectHotel = () => {
-    router.push(`/hotels/${hotel.id}`);
+    router.push(`/our-hotels/${hotel.id}/`);
   };
 
   const firstImage = Array.isArray(hotel.images) && hotel.images[0];
@@ -21,9 +21,11 @@ export function HotelCard({ hotel }) {
     DEFAULT_HOTEL_IMAGE;
 
   const imageAlt =
-    (firstImage?.alt_text) ||
+    hotel.imageAlt ||
+    hotel?.seo?.image_alt ||
+    firstImage?.alt_text ||
     hotel.name ||
-    'Hotel';
+    'Verified Hotel in Makkah & Madinah';
 
   return (
     <div

@@ -160,7 +160,10 @@ function normalizeMapHotel(hotel, index) {
   };
 }
 
-export function HotelsMapPage() {
+export function HotelsMapPage({
+  h1 = 'Our Verified Hotels on the Map',
+  heroIntro = "See exactly where each of our verified hotels sits in relation to the Haram in Makkah or Madinah before you commit to a booking. Every pin on this map reflects real availability, not a generic listing, so you know what's actually within walking distance of the Haramain.",
+} = {}) {
   const router = useRouter();
 
   // State
@@ -624,10 +627,8 @@ export function HotelsMapPage() {
               />
               <div className="tr-hero-overlay hm-hero-overlay-dark" />
               <div className="tr-hero-body hm-hero-body-override">
-                <h1 className="tr-hero-h1 hm-hero-title">Our Verified Hotels on the Map</h1>
-                <p className="tr-hero-intro">
-                  See exactly where each of our verified hotels sits in relation to the Haram in Makkah or Madinah before you commit to a booking. Every pin on this map reflects real availability, not a generic listing, so you know what&apos;s actually within walking distance of the Haramain.
-                </p>
+                <h1 className="tr-hero-h1 hm-hero-title">{h1}</h1>
+                <p className="tr-hero-intro">{heroIntro}</p>
               </div>
             </div>
           }

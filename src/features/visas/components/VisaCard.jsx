@@ -42,7 +42,7 @@ export function VisaCard({ visa }) {
   const slug = visa.seo?.url_slug || visa.id;
   const handleAction = (e) => {
     e.stopPropagation();
-    router.push(`/visas/${slug}`);
+    router.push(`/visas/${slug}/`);
   };
 
   // Format processing time cleanly (e.g. "2-3 days")
@@ -58,14 +58,14 @@ export function VisaCard({ visa }) {
   return (
     <div
       className="visa-card-item"
-      onClick={() => router.push(`/visas/${slug}`)}
+      onClick={() => router.push(`/visas/${slug}/`)}
       id={`visa-card-${visa.id}`}
     >
       {/* Media Image Container */}
       <div className="visa-card-media">
         <img
           src={imageUrl}
-          alt={visa.imageAltText || displayTitle}
+          alt={visa.imageAltText || visa.seo?.image_alt || `${displayTitle} - World Track Aviation`}
           className="visa-card-img"
           loading="lazy"
           decoding="async"

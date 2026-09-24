@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { tourService } from '@/services';
 import { ToursPage } from '@/features/holidays/components/ToursPage';
 
@@ -21,9 +21,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const [paginatedData, destinations] = await Promise.all([
+  const [paginatedData, destinations, pageSeo] = await Promise.all([
     tourService.getToursPaginated(),
     tourService.getDestinations(),
+    fetchPageSeo('tours'),
   ]);
 
   return (
@@ -31,6 +32,8 @@ export default async function Page() {
       initialTours={paginatedData.tours}
       initialPagination={paginatedData.pagination}
       initialDestinations={destinations}
+      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
     />
   );
 }

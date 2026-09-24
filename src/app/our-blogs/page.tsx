@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { blogService } from '@/services';
 import { BlogsPage } from '@/features/insights/components/BlogsPage';
 
@@ -21,9 +21,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const [paginatedData, lookups] = await Promise.all([
+  const [paginatedData, lookups, pageSeo] = await Promise.all([
     blogService.getBlogsPaginated({ perPage: 12, nextPage: 1 }),
     blogService.getBlogLookups(),
+    fetchPageSeo('blogs'),
   ]);
 
   return (
@@ -31,6 +32,8 @@ export default async function Page() {
       initialBlogs={paginatedData.blogs}
       initialPagination={paginatedData.pagination}
       initialLookups={lookups}
+      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
     />
   );
 }

@@ -6,7 +6,7 @@
  * Use this service for direct/raw SEO API calls (e.g. middleware redirects).
  */
 
-import { apiGet } from './api.client';
+import { apiGet, apiPost } from './api.client';
 import type {
   ApiGlobalSeo,
   ApiPageSeo,
@@ -73,6 +73,23 @@ export const seoService = {
       return Array.isArray(res.data) ? res.data : [];
     } catch {
       return [];
+    }
+  },
+
+  /**
+   * POST /seo/404-log
+   * Records 404 hit details for admin panel monitoring.
+   */
+  async log404(payload: {
+    url: string;
+    path: string;
+    referrer?: string;
+    timestamp?: string;
+  }): Promise<void> {
+    try {
+      await apiPost('/seo/404-log', payload);
+    } catch {
+      // Non-blocking telemetry
     }
   },
 } as const;

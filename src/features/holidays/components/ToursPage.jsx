@@ -40,7 +40,7 @@ function TourCard({ tour }) {
 
   const handleViewDetails = () => {
     const slug = tour.seo?.url_slug || tour.id;
-    router.push(`/tours/${slug}`);
+    router.push(`/tour-packages/${slug}/`);
   };
 
   return (
@@ -49,7 +49,7 @@ function TourCard({ tour }) {
       <div className="tr-card-img-wrap">
         <img
           src={tour.image}
-          alt={tour.imageAltText || tour.title}
+          alt={tour.imageAltText || tour?.seo?.image_alt || `${tour.title} - World Track Aviation`}
           className="tr-card-img"
           loading="lazy"
         />
@@ -123,6 +123,8 @@ export function ToursPage({
   initialTours = [],
   initialPagination = undefined,
   initialDestinations = [],
+  h1 = 'International Tour Packages',
+  heroIntro = "Every package here includes the visa, hotel, and transport, so you're not left piecing together separate bookings. Pick a destination below and see exactly what's included before you pay for anything.",
 }) {
   const router = useRouter();
 
@@ -296,10 +298,8 @@ export function ToursPage({
             <div className="tr-hero-bg" />
             <div className="tr-hero-overlay" />
             <div className="tr-hero-body">
-              <h1 className="tr-hero-h1">International Tour Packages</h1>
-              <p className="tr-hero-intro">
-                Every package here includes the visa, hotel, and transport, so you're not left piecing together separate bookings. Pick a destination below and see exactly what's included before you pay for anything.
-              </p>
+              <h1 className="tr-hero-h1">{h1}</h1>
+              <p className="tr-hero-intro">{heroIntro}</p>
             </div>
           </div>
         }

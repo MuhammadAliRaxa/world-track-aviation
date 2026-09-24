@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { flightService } from '@/services';
 import { GroupTicketsPage } from '@/features/flights/components/GroupTicketsPage';
 
@@ -21,12 +21,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const [paginatedData, dates, airlines, sectors, durations] = await Promise.all([
+  const [paginatedData, dates, airlines, sectors, durations, pageSeo] = await Promise.all([
     flightService.getGroupTicketsPaginated(),
     flightService.getDepartureDates(),
     flightService.getAirlines(),
     flightService.getSectors(),
     flightService.getDurations(),
+    fetchPageSeo('group-tickets'),
   ]);
 
   return (
@@ -37,6 +38,8 @@ export default async function Page() {
       initialAirlines={airlines}
       initialSectors={sectors}
       initialDurations={durations}
+      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
     />
   );
 }

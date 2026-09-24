@@ -154,8 +154,8 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
 
           {/* About us */}
           <Link
-            href="/about-us"
-            className={`header-nav-btn ${currentPath === '/about-us' || currentPath === '/about' ? 'active-nav-btn' : ''}`}
+            href="/about-us/"
+            className={`header-nav-btn ${currentPath === '/about-us' || currentPath === '/about-us/' ? 'active-nav-btn' : ''}`}
             onClick={closeAll}
           >
             <Info size={15} />
@@ -164,9 +164,9 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
 
           {/* Hotels */}
           <Link
-            href="/our-hotels"
+            href="/our-hotels/"
             className={`header-nav-btn ${
-              ['/our-hotels', '/hotels', '/hotel'].includes(currentPath) || activeCategory === 'hotels'
+              currentPath.startsWith('/our-hotels') || activeCategory === 'hotels'
                 ? 'active-nav-btn'
                 : ''
             }`}
@@ -178,9 +178,9 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
 
           {/* Visa */}
           <Link
-            href="/visas"
+            href="/visas/"
             className={`header-nav-btn ${
-              currentPath.startsWith('/visas') || currentPath.startsWith('/visa') || activeCategory === 'visa'
+              currentPath.startsWith('/visas') || activeCategory === 'visa'
                 ? 'active-nav-btn'
                 : ''
             }`}
@@ -201,7 +201,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
             <button
               type="button"
               className={`header-nav-btn ${
-                ['/umrah-group-packages', '/umrah-packages', '/customize-umrah-package', '/custom-umrah', '/private-transport', '/transport'].includes(currentPath)
+                ['/umrah-group-packages/', '/umrah-packages/', '/customize-umrah-package/', '/private-transport/'].some(p => currentPath.startsWith(p))
                   ? 'active-nav-btn'
                   : ''
               }`}
@@ -225,17 +225,17 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
             <div
               className="nav-dropdown-flyout"
             >
-              <Link href="/umrah-packages" className="flyout-link" onClick={closeAll}>Umrah Packages</Link>
-              <Link href="/customize-umrah-package" className="flyout-link" onClick={closeAll}>Custom Umrah Package</Link>
-              <Link href="/umrah-group-packages" className="flyout-link" onClick={closeAll}>Group Umrah Package</Link>
-              <Link href="/private-transport" className="flyout-link" onClick={closeAll}>Private Transport</Link>
+              <Link href="/umrah-packages/" className="flyout-link" onClick={closeAll}>Umrah Packages</Link>
+              <Link href="/customize-umrah-package/" className="flyout-link" onClick={closeAll}>Custom Umrah Package</Link>
+              <Link href="/umrah-group-packages/" className="flyout-link" onClick={closeAll}>Group Umrah Package</Link>
+              <Link href="/private-transport/" className="flyout-link" onClick={closeAll}>Private Transport</Link>
             </div>
           </div>
 
           {/* Tours */}
           <Link
-            href="/tour-packages"
-            className={`header-nav-btn ${['/tour-packages', '/tours'].includes(currentPath) ? 'active-nav-btn' : ''}`}
+            href="/tour-packages/"
+            className={`header-nav-btn ${currentPath.startsWith('/tour-packages') ? 'active-nav-btn' : ''}`}
             onClick={closeAll}
           >
             <Globe2 size={15} />
@@ -244,8 +244,8 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
 
           {/* Group Tickets */}
           <Link
-            href="/group-tickets"
-            className={`header-nav-btn ${currentPath === '/group-tickets' ? 'active-nav-btn' : ''}`}
+            href="/group-tickets/"
+            className={`header-nav-btn ${currentPath.startsWith('/group-tickets') ? 'active-nav-btn' : ''}`}
             onClick={closeAll}
           >
             <Ticket size={15} />
@@ -255,7 +255,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
 
         {/* Contact us — Yellow/Amber pill, sits outside the nav list so it stays pinned to the end */}
         <Link
-          href="/contact-us"
+          href="/contact-us/"
           className="header-contact-btn"
           onClick={closeAll}
         >
@@ -348,10 +348,10 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 <button
                   type="button"
                   className={`mobile-nav-item ${
-                    ['/our-hotels', '/hotels', '/hotel'].includes(currentPath) || activeCategory === 'hotels' ? 'active' : ''
+                    currentPath.startsWith('/our-hotels') || activeCategory === 'hotels' ? 'active' : ''
                   }`}
                   onClick={() => {
-                    router.push('/our-hotels');
+                    router.push('/our-hotels/');
                     closeAll();
                   }}
                 >
@@ -365,10 +365,10 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 <button
                   type="button"
                   className={`mobile-nav-item ${
-                    currentPath.startsWith('/visas') || currentPath.startsWith('/visa') || activeCategory === 'visa' ? 'active' : ''
+                    currentPath.startsWith('/visas') || activeCategory === 'visa' ? 'active' : ''
                   }`}
                   onClick={() => {
-                    router.push('/visas');
+                    router.push('/visas/');
                     closeAll();
                   }}
                 >
@@ -383,7 +383,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                   <button
                     type="button"
                     className={`mobile-nav-item mobile-nav-accordion-header ${
-                      ['/umrah-group-packages', '/umrah-packages', '/customize-umrah-package', '/custom-umrah', '/private-transport', '/transport'].includes(currentPath) || expandedMobileMenu === 'umrah'
+                      ['/umrah-group-packages/', '/umrah-packages/', '/customize-umrah-package/', '/private-transport/'].some(p => currentPath.startsWith(p)) || expandedMobileMenu === 'umrah'
                         ? 'active'
                         : ''
                     }`}
@@ -403,9 +403,9 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                     <div className="mobile-accordion-sublist">
                       <button
                         type="button"
-                        className={`mobile-sub-nav-item ${currentPath === '/umrah-packages' ? 'active' : ''}`}
+                        className={`mobile-sub-nav-item ${currentPath.startsWith('/umrah-packages') ? 'active' : ''}`}
                         onClick={() => {
-                          router.push('/umrah-packages');
+                          router.push('/umrah-packages/');
                           closeAll();
                         }}
                       >
@@ -413,9 +413,9 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                       </button>
                       <button
                         type="button"
-                        className={`mobile-sub-nav-item ${['/customize-umrah-package', '/custom-umrah'].includes(currentPath) ? 'active' : ''}`}
+                        className={`mobile-sub-nav-item ${currentPath.startsWith('/customize-umrah-package') ? 'active' : ''}`}
                         onClick={() => {
-                          router.push('/customize-umrah-package');
+                          router.push('/customize-umrah-package/');
                           closeAll();
                         }}
                       >
@@ -423,9 +423,9 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                       </button>
                       <button
                         type="button"
-                        className={`mobile-sub-nav-item ${['/umrah-group-packages'].includes(currentPath) ? 'active' : ''}`}
+                        className={`mobile-sub-nav-item ${currentPath.startsWith('/umrah-group-packages') ? 'active' : ''}`}
                         onClick={() => {
-                          router.push('/umrah-group-packages');
+                          router.push('/umrah-group-packages/');
                           closeAll();
                         }}
                       >
@@ -433,9 +433,9 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                       </button>
                       <button
                         type="button"
-                        className={`mobile-sub-nav-item ${['/private-transport', '/transport'].includes(currentPath) ? 'active' : ''}`}
+                        className={`mobile-sub-nav-item ${currentPath.startsWith('/private-transport') ? 'active' : ''}`}
                         onClick={() => {
-                          router.push('/private-transport');
+                          router.push('/private-transport/');
                           closeAll();
                         }}
                       >
@@ -448,9 +448,9 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 {/* Tours */}
                 <button
                   type="button"
-                  className={`mobile-nav-item ${['/tour-packages', '/tours'].includes(currentPath) ? 'active' : ''}`}
+                  className={`mobile-nav-item ${currentPath.startsWith('/tour-packages') ? 'active' : ''}`}
                   onClick={() => {
-                    router.push('/tour-packages');
+                    router.push('/tour-packages/');
                     closeAll();
                   }}
                 >
@@ -463,9 +463,9 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 {/* Group Tickets */}
                 <button
                   type="button"
-                  className={`mobile-nav-item ${currentPath === '/group-tickets' ? 'active' : ''}`}
+                  className={`mobile-nav-item ${currentPath.startsWith('/group-tickets') ? 'active' : ''}`}
                   onClick={() => {
-                    router.push('/group-tickets');
+                    router.push('/group-tickets/');
                     closeAll();
                   }}
                 >

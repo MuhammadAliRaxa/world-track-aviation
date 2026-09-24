@@ -2,9 +2,19 @@ import type { Metadata } from 'next';
 import { tourService } from '@/services';
 import { TourDetailPage } from '@/features/holidays/components/TourDetailPage';
 
+import { JsonLdScript, getTouristTripSchema, getBreadcrumbSchema } from '@/lib/jsonld';
+
 interface Props {
   params: Promise<{ id: string }>;
 }
+
+export async function generateStaticParams() {
+  const tours = await tourService.getTours();
+  if (!Array.isArray(tours)) return [];
+  return tours.map((t) => ({ id: String(t.id) }));
+}
+
+export const revalidate = 86400; // 24 hours ISR
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
@@ -22,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     seo?.meta_description ||
     `Discover ${tour.destination} with ${tour.title}. Includes ${tour.inclusions?.join(', ') || 'luxury hotels, transfers, and guided sightseeing'}.`;
-  const canonical = seo?.canonical_url || `/tour-packages/${seo?.url_slug || tour.id}`;
+  const canonical = seo?.canonical_url || `https://worldtracktravel.com/tour-packages/${tour.id}/`;
 
   return {
     title,
@@ -45,5 +55,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const { id } = await params;
   const tour = await tourService.getTourById(id);
-  return <TourDetailPage initialTour={tour} />;
+
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'Tour Packages', path: '/tour-packages/' },
+    { name: tour?.title || 'Tour Details', path: `/tour-packages/${id}/` },
+  ];
+
+  return (
+    <>
+      {tour && (
+        <JsonLdScript
+          schema={[
+            getTouristTripSchema({
+              id,
+              name: tour.title,
+              description: tour.description,
+              image: tour.image,
+              price: tour.pricePKR || tour.priceUSD,
+              url: `https://worldtracktravel.com/tour-packages/${id}/`,
+              duration: tour.duration,
+            }),
+            getBreadcrumbSchema(breadcrumbs),
+          ]}
+        />
+      )}
+      <TourDetailPage initialTour={tour} />
+    </>
+  );
 }

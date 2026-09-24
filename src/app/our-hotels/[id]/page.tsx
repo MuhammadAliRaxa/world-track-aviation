@@ -3,9 +3,19 @@ import { buildMetadata } from '@/lib/seo';
 import { hotelService } from '@/services/hotel.service';
 import { HotelDetailPage } from '@/features/hotels/components/HotelDetailPage';
 
+import { JsonLdScript, getHotelSchema, getBreadcrumbSchema } from '@/lib/jsonld';
+
 interface Props {
   params: Promise<{ id: string }>;
 }
+
+export async function generateStaticParams() {
+  const hotels = await hotelService.getHotels();
+  if (!Array.isArray(hotels)) return [];
+  return hotels.map((h) => ({ id: String(h.id) }));
+}
+
+export const revalidate = 86400; // 24 hours ISR
 
 /**
  * SEO fallback chain for hotel detail:
@@ -37,5 +47,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const { id } = await params;
   const hotel = await hotelService.getHotelById(id);
-  return <HotelDetailPage initialHotel={hotel} />;
+
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'Hotels', path: '/our-hotels/' },
+    { name: hotel?.name || 'Hotel Details', path: `/our-hotels/${id}/` },
+  ];
+
+  return (
+    <>
+      {hotel && (
+        <JsonLdScript
+          schema={[
+            getHotelSchema({
+              id,
+              name: hotel.name,
+              description: hotel.description,
+              image: hotel.image || hotel.gallery?.[0],
+              city: hotel.location,
+              address: hotel.address || hotel.location,
+              stars: hotel.stars,
+              price: hotel.price,
+              lat: hotel.lat,
+              lng: hotel.lng,
+            }),
+            getBreadcrumbSchema(breadcrumbs),
+          ]}
+        />
+      )}
+      <HotelDetailPage initialHotel={hotel} />
+    </>
+  );
 }
