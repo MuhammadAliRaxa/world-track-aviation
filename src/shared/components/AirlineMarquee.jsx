@@ -23,7 +23,7 @@ export const AIRLINES_LIST = [
   { id: 'airline-18', name: 'SereneAir', src: '/assets/Airlines/Airlines SVG WEBSITE-18.svg' },
 ];
 
-export function AirlineMarquee({ trustText = '18+ Airlines. One Search. Trusted Travel Agency in Islamabad.' }) {
+export function AirlineMarquee({ trustText = '15+ Airlines. One Search. Trusted Travel Agency in Islamabad.' }) {
   // Duplicate the list for seamless continuous infinite marquee scrolling
   const duplicatedList = [...AIRLINES_LIST, ...AIRLINES_LIST];
 
