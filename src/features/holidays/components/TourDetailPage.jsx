@@ -31,11 +31,11 @@ const HELP_OPTIONS = [
 ];
 
 const INCLUDE_ICONS = {
-  hotel: <Building2 size={12} />,
-  visa: <PassportIcon size={12} />,
-  air: <Plane size={12} />,
-  transfer: <Car size={12} />,
-  insurance: <ShieldCheck size={12} />,
+  hotel: <Building2 size={14} />,
+  visa: <PassportIcon size={14} />,
+  air: <Plane size={14} />,
+  transfer: <Car size={14} />,
+  insurance: <ShieldCheck size={14} />,
 };
 
 function StarRating({ rating, count }) {
@@ -208,6 +208,22 @@ export function TourDetailPage({ initialTour = null }) {
                 <img src={tour.image} alt={tour.title} className="tdp-main-img" />
               </div>
 
+              {/* Package includes icons — placed above description */}
+              <div className="tdp-pkg-bar">
+                {(tour.packageIncludes || [
+                  { icon: 'hotel', label: 'Hotel' },
+                  { icon: 'visa', label: 'Visa' },
+                  { icon: 'air', label: 'Air Ticket' },
+                  { icon: 'transfer', label: 'Pick & Drop' },
+                  { icon: 'insurance', label: 'Insurance' },
+                ]).map((inc) => (
+                  <div key={`tdp-inc-${inc.label}`} className="tdp-pkg-item">
+                    {INCLUDE_ICONS[inc.icon] || <ShieldCheck size={14} />}
+                    <span>{inc.label}</span>
+                  </div>
+                ))}
+              </div>
+
               {/* Description from API (includes itinerary, highlights, inclusions & exclusions) */}
               {tour.description ? (
                 <div
@@ -221,22 +237,6 @@ export function TourDetailPage({ initialTour = null }) {
                   and indulge in luxury like never before.
                 </p>
               )}
-
-              {/* Package includes icons */}
-              <div className="tdp-pkg-bar">
-                {(tour.packageIncludes || [
-                  { icon: 'hotel', label: 'Hotel' },
-                  { icon: 'visa', label: 'Visa' },
-                  { icon: 'air', label: 'Air Ticket' },
-                  { icon: 'transfer', label: 'Pick & Drop' },
-                  { icon: 'insurance', label: 'Insurance' },
-                ]).map((inc) => (
-                  <div key={`tdp-inc-${inc.label}`} className="tdp-pkg-item">
-                    {INCLUDE_ICONS[inc.icon] || <ShieldCheck size={12} />}
-                    <span>{inc.label}</span>
-                  </div>
-                ))}
-              </div>
 
             </div>
 

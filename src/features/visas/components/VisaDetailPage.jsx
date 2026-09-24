@@ -25,6 +25,18 @@ const sanitizeHtml = (html) =>
     ? html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').replace(/on\w+="[^"]*"/g, '')
     : '';
 
+const formatPrice = (p) => {
+  if (!p) return 'Contact for Price';
+  const str = String(p).trim();
+  const hasFrom = /^from\s+/i.test(str);
+  const clean = str.replace(/^from\s+/i, '').replace(/^rs\.?\s*/i, '').trim();
+  const num = parseInt(clean.replace(/[^0-9]/g, ''), 10);
+  if (!isNaN(num) && num > 0) {
+    return `${hasFrom ? 'From ' : ''}Rs ${num.toLocaleString()}`;
+  }
+  return str || 'Contact for Price';
+};
+
 export function VisaDetailPage({ initialVisa = null }) {
   const { id } = useParams();
   const router = useRouter();
@@ -280,12 +292,11 @@ export function VisaDetailPage({ initialVisa = null }) {
                   <Tag size={15} className="visa-spec-icon" />
                   <span>Price</span>
                 </div>
-                <div className="visa-spec-value visa-price-combined">
+                <div className="visa-spec-value">
                   <span className="visa-usd-bold">
-                    {visa.specs?.price || `From $${visa.priceUSD}`}
-                  </span>
-                  <span className="visa-pkr-muted">
-                    ({visa.specs?.pricePKR || `Rs ${visa.pricePKR}`})
+                    {formatPrice(
+                      visa.specs?.price || visa.specs?.pricePKR || visa.pricePKR || visa.rate || visa.price
+                    )}
                   </span>
                 </div>
               </div>

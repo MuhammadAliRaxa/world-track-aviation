@@ -10,9 +10,9 @@
 }
 
 .top-banner-bar.top-banner-transparent {
-  background: #437bdc !important;
-  padding-top: 10px;
-  padding-bottom: 6px;
+  background: var(--blue-header, #0080f6) !important;
+  padding-top: 8px;
+  padding-bottom: 8px;
   width: 100%;
 }
 
@@ -141,7 +141,7 @@
 }
 
 .hero-header-top-group .top-banner-bar {
-  display: none !important;
+  display: block;
 }
 
 .hero-header-top-group .navbar-floating-container {

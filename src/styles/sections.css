@@ -365,15 +365,34 @@
   color: #ffffff;
   padding: 11px 22px;
   border-radius: var(--radius-pill);
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.request-quote-dark-btn .whatsapp-icon-svg {
+  color: #25D366;
+  fill: #25D366;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
 .request-quote-dark-btn:hover {
-  background: var(--blue-header);
-  box-shadow: 0 4px 12px rgba(0, 128, 246, 0.3);
+  background: #1e293b;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.28);
+}
+
+.request-quote-dark-btn:hover .whatsapp-icon-svg {
+  transform: scale(1.1);
 }
 
 /* =====================================================================
@@ -2096,7 +2115,7 @@
    ABOUT WORLD TRACK BRAND SECTION (Pixel Perfect to Screenshot)
    ===================================================================== */
 .about-brand-section {
-  padding: 44px 0 40px 0;
+  padding: 44px 0 16px 0;
   background: #ffffff;
   position: relative;
 }
@@ -3118,7 +3137,8 @@
 }
 
 /* 4-Column Visa Grid */
-.visa-catalog-grid {
+.visa-catalog-grid,
+.visas-catalog-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 22px;
@@ -4535,7 +4555,28 @@
 }
 
 .search-results-grid {
-  margin-bottom: 24px;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 22px !important;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 1200px) {
+  .search-results-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .search-results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .search-results-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 .search-results-footer-row {

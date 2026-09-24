@@ -860,6 +860,23 @@
   padding-right: 32px;
 }
 
+.input-with-calendar-icon input[type="date"] {
+  cursor: pointer;
+  padding-right: 32px;
+}
+
+.input-with-calendar-icon input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0;
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+}
+
 .btn-send-inquiry-gold {
   display: flex;
   align-items: center;
@@ -7214,9 +7231,33 @@
   border-color: #0080f6;
 }
 
-.upd-form-input::placeholder,
+.upd-form-input::placeholder {
+  color: #94a3b8;
+}
+
 .upd-form-textarea::placeholder {
   color: #94a3b8;
+}
+
+.upd-date-picker-input {
+  cursor: pointer;
+  padding-right: 32px;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.upd-date-picker-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0;
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
 }
 
 .upd-input-icon {
@@ -7226,6 +7267,7 @@
   transform: translateY(-50%);
   color: #94a3b8;
   pointer-events: none;
+  z-index: 1;
 }
 
 .upd-select-arrow {

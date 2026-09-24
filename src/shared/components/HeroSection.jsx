@@ -156,11 +156,10 @@ export function HeroSection({
     };
   }, [openDropdown]);
 
-  // Hotel fields: Real API data only from GET /hotel/lookups
   const [lookupCities, setLookupCities] = useState(() => initialLookups?.cities || []);
   const [lookupRoomTypes, setLookupRoomTypes] = useState(() => initialLookups?.room_types || []);
   const [hotelDestination, setHotelDestination] = useState(
-    () => initialLookups?.cities?.[0]?.name || 'Singapore'
+    () => initialLookups?.cities?.[0]?.name || 'Madina'
   );
   const [hotelCheckIn, setHotelCheckIn] = useState(() => getTodayIso());
   const [hotelCheckOut, setHotelCheckOut] = useState(() => getFutureIso(3));
@@ -208,11 +207,13 @@ export function HeroSection({
         if (Array.isArray(cities) && cities.length > 0) {
           setLookupCities(cities);
           setHotelDestination((current) => {
-            if (!current || current === 'All Destinations') return current || 'All Destinations';
+            if (!current || current === 'All Destinations' || current === 'Singapore') {
+              return cities[0]?.name || 'Madina';
+            }
             const exists = cities.some(
-              (c) => c.name.toLowerCase() === (current || '').toLowerCase()
+              (c) => (c.name || c.value || '').toLowerCase() === current.toLowerCase()
             );
-            return exists ? current : cities[0].name;
+            return exists ? current : cities[0]?.name || 'Madina';
           });
         }
         if (Array.isArray(roomTypes) && roomTypes.length > 0) {
@@ -252,6 +253,15 @@ export function HeroSection({
         const visaTypes = lookups?.visa_types || [];
         if (Array.isArray(countries) && countries.length > 0) {
           setLookupVisaCountries(countries);
+          setVisaDestination((current) => {
+            if (!current || current === 'All Destinations') {
+              return countries[0]?.value || 'All Destinations';
+            }
+            const exists = countries.some(
+              (c) => (c.value || c.name || '').toLowerCase() === current.toLowerCase()
+            );
+            return exists ? current : countries[0]?.value || 'All Destinations';
+          });
         }
         if (Array.isArray(visaTypes) && visaTypes.length > 0) {
           setLookupVisaTypes(visaTypes);
@@ -314,24 +324,21 @@ export function HeroSection({
     }
   }
 
-  // Options configuration — Real API data + standard popular hubs
+  // Options configuration — Real API data only
   const hotelDestOptions = useMemo(() => {
-    const defaultList = [
-      { value: 'Singapore', label: 'Singapore' },
-      { value: 'Madina', label: 'Madina' },
-      { value: 'Makkah', label: 'Makkah' },
-      { value: 'Dubai', label: 'Dubai' },
-      { value: 'Istanbul', label: 'Istanbul' },
-      { value: 'All Destinations', label: 'All Destinations' },
-    ];
+    const list = [{ value: 'All Destinations', label: 'All Destinations' }];
     if (Array.isArray(lookupCities) && lookupCities.length > 0) {
       lookupCities.forEach((c) => {
-        if (!defaultList.some((item) => item.value.toLowerCase() === c.name.toLowerCase())) {
-          defaultList.push({ value: c.name, label: c.name });
+        const name = typeof c === 'string' ? c : (c.name || c.value || '');
+        if (name && !list.some((item) => item.value.toLowerCase() === name.toLowerCase())) {
+          list.push({ value: name, label: name });
         }
       });
+    } else {
+      list.push({ value: 'Madina', label: 'Madina' });
+      list.push({ value: 'Makkah', label: 'Makkah' });
     }
-    return defaultList;
+    return list;
   }, [lookupCities]);
 
   const hotelRoomTypeOptions = useMemo(() => {
@@ -354,7 +361,14 @@ export function HeroSection({
     const list = [{ value: 'All Destinations', label: 'All Destinations' }];
     if (Array.isArray(lookupVisaCountries) && lookupVisaCountries.length > 0) {
       lookupVisaCountries.forEach((c) => {
-        list.push({ value: c.value, label: c.value });
+        const val = typeof c === 'string' ? c : (c.value || c.name || c.country || '');
+        if (val && !list.some((item) => item.value.toLowerCase() === val.toLowerCase())) {
+          list.push({ value: val, label: val });
+        }
+      });
+    } else {
+      ['Saudi Arabia', 'United Arab Emirates (UAE)', 'Turkey', 'Azerbaijan'].forEach((c) => {
+        list.push({ value: c, label: c });
       });
     }
     return list;
@@ -364,7 +378,14 @@ export function HeroSection({
     const list = [{ value: 'All Visa Types', label: 'All Visa Types' }];
     if (Array.isArray(lookupVisaTypes) && lookupVisaTypes.length > 0) {
       lookupVisaTypes.forEach((t) => {
-        list.push({ value: t.value, label: t.value });
+        const val = typeof t === 'string' ? t : (t.value || t.name || t.visa_type || '');
+        if (val && !list.some((item) => item.value.toLowerCase() === val.toLowerCase())) {
+          list.push({ value: val, label: val });
+        }
+      });
+    } else {
+      ['E-Visa', 'Visit Visa'].forEach((t) => {
+        list.push({ value: t, label: t });
       });
     }
     return list;
@@ -411,10 +432,18 @@ export function HeroSection({
     const list = [{ value: 'All Durations', label: 'All Durations' }];
     if (Array.isArray(lookupDurations) && lookupDurations.length > 0) {
       lookupDurations.forEach((d) => {
-        list.push({
-          value: String(d.value),
-          label: d.label || `${d.value} Days`,
-        });
+        const val = typeof d === 'object' && d !== null ? (d.value ?? d.duration ?? d.id) : d;
+        const lbl = typeof d === 'object' && d !== null ? (d.label || `${val} Days`) : `${val} Days`;
+        if (val != null && !list.some((item) => item.value === String(val))) {
+          list.push({
+            value: String(val),
+            label: lbl,
+          });
+        }
+      });
+    } else {
+      ['15', '21', '28'].forEach((num) => {
+        list.push({ value: num, label: `${num} Days` });
       });
     }
     return list;
@@ -422,9 +451,9 @@ export function HeroSection({
 
   const selectedDurationLabel = useMemo(() => {
     if (!umrahDuration || umrahDuration === 'All Durations') return 'All Durations';
-    const found = lookupDurations.find((d) => String(d.value) === String(umrahDuration));
+    const found = groupUmrahDurationOptions.find((d) => String(d.value) === String(umrahDuration));
     return found?.label || `${umrahDuration} Days`;
-  }, [umrahDuration, lookupDurations]);
+  }, [umrahDuration, groupUmrahDurationOptions]);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -603,7 +632,7 @@ export function HeroSection({
     },
     {
       id: 'umrah',
-      label: 'Umrah',
+      label: 'Group Umrah',
       icon: (
         <svg className="tab-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2.5a.75.75 0 0 1 .75.75v1.05c2.14.41 3.75 2.25 3.75 4.45v2.75h1a.75.75 0 0 1 .75.75v7.5H4.75v-7.5a.75.75 0 0 1 .75-.75h1V8.75c0-2.2 1.61-4.04 3.75-4.45V3.25A.75.75 0 0 1 12 2.5zM4 20.5h16v1.5H4v-1.5zm8-8.5a2 2 0 0 0-2 2v4.5h4v-4.5a2 2 0 0 0-2-2z"/>

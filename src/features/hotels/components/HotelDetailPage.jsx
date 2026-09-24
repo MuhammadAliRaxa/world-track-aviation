@@ -625,13 +625,31 @@ export function HotelDetailPage({ initialHotel = null }) {
                 {/* Check-in Date */}
                 <div className="inquiry-row-field">
                   <label>Check-in Date</label>
-                  <div className="input-with-calendar-icon">
+                  <div
+                    className="input-with-calendar-icon"
+                    onClick={(e) => {
+                      const input = e.currentTarget.querySelector('input[type="date"]');
+                      if (input && typeof input.showPicker === 'function') {
+                        try { input.showPicker(); } catch (_) {}
+                      }
+                    }}
+                  >
                     <input
-                      type="text"
+                      type="date"
                       required
-                      placeholder="23 May 2026"
                       value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (typeof e.currentTarget.showPicker === 'function') {
+                          try { e.currentTarget.showPicker(); } catch (_) {}
+                        }
+                      }}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCheckIn(val);
+                        if (checkOut && checkOut < val) setCheckOut(val);
+                      }}
+                      aria-label="Check-in Date"
                     />
                     <Calendar size={15} className="calendar-field-icon" />
                   </div>
@@ -640,13 +658,28 @@ export function HotelDetailPage({ initialHotel = null }) {
                 {/* Check-out Date */}
                 <div className="inquiry-row-field">
                   <label>Check-out Date</label>
-                  <div className="input-with-calendar-icon">
+                  <div
+                    className="input-with-calendar-icon"
+                    onClick={(e) => {
+                      const input = e.currentTarget.querySelector('input[type="date"]');
+                      if (input && typeof input.showPicker === 'function') {
+                        try { input.showPicker(); } catch (_) {}
+                      }
+                    }}
+                  >
                     <input
-                      type="text"
+                      type="date"
                       required
-                      placeholder="30 Aug 2026"
+                      min={checkIn || undefined}
                       value={checkOut}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (typeof e.currentTarget.showPicker === 'function') {
+                          try { e.currentTarget.showPicker(); } catch (_) {}
+                        }
+                      }}
                       onChange={(e) => setCheckOut(e.target.value)}
+                      aria-label="Check-out Date"
                     />
                     <Calendar size={15} className="calendar-field-icon" />
                   </div>

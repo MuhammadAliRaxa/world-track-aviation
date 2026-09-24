@@ -188,7 +188,7 @@ export function SearchResultsSection({ searchData, onClose }) {
             )}
 
             {tab === 'visa' && (
-              <div className="visas-catalog-grid search-results-grid">
+              <div className="visa-catalog-grid search-results-grid">
                 {results.map((visa) => (
                   <VisaCard key={visa.id} visa={visa} />
                 ))}

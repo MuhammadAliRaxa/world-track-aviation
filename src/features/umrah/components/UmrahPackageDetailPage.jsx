@@ -24,6 +24,15 @@ const sanitizeHtml = (html) =>
     ? html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').replace(/on\w+="[^"]*"/g, '')
     : '';
 
+function getIsoDate(daysAhead = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysAhead);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function UmrahPackageDetailPage({ initialPackage = null }) {
   const { id } = useParams();
   const router = useRouter();
@@ -53,16 +62,16 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
   }, [allPackages, pkg, id]);
 
   const [isContactOpen, setIsContactOpen] = useState(false);
-  const [form, setForm] = useState({
-    checkIn: '23 May 2026',
-    checkOut: '23 Aug 2026',
+  const [form, setForm] = useState(() => ({
+    checkIn: getIsoDate(7),
+    checkOut: getIsoDate(21),
     pax: '1 Child',
     roomType: 'Triple Sharing',
     name: '',
     email: '',
     contact: '',
     message: '',
-  });
+  }));
   const [sent, setSent] = useState(false);
 
   // Popup states for Pax & Room Type
@@ -287,13 +296,35 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                   {/* Check-In Date */}
                   <div className="upd-form-group">
                     <label className="upd-form-label">Check-In Date</label>
-                    <div className="upd-input-wrap">
+                    <div
+                      className="upd-input-wrap"
+                      onClick={(e) => {
+                        const input = e.currentTarget.querySelector('input[type="date"]');
+                        if (input && typeof input.showPicker === 'function') {
+                          try { input.showPicker(); } catch (_) {}
+                        }
+                      }}
+                    >
                       <input
-                        type="text"
-                        className="upd-form-input"
+                        type="date"
+                        className="upd-form-input upd-date-picker-input"
                         value={form.checkIn}
-                        onChange={(e) => setForm({ ...form, checkIn: e.target.value })}
-                        placeholder="23 May 2026"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (typeof e.currentTarget.showPicker === 'function') {
+                            try { e.currentTarget.showPicker(); } catch (_) {}
+                          }
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setForm((f) => ({
+                            ...f,
+                            checkIn: val,
+                            checkOut: f.checkOut && f.checkOut < val ? val : f.checkOut,
+                          }));
+                        }}
+                        required
+                        aria-label="Check-In Date"
                       />
                       <Calendar size={14} className="upd-input-icon" />
                     </div>
@@ -302,13 +333,29 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                   {/* Check-out Date */}
                   <div className="upd-form-group">
                     <label className="upd-form-label">Check-out Date</label>
-                    <div className="upd-input-wrap">
+                    <div
+                      className="upd-input-wrap"
+                      onClick={(e) => {
+                        const input = e.currentTarget.querySelector('input[type="date"]');
+                        if (input && typeof input.showPicker === 'function') {
+                          try { input.showPicker(); } catch (_) {}
+                        }
+                      }}
+                    >
                       <input
-                        type="text"
-                        className="upd-form-input"
+                        type="date"
+                        className="upd-form-input upd-date-picker-input"
                         value={form.checkOut}
-                        onChange={(e) => setForm({ ...form, checkOut: e.target.value })}
-                        placeholder="23 Aug 2026"
+                        min={form.checkIn || undefined}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (typeof e.currentTarget.showPicker === 'function') {
+                            try { e.currentTarget.showPicker(); } catch (_) {}
+                          }
+                        }}
+                        onChange={(e) => setForm((f) => ({ ...f, checkOut: e.target.value }))}
+                        required
+                        aria-label="Check-out Date"
                       />
                       <Calendar size={14} className="upd-input-icon" />
                     </div>
