@@ -80,7 +80,7 @@ export const fetchPageSeo = unstable_cache(
 
 export interface BuildMetadataOptions {
   /** Item-level seo (highest priority). */
-  itemSeo?: ApiSeoObject | null;
+  itemSeo?: Partial<ApiSeoObject> | ApiSeoObject | null;
   /** Page key for /seo/page/{key} lookup (used when itemSeo is null). */
   pageKey?: string;
   /** Additional path segment for canonical URL normalization (e.g. '/our-hotels/my-slug/'). */
