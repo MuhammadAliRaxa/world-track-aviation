@@ -39,8 +39,8 @@
 .hero-interactive-zone {
   position: relative;
   z-index: 10;
-  max-width: 1200px;
-  width: calc(100% - 64px);
+  max-width: 1320px;
+  width: calc(100% - 48px);
   margin: 0 auto;
   height: 100%;
   padding-top: 112px;
@@ -99,8 +99,8 @@
   -webkit-backdrop-filter: blur(16px);
   border: 1.5px solid rgba(255, 255, 255, 0.32);
   border-radius: 999px;
-  padding: 5px;
-  gap: 3px;
+  padding: 6px;
+  gap: 6px;
   flex-wrap: nowrap;
   min-width: max-content;
 }
@@ -108,11 +108,13 @@
 .service-tab-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px;
   color: rgba(255, 255, 255, 0.95);
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 600;
-  padding: 9px 22px;
+  padding: 12px 36px;
+  min-width: 165px;
   border-radius: 999px;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -130,7 +132,7 @@
   background: #ffffff;
   color: #0f172a;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15.5px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
 }
 
@@ -356,6 +358,270 @@
    FLAT HORIZONTAL HERO SEARCH BAR (Reference Image Match)
    ===================================================================== */
 /* =====================================================================
+   HERO PILL SEARCH BAR — Pixel Perfect to Reference Screenshot
+   ===================================================================== */
+.hero-pill-search-bar {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 12px 42px rgba(0, 0, 0, 0.22);
+  padding: 8px 10px 8px 12px;
+  gap: 10px;
+  width: 100%;
+  max-width: 1220px;
+  margin: 0 auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.hero-pill-field {
+  flex: 1;
+  min-width: 0;
+  height: 54px;
+  background: #ffffff;
+  border: 1.5px solid #dce4ee;
+  border-radius: 999px;
+  padding: 0 16px 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.hero-pill-field:hover {
+  border-color: #cbd5e1;
+  background: #fafbfd;
+}
+
+.hero-pill-field:focus-within,
+.hero-pill-field.is-active {
+  border-color: #0080f6;
+  box-shadow: 0 0 0 3px rgba(0, 128, 246, 0.14);
+  background: #ffffff;
+}
+
+.hero-pill-field-wide {
+  flex: 1.25;
+}
+
+.pill-field-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex: 1;
+  pointer-events: none;
+}
+
+.pill-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #7f95aa;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pill-field-value {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0b1528;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pill-field-chevron {
+  color: #0b1528;
+  flex-shrink: 0;
+  margin-left: 8px;
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pill-field-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+/* Floating custom dropdown menu opening at the bottom of the field */
+.hero-pill-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 380px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px -4px rgba(11, 21, 40, 0.18), 0 6px 18px rgba(0, 0, 0, 0.06);
+  padding: 6px;
+  z-index: 1000;
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  animation: heroDropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-pill-dropdown-menu.align-right {
+  left: auto;
+  right: 0;
+}
+
+@keyframes heroDropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hero-pill-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hero-pill-dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hero-pill-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.hero-pill-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.hero-pill-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  user-select: none;
+  gap: 12px;
+}
+
+.hero-pill-dropdown-item:hover {
+  background: #f1f5f9;
+  color: #0080f6;
+}
+
+.hero-pill-dropdown-item.is-selected {
+  background: #eff6ff;
+  color: #0080f6;
+  font-weight: 700;
+}
+
+.hero-pill-dropdown-item-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-pill-dropdown-check {
+  color: #0080f6;
+  flex-shrink: 0;
+}
+
+.pill-field-calendar-svg {
+  color: #0b1528;
+  flex-shrink: 0;
+  margin-left: 8px;
+  pointer-events: none;
+}
+
+.pill-native-select,
+.pill-native-date-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+  border-radius: 999px;
+  font-size: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.pill-native-date-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.hero-pill-search-btn {
+  background: #0080f6;
+  color: #ffffff;
+  padding: 0 34px;
+  height: 54px;
+  border-radius: 999px;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 128, 246, 0.35);
+}
+
+.hero-pill-search-btn:hover {
+  background: #006ed4;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 128, 246, 0.42);
+}
+
+.hero-pill-search-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.hero-search-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: hero-search-spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes hero-search-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =====================================================================
    FLAT HORIZONTAL HERO SEARCH BAR — Pixel Perfect Reference Match
    ===================================================================== */
 .hero-flat-search-bar {
@@ -364,10 +630,12 @@
   background: #ffffff;
   border-radius: 999px;
   box-shadow: 0 8px 48px rgba(0, 0, 0, 0.22);
-  padding: 0 6px 0 0;
+  padding: 0 8px 0 0;
   gap: 0;
-  height: 66px;
+  height: 72px;
   width: 100%;
+  max-width: 1220px;
+  margin: 0 auto;
 }
 
 /* Every field: identical height, flex, padding */
@@ -375,7 +643,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 22px;
+  padding: 0 28px;
   flex: 1;
   position: relative;
   height: 100%;
@@ -389,7 +657,7 @@
 
 /* First field — add left padding to start from pill edge */
 .flat-search-field:first-child {
-  padding-left: 28px;
+  padding-left: 36px;
 }
 
 /* Uppercase micro label */
@@ -415,7 +683,7 @@
 .flat-field-input {
   border: none;
   background: transparent;
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 600;
   color: #1e293b;
   outline: none;
@@ -582,10 +850,10 @@
 .flat-search-btn {
   background: #1a73e8;
   color: #ffffff;
-  padding: 0 30px;
-  height: 54px;
+  padding: 0 38px;
+  height: 56px;
   border-radius: 999px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.2px;
   box-shadow: 0 4px 14px rgba(26, 115, 232, 0.38);
@@ -610,7 +878,7 @@
    ===================================================================== */
 .hero-trust-bar {
   text-align: center;
-  padding: 30px 0 34px 0;
+  padding: 22px 0 24px 0;
   background: #ffffff;
   border-bottom: 1px solid #f1f5f9;
   position: relative;
@@ -622,7 +890,7 @@
   font-weight: 900 !important;
   color: #0f172a;
   letter-spacing: -0.3px;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
   line-height: 1.35;
   padding: 0 20px;
 }
@@ -662,8 +930,9 @@
 .airline-badge-card {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding: 10px 18px;
+  padding: 8px 22px;
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 999px;
@@ -681,6 +950,14 @@
   border-color: #0080f6;
   box-shadow: 0 6px 20px rgba(0, 128, 246, 0.12);
   transform: translateY(-2px);
+}
+
+.airline-logo-img {
+  height: 22px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+  display: block;
 }
 
 

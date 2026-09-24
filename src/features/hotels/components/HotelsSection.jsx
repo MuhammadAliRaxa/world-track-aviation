@@ -11,12 +11,24 @@ export function HotelsSection({ searchFilter = null, onClearFilter }) {
   const router = useRouter();
   const { allHotels } = useHotels();
 
+  const isFilterActive = Boolean(
+    searchFilter &&
+      (searchFilter.destination ||
+        searchFilter.city ||
+        searchFilter.results !== undefined)
+  );
+
   // Real-time filtering when searchFilter is supplied from HeroSection
   const filteredHotels = React.useMemo(() => {
-    if (!searchFilter?.destination) {
+    // If searchFilter contains direct results from POST /hotel/minRate, display them directly
+    if (searchFilter?.results !== undefined && Array.isArray(searchFilter.results)) {
+      return searchFilter.results.slice(0, 4);
+    }
+
+    if (!searchFilter?.destination && !searchFilter?.city) {
       return allHotels.slice(0, 4);
     }
-    const dest = searchFilter.destination.toLowerCase().trim();
+    const dest = (searchFilter.destination || searchFilter.city || '').toLowerCase().trim();
 
     // Specific mapping for regional searches
     let matched = allHotels.filter((hotel) => {
@@ -50,7 +62,8 @@ export function HotelsSection({ searchFilter = null, onClearFilter }) {
     return matched.slice(0, 4);
   }, [allHotels, searchFilter]);
 
-  const displayHotels = filteredHotels.length > 0 ? filteredHotels.slice(0, 4) : allHotels.slice(0, 4);
+  const displayHotels = isFilterActive ? filteredHotels : allHotels.slice(0, 4);
+  const activeDestName = searchFilter?.destination || searchFilter?.city || '';
 
   return (
     <section className="hotels-feature-section" id="hotels">
@@ -82,20 +95,20 @@ export function HotelsSection({ searchFilter = null, onClearFilter }) {
         </div>
 
         {/* Active Filter Notice Bar if search filter was submitted from Hero */}
-        {searchFilter?.destination && (
+        {isFilterActive && (
           <div className="section-active-filter-bar">
             <div className="section-active-filter-left">
               <span className="filter-pill-label">FILTER ACTIVE</span>
               <span className="filter-pill-desc">
-                {filteredHotels.length > 0 ? (
+                {displayHotels.length > 0 ? (
                   <>
-                    Showing hotels in <strong>{searchFilter.destination}</strong>
-                    {searchFilter.guests ? ` · ${searchFilter.guests}` : ''}
-                    {' '}({filteredHotels.length} {filteredHotels.length === 1 ? 'property' : 'properties'} found)
+                    Showing hotels in <strong>{activeDestName || 'all destinations'}</strong>
+                    {' '}({displayHotels.length} {displayHotels.length === 1 ? 'property' : 'properties'} found)
                   </>
                 ) : (
                   <>
-                    No properties found directly in <strong>{searchFilter.destination}</strong>. Showing all featured hotels.
+                    No properties found directly in <strong>{activeDestName || 'selected destination'}</strong>
+                    {searchFilter?.checkIn && searchFilter?.checkOut ? ` for ${searchFilter.checkIn} to ${searchFilter.checkOut}` : ''}.
                   </>
                 )}
               </span>
@@ -110,12 +123,38 @@ export function HotelsSection({ searchFilter = null, onClearFilter }) {
           </div>
         )}
 
-        {/* Hotels Responsive Grid */}
-        <div className="hotels-catalog-grid">
-          {displayHotels.map((hotel) => (
-            <HotelCard key={hotel.id} hotel={hotel} />
-          ))}
-        </div>
+        {/* Hotels Responsive Grid or Empty State */}
+        {isFilterActive && displayHotels.length === 0 ? (
+          <div
+            className="section-empty-state"
+            style={{
+              textAlign: 'center',
+              padding: '48px 16px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              margin: '24px 0',
+            }}
+          >
+            <p style={{ fontSize: '1.1rem', color: '#94a3b8', marginBottom: '16px' }}>
+              No hotels found matching your search criteria.
+            </p>
+            <button
+              type="button"
+              className="notice-reset-btn"
+              onClick={onClearFilter}
+              style={{ margin: '0 auto', display: 'inline-flex' }}
+            >
+              Clear Filter &amp; Show All Hotels
+            </button>
+          </div>
+        ) : (
+          <div className="hotels-catalog-grid">
+            {displayHotels.map((hotel) => (
+              <HotelCard key={hotel.id} hotel={hotel} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

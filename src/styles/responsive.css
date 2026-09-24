@@ -135,17 +135,38 @@
     color: #0080f6 !important;
   }
 
-  /* Hero flat search bar: compact stacked card */
-  .hero-flat-search-bar {
+  /* Hero search bars: compact stacked card */
+  .hero-flat-search-bar,
+  .hero-pill-search-bar {
     flex-direction: column !important;
     width: 100% !important;
     background: #ffffff !important;
-    border-radius: 18px !important;
+    border-radius: 20px !important;
     height: auto !important;
-    padding: 6px 12px 12px 12px !important;
-    gap: 0 !important;
+    padding: 10px !important;
+    gap: 8px !important;
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22) !important;
     border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  }
+
+  .hero-pill-field {
+    width: 100% !important;
+    height: 48px !important;
+    padding: 0 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .hero-pill-dropdown-menu {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .hero-pill-search-btn {
+    width: 100% !important;
+    height: 48px !important;
+    margin-top: 4px !important;
   }
 
   .flat-search-field {

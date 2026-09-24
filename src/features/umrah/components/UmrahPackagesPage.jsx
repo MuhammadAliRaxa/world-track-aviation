@@ -18,15 +18,14 @@ import { COMPANY_CONFIG } from '../../../config/company';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
 import { umrahService } from '../../../services';
 import {
-  UMRAH_FILTER_CATEGORIES,
   UMRAH_PRICE_TIERS,
-  UMRAH_STAR_RATINGS,
 } from '../data/umrahData';
 
-export function UmrahPackagesPage({ initialPackages = [] }) {
+export function UmrahPackagesPage({ initialPackages = [], initialLookups = null }) {
   const router = useRouter();
 
   const [packages, setPackages] = useState(initialPackages);
+  const [lookups, setLookups] = useState(initialLookups);
   const [isFiltering, setIsFiltering] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,9 +40,98 @@ export function UmrahPackagesPage({ initialPackages = [] }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  // Fetch real umrah package lookups dynamically from GET /umrah-packages/lookups
+  useEffect(() => {
+    let isMounted = true;
+    umrahService
+      .getUmrahPackageLookups()
+      .then((data) => {
+        if (isMounted && data) {
+          setLookups(data);
+        }
+      })
+      .catch((err) => {
+        console.error('[UmrahPackagesPage] getUmrahPackageLookups error:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleWhatsApp = () => {
     window.open(COMPANY_CONFIG.getWhatsAppUrl('Hi, I need assistance with custom Umrah package booking. Please assist.'), '_blank');
   };
+
+  // Dynamic Categories from API lookups
+  const categoryOptions = useMemo(() => {
+    const totalCount =
+      lookups?.all_packages_count ??
+      (Array.isArray(lookups?.categories)
+        ? lookups.categories.reduce((acc, c) => acc + (c.packages_count ?? c.count ?? 0), 0)
+        : packages.length);
+
+    const allOption = {
+      key: 'all',
+      label: 'All Packages',
+      count: totalCount,
+    };
+
+    if (Array.isArray(lookups?.categories) && lookups.categories.length > 0) {
+      const apiCategories = lookups.categories.map((c) => {
+        const val = c.category || c.name || c.label || '';
+        return {
+          key: val,
+          label: c.label || val,
+          count: c.packages_count ?? c.count ?? null,
+        };
+      });
+      return [allOption, ...apiCategories];
+    }
+
+    return [
+      allOption,
+      { key: '5 Star', label: 'Five star Umrah package', count: null },
+      { key: '4 Star', label: 'Four star Umrah package', count: null },
+      { key: 'Economy', label: 'Economy Umrah package', count: null },
+    ];
+  }, [lookups?.categories, lookups?.all_packages_count, packages.length]);
+
+  // Dynamic Star Ratings from API lookups
+  const starOptions = useMemo(() => {
+    const parseStars = (item) => {
+      if (typeof item.stars === 'number') return item.stars;
+      if (typeof item.id === 'number' && item.id >= 1 && item.id <= 7) return item.id;
+      const str = String(item.category || item.name || item.label || '');
+      const match = str.match(/([1-5])\s*Star/i) || str.match(/(\d+)/);
+      if (match) return parseInt(match[1], 10);
+      return null;
+    };
+
+    if (Array.isArray(lookups?.ratings) && lookups.ratings.length > 0) {
+      const mapped = [];
+      const seen = new Set();
+      lookups.ratings.forEach((r) => {
+        const stars = parseStars(r);
+        if (stars && !seen.has(stars)) {
+          seen.add(stars);
+          mapped.push({
+            stars,
+            label: r.label || `${stars} Star${stars > 1 ? 's' : ''}`,
+            count: r.packages_count ?? r.count ?? null,
+          });
+        }
+      });
+      if (mapped.length > 0) {
+        return mapped.sort((a, b) => b.stars - a.stars);
+      }
+    }
+
+    return [
+      { stars: 5, label: '5 Stars', count: null },
+      { stars: 4, label: '4 Stars', count: null },
+      { stars: 3, label: '3 Stars', count: null },
+    ];
+  }, [lookups?.ratings]);
 
   const toggleStar = (s) => {
     setSelectedStars((prev) =>
@@ -147,11 +235,15 @@ export function UmrahPackagesPage({ initialPackages = [] }) {
                 <div className="um-sb-section" style={{ borderTop: 'none', paddingTop: 0, marginTop: 0 }}>
                   <div className="um-sb-sec-head">
                     <span className="um-sb-sec-title">PACKAGES</span>
-                    <span className="um-sb-sec-sub">3 Packages</span>
+                    <span className="um-sb-sec-sub">
+                      {categoryOptions[0]?.count != null
+                        ? `${categoryOptions[0].count} Packages`
+                        : `${packages.length} Packages`}
+                    </span>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    {UMRAH_FILTER_CATEGORIES.map((cat) => (
+                    {categoryOptions.map((cat) => (
                       <label key={cat.key} className="um-radio-row">
                         <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                           <input
@@ -169,7 +261,9 @@ export function UmrahPackagesPage({ initialPackages = [] }) {
                             {cat.label}
                           </span>
                         </div>
-                        <span className="um-badge-count">{cat.count}</span>
+                        {cat.count !== null && cat.count !== undefined && (
+                          <span className="um-badge-count">{cat.count}</span>
+                        )}
                       </label>
                     ))}
                   </div>
@@ -227,7 +321,7 @@ export function UmrahPackagesPage({ initialPackages = [] }) {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    {UMRAH_STAR_RATINGS.map((rate) => {
+                    {starOptions.map((rate) => {
                       const isChecked = selectedStars.includes(rate.stars);
                       return (
                         <label key={rate.stars} className="um-check-row">
@@ -247,7 +341,9 @@ export function UmrahPackagesPage({ initialPackages = [] }) {
                               <span className="um-star-label">{rate.label}</span>
                             </div>
                           </div>
-                          <span className="um-badge-count">{rate.count}</span>
+                          {rate.count !== null && rate.count !== undefined && (
+                            <span className="um-badge-count">{rate.count}</span>
+                          )}
                         </label>
                       );
                     })}

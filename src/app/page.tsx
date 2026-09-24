@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { buildMetadata } from '@/lib/seo';
 import { umrahService } from '@/services/umrah.service';
 import { hotelService } from '@/services/hotel.service';
 import { visaService } from '@/services/visa.service';
@@ -9,29 +10,15 @@ import { HomePage } from '@/shared/components/HomePage';
 
 export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: 'Travel Agency in Islamabad - Umrah, Visas & Flights | World Track Aviation',
-  description:
-    'World Track Aviation is an IATA-accredited travel agency in Islamabad offering Umrah packages, visa assistance, flight & hotel bookings across Pakistan.',
-  keywords: [
-    'Travel Agency in Islamabad',
-    'Umrah packages Pakistan',
-    'World Track Aviation',
-    'visit visa consultant Islamabad',
-    'flight booking agency Islamabad',
-  ],
-  alternates: {
-    canonical: 'https://worldtracktravel.com/',
-  },
-  openGraph: {
-    title: 'Travel Agency in Islamabad - Umrah, Visas & Flights | World Track Aviation',
-    description:
+export async function generateMetadata(): Promise<Metadata> {
+  return buildMetadata({
+    pageKey: 'home',
+    canonicalPath: 'https://worldtracktravel.com/',
+    fallbackTitle: 'Travel Agency in Islamabad - Umrah, Visas & Flights | World Track Aviation',
+    fallbackDescription:
       'World Track Aviation is an IATA-accredited travel agency in Islamabad offering Umrah packages, visa assistance, flight & hotel bookings across Pakistan.',
-    url: 'https://worldtracktravel.com/',
-    siteName: 'World Track Aviation',
-    type: 'website',
-  },
-};
+  });
+}
 
 /**
  * Home page — Server Component.
@@ -39,7 +26,7 @@ export const metadata: Metadata = {
  * ensuring instantaneous page render and full search engine indexing.
  */
 export default async function Page() {
-  const [umrahPackages, hotels, visas, tours, blogs, team, testimonials] = await Promise.allSettled([
+  const [umrahPackages, hotels, visas, tours, blogs, team, testimonials, hotelLookups, visaLookups, groupUmrahLookups] = await Promise.allSettled([
     umrahService.getUmrahPackages(),
     hotelService.getHotels(),
     visaService.getVisas(),
@@ -47,6 +34,9 @@ export default async function Page() {
     blogService.getBlogs(),
     contentService.getTeam(),
     contentService.getTestimonials(),
+    hotelService.getHotelLookups(),
+    visaService.getVisaLookups(),
+    umrahService.getGroupUmrahLookups(),
   ]);
 
   return (
@@ -58,6 +48,9 @@ export default async function Page() {
       initialBlogs={blogs.status === 'fulfilled' ? blogs.value : []}
       initialTeam={team.status === 'fulfilled' ? team.value : null}
       initialReviews={testimonials.status === 'fulfilled' ? testimonials.value : []}
+      initialHotelLookups={hotelLookups.status === 'fulfilled' ? hotelLookups.value : null}
+      initialVisaLookups={visaLookups.status === 'fulfilled' ? visaLookups.value : null}
+      initialGroupUmrahLookups={groupUmrahLookups.status === 'fulfilled' ? groupUmrahLookups.value : null}
     />
   );
 }

@@ -188,10 +188,23 @@ export interface ApiVisa {
   [key: string]: unknown;
 }
 
+export interface ApiVisaLookupItem {
+  value: string;
+  visas_count?: number;
+}
+
+export interface ApiVisaLookups {
+  countries: ApiVisaLookupItem[];
+  visa_types: ApiVisaLookupItem[];
+}
+
 export interface ApiVisaFilters {
   search?: string;
   name?: string;
+  destination?: string;
   country?: string;
+  visa_type?: string;
+  checkin?: string;
   price_range?: string;
   nextPage?: number | null;
   perPage?: number;
@@ -267,13 +280,27 @@ export interface ApiGroupUmrahPackage {
   id: number;
   name?: string;
   duration?: number;
+  departure_date?: string;
+  airline?: { id: number; name: string; code?: string | null };
+  route?: { id: number; name: string };
   price?: number;
+  image?: string;
+  image_alt_text?: string;
   seo: ApiSeoObject | null;
   [key: string]: unknown;
 }
 
+export interface ApiGroupUmrahLookups {
+  durations: Array<{ value: number; label: string; packages_count?: number }>;
+  departure_dates: Array<{ value: string; label: string; packages_count?: number }>;
+  airlines: Array<{ id: number; name: string; code?: string | null; logo?: string | null; packages_count?: number }>;
+  routes: Array<{ id: number; name: string; packages_count?: number }>;
+  sectors: Array<{ id: number; name: string; packages_count?: number }>;
+}
+
 export interface ApiGroupUmrahFilters {
   name?: string;
+  departure_date?: string;
   duration?: number[];
   /** Numeric IDs */
   airlines?: number[];
@@ -300,14 +327,18 @@ export interface ApiCustomUmrahPackage {
 }
 
 export interface ApiCustomUmrahLookupItem {
-  id: number;
-  name: string;
+  id?: number;
+  name?: string;
+  category?: string;
+  label?: string;
   count?: number;
+  packages_count?: number;
 }
 
 export interface ApiCustomUmrahLookups {
-  categories: ApiCustomUmrahLookupItem[];
-  ratings: ApiCustomUmrahLookupItem[];
+  all_packages_count?: number;
+  categories?: ApiCustomUmrahLookupItem[];
+  ratings?: ApiCustomUmrahLookupItem[];
 }
 
 export interface ApiCustomUmrahFilters {

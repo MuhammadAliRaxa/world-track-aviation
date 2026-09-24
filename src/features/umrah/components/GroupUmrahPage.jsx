@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Search, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 import { umrahService } from '../../../services';
@@ -8,10 +8,11 @@ import { AppBar, Footer, Modals, WhatsAppIcon } from '../../../shared';
 import { COMPANY_CONFIG } from '../../../config/company';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
 
-export function GroupUmrahPage({ initialPackages = [] }) {
+export function GroupUmrahPage({ initialPackages = [], initialLookups = null }) {
   const router = useRouter();
 
   const [packages, setPackages] = useState(initialPackages);
+  const [lookups, setLookups] = useState(initialLookups);
   const [isFiltering, setIsFiltering] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,55 +29,85 @@ export function GroupUmrahPage({ initialPackages = [] }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  // Fetch real group umrah lookups dynamically from GET /group-umrah-packages/lookups
+  useEffect(() => {
+    let isMounted = true;
+    umrahService
+      .getGroupUmrahLookups()
+      .then((data) => {
+        if (isMounted && data) {
+          setLookups(data);
+        }
+      })
+      .catch((err) => {
+        console.error('[GroupUmrahPage] getGroupUmrahLookups error:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleWhatsApp = () => {
     window.open(COMPANY_CONFIG.getWhatsAppUrl('Hi, I need assistance with group Umrah package booking. Please assist.'), '_blank');
   };
 
-  // Duration Filter options
-  const durationOptions = ['15 Days', '21 Days', '28 Days'];
+  // Dynamic Duration Filter options from API
+  const durationOptions = useMemo(() => {
+    if (Array.isArray(lookups?.durations) && lookups.durations.length > 0) {
+      return lookups.durations.map((d) => ({
+        value: d.value,
+        label: d.label || `${d.value} Days`,
+        count: d.packages_count ?? null,
+      }));
+    }
+    return [
+      { value: 15, label: '15 Days', count: null },
+      { value: 21, label: '21 Days', count: null },
+      { value: 28, label: '28 Days', count: null },
+    ];
+  }, [lookups?.durations]);
 
-  // Airline Options
-  const airlineOptions = [
-    { code: 'SV', name: 'Saudi Arabian Airlines', count: 2 },
-    { code: 'PK', name: 'Pakistan International Airlines', count: 1 },
-    { code: 'EK', name: 'Emirates', count: 2 },
-    { code: 'PA', name: 'Airblue', count: 1 },
-    { code: 'XY', name: 'Flynas', count: 1 },
-    { code: 'RK', name: 'Riyadh Air', count: 1 },
-    { code: 'WY', name: 'Oman Air', count: 1 },
-    { code: 'BA', name: 'British Airways / Virgin', count: 1 },
-    { code: 'QR', name: 'Qatar Airways', count: 1 },
-    { code: 'GF', name: 'Gulf Air', count: 1 },
-  ];
+  // Dynamic Airline Options from API
+  const airlineOptions = useMemo(() => {
+    if (Array.isArray(lookups?.airlines) && lookups.airlines.length > 0) {
+      return lookups.airlines.map((a) => ({
+        id: a.id,
+        code: a.code || '',
+        name: a.name,
+        count: a.packages_count ?? null,
+      }));
+    }
+    return [];
+  }, [lookups?.airlines]);
 
-  // Sector Options
-  const sectorOptions = [
-    { name: 'ISLAMABAD - JEDDAH - ISLAMABAD', count: 4 },
-    { name: 'LAHORE - JEDDAH - LAHORE', count: 1 },
-    { name: 'KARACHI - MEDINA - KARACHI', count: 1 },
-    { name: 'PESHAWAR - JEDDAH - PESHAWAR', count: 1 },
-    { name: 'ISLAMABAD - DUBAI - ISLAMABAD', count: 1 },
-    { name: 'LAHORE - SHARJAH - LAHORE', count: 1 },
-    { name: 'ISLAMABAD - RIYADH - ISLAMABAD', count: 1 },
-    { name: 'SIALKOT - MUSCAT - SIALKOT', count: 1 },
-    { name: 'ISLAMABAD - MANAMA - ISLAMAF', count: 1 },
-  ];
+  // Dynamic Sector & Route Options from API
+  const sectorOptions = useMemo(() => {
+    const list = lookups?.routes || lookups?.sectors || [];
+    if (Array.isArray(list) && list.length > 0) {
+      return list.map((s) => ({
+        id: s.id,
+        name: s.name,
+        count: s.packages_count ?? null,
+      }));
+    }
+    return [];
+  }, [lookups?.routes, lookups?.sectors]);
 
-  const toggleDuration = (dur) => {
+  const toggleDuration = (val) => {
     setSelectedDuration((prev) =>
-      prev.includes(dur) ? prev.filter((d) => d !== dur) : [...prev, dur]
+      prev.includes(val) ? prev.filter((d) => d !== val) : [...prev, val]
     );
   };
 
-  const toggleAirline = (code) => {
+  const toggleAirline = (id) => {
     setSelectedAirlines((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
   };
 
-  const toggleSector = (sec) => {
+  const toggleSector = (id) => {
     setSelectedSectors((prev) =>
-      prev.includes(sec) ? prev.filter((s) => s !== sec) : [...prev, sec]
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
     );
   };
 
@@ -87,30 +118,27 @@ export function GroupUmrahPage({ initialPackages = [] }) {
     setSelectedSectors([]);
   };
 
-  const hasFilters = debouncedSearch.trim() !== '' || selectedDuration.length > 0 || selectedAirlines.length > 0 || selectedSectors.length > 0;
+  const hasFilters =
+    debouncedSearch.trim() !== '' ||
+    selectedDuration.length > 0 ||
+    selectedAirlines.length > 0 ||
+    selectedSectors.length > 0;
 
   useEffect(() => {
     const fetchFiltered = async () => {
       setIsFiltering(true);
       try {
-        // Map duration labels (e.g. "15 Days") to numbers for the API
-        const durationNums = selectedDuration.map((d) => parseInt(d));
-
         const apiFilters = {};
         if (debouncedSearch.trim()) apiFilters.name = debouncedSearch.trim();
-        if (durationNums.length > 0) apiFilters.duration = durationNums;
-        // airlines and routes filters not sent (no IDs available client-side)
+        if (selectedDuration.length > 0) apiFilters.duration = selectedDuration;
+        if (selectedAirlines.length > 0) apiFilters.airlines = selectedAirlines;
+        if (selectedSectors.length > 0) apiFilters.routes = selectedSectors;
 
         const results = await umrahService.getGroupUmrahPackages(
           Object.keys(apiFilters).length > 0 ? apiFilters : undefined
         );
 
-        // Client-side sector filter (no server-side sector filter in API)
-        const filtered = selectedSectors.length > 0
-          ? results.filter((p) => selectedSectors.includes(p.sector))
-          : results;
-
-        setPackages(filtered);
+        setPackages(results);
       } catch (err) {
         console.error('[GroupUmrahPage] filter error:', err);
       } finally {
@@ -124,7 +152,7 @@ export function GroupUmrahPage({ initialPackages = [] }) {
     }
 
     fetchFiltered();
-  }, [debouncedSearch, selectedDuration, selectedSectors, initialPackages, hasFilters]);
+  }, [debouncedSearch, selectedDuration, selectedAirlines, selectedSectors, initialPackages, hasFilters]);
 
   return (
     <div className="group-umrah-page-root" style={{ background: '#f8fafc', minHeight: '100vh', color: '#0f172a' }}>
@@ -216,21 +244,26 @@ export function GroupUmrahPage({ initialPackages = [] }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <span style={{ fontSize: '11px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.05em' }}>DURATION</span>
                   <div style={{ display: 'flex', gap: '8px', fontSize: '11px' }}>
-                    <button type="button" onClick={() => setSelectedDuration([...durationOptions])} style={{ background: 'none', border: 'none', color: '#0284c7', cursor: 'pointer', padding: 0 }}>All</button>
+                    <button type="button" onClick={() => setSelectedDuration(durationOptions.map((d) => d.value))} style={{ background: 'none', border: 'none', color: '#0284c7', cursor: 'pointer', padding: 0 }}>All</button>
                     <button type="button" onClick={() => setSelectedDuration([])} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}>Clear</button>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {durationOptions.map((dur) => (
-                    <label key={dur} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#334155', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedDuration.includes(dur)}
-                        onChange={() => toggleDuration(dur)}
-                        style={{ accentColor: '#0284c7', width: '15px', height: '15px', borderRadius: '4px', cursor: 'pointer' }}
-                      />
-                      <span>{dur}</span>
+                    <label key={dur.value} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px', color: '#334155', cursor: 'pointer' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedDuration.includes(dur.value)}
+                          onChange={() => toggleDuration(dur.value)}
+                          style={{ accentColor: '#0284c7', width: '15px', height: '15px', borderRadius: '4px', cursor: 'pointer' }}
+                        />
+                        <span>{dur.label}</span>
+                      </div>
+                      {dur.count !== null && dur.count !== undefined && (
+                        <span style={{ fontSize: '11px', color: '#94a3b8', background: '#f8fafc', padding: '1px 5px', borderRadius: '8px' }}>{dur.count}</span>
+                      )}
                     </label>
                   ))}
                 </div>
@@ -241,25 +274,27 @@ export function GroupUmrahPage({ initialPackages = [] }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <span style={{ fontSize: '11px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.05em' }}>AIRLINES</span>
                   <div style={{ display: 'flex', gap: '8px', fontSize: '11px' }}>
-                    <button type="button" onClick={() => setSelectedAirlines(airlineOptions.map((a) => a.code))} style={{ background: 'none', border: 'none', color: '#0284c7', cursor: 'pointer', padding: 0 }}>All</button>
+                    <button type="button" onClick={() => setSelectedAirlines(airlineOptions.map((a) => a.id))} style={{ background: 'none', border: 'none', color: '#0284c7', cursor: 'pointer', padding: 0 }}>All</button>
                     <button type="button" onClick={() => setSelectedAirlines([])} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}>Clear</button>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
                   {airlineOptions.map((air) => (
-                    <label key={air.code} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#334155', cursor: 'pointer' }}>
+                    <label key={air.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#334155', cursor: 'pointer' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <input
                           type="checkbox"
-                          checked={selectedAirlines.includes(air.code)}
-                          onChange={() => toggleAirline(air.code)}
+                          checked={selectedAirlines.includes(air.id)}
+                          onChange={() => toggleAirline(air.id)}
                           style={{ accentColor: '#0284c7', width: '14px', height: '14px', borderRadius: '3px', cursor: 'pointer' }}
                         />
-                        <span style={{ fontWeight: 700, fontSize: '11px', background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', color: '#475569' }}>{air.code}</span>
+                        {air.code && <span style={{ fontWeight: 700, fontSize: '11px', background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', color: '#475569' }}>{air.code}</span>}
                         <span style={{ fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>{air.name}</span>
                       </div>
-                      <span style={{ fontSize: '11px', color: '#94a3b8', background: '#f8fafc', padding: '1px 5px', borderRadius: '8px' }}>{air.count}</span>
+                      {air.count !== null && air.count !== undefined && (
+                        <span style={{ fontSize: '11px', color: '#94a3b8', background: '#f8fafc', padding: '1px 5px', borderRadius: '8px' }}>{air.count}</span>
+                      )}
                     </label>
                   ))}
                 </div>
@@ -268,26 +303,28 @@ export function GroupUmrahPage({ initialPackages = [] }) {
               {/* SECTION 3: SECTORS & ROUTES */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.05em' }}>SECTORS &amp; ROUTES</span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#0f172a', letterSpacing: '0.05em' }}>ROUTES &amp; SECTORS</span>
                   <div style={{ display: 'flex', gap: '8px', fontSize: '11px' }}>
-                    <button type="button" onClick={() => setSelectedSectors(sectorOptions.map((s) => s.name))} style={{ background: 'none', border: 'none', color: '#0284c7', cursor: 'pointer', padding: 0 }}>All</button>
+                    <button type="button" onClick={() => setSelectedSectors(sectorOptions.map((s) => s.id))} style={{ background: 'none', border: 'none', color: '#0284c7', cursor: 'pointer', padding: 0 }}>All</button>
                     <button type="button" onClick={() => setSelectedSectors([])} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}>Clear</button>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '260px', overflowY: 'auto' }}>
                   {sectorOptions.map((sec) => (
-                    <label key={sec.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: '#334155', cursor: 'pointer' }}>
+                    <label key={sec.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: '#334155', cursor: 'pointer' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
                         <input
                           type="checkbox"
-                          checked={selectedSectors.includes(sec.name)}
-                          onChange={() => toggleSector(sec.name)}
+                          checked={selectedSectors.includes(sec.id)}
+                          onChange={() => toggleSector(sec.id)}
                           style={{ accentColor: '#0284c7', width: '14px', height: '14px', borderRadius: '3px', cursor: 'pointer', flexShrink: 0 }}
                         />
                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>{sec.name}</span>
                       </div>
-                      <span style={{ fontSize: '10px', color: '#94a3b8', background: '#f8fafc', padding: '1px 5px', borderRadius: '8px', flexShrink: 0 }}>{sec.count}</span>
+                      {sec.count !== null && sec.count !== undefined && (
+                        <span style={{ fontSize: '10px', color: '#94a3b8', background: '#f8fafc', padding: '1px 5px', borderRadius: '8px', flexShrink: 0 }}>{sec.count}</span>
+                      )}
                     </label>
                   ))}
                 </div>

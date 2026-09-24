@@ -13,6 +13,7 @@ import { apiPost, apiGet } from './api.client';
 import type {
   ApiGroupUmrahPackage,
   ApiGroupUmrahFilters,
+  ApiGroupUmrahLookups,
   ApiCustomUmrahPackage,
   ApiCustomUmrahFilters,
   ApiCustomUmrahLookups,
@@ -77,7 +78,8 @@ export function normalizeUmrahDetail(raw: any): UmrahPackage | null {
     price,
     priceNumeric,
     hotelCategory: `${stars}-Star Accommodation`,
-    description: item.long_description || item.short_description || item.description || ''
+    description: item.long_description || item.short_description || item.description || '',
+    seo: item.seo || null,
   } as unknown as UmrahPackage;
 }
 
@@ -92,13 +94,13 @@ export function normalizeGroupUmrahPackage(item: any): GroupUmrahPackage | null 
     ? `${groupTicket.duration} Days`
     : (item.duration ? `${item.duration} Days` : '15 Days');
 
-  const airlineCode = groupTicket.airline?.code || item.airlineCode || 'SV';
-  const airlineName = groupTicket.airline?.name || item.airlineName || 'Saudi Arabian Airlines';
-  const sector = groupTicket.route?.name || groupTicket.name || item.sector || 'ISLAMABAD - JEDDAH - ISLAMABAD';
+  const airlineCode = item.airline?.code || groupTicket.airline?.code || item.airlineCode || 'SV';
+  const airlineName = item.airline?.name || groupTicket.airline?.name || item.airlineName || 'Saudi Arabian Airlines';
+  const sector = item.route?.name || groupTicket.route?.name || groupTicket.name || item.sector || 'ISLAMABAD - JEDDAH - ISLAMABAD';
   const seatsLeft = groupTicket.seats_left ?? item.seatsLeft ?? 12;
 
   const outbound = {
-    date: groupTicket.departure?.date || item.outbound?.date || item.departure_date || 'ON REQUEST',
+    date: item.departure_date || groupTicket.departure?.date || item.outbound?.date || 'ON REQUEST',
     flightNo: groupTicket.departure?.airline_code || item.outbound?.flightNo || '',
     time: groupTicket.departure?.flight_time
       ? `${groupTicket.departure.flight_time} - ${groupTicket.departure.land_time || ''}`.trim()
@@ -142,19 +144,38 @@ export function normalizeGroupUmrahPackage(item: any): GroupUmrahPackage | null 
     quad: formatPriceVal(rawPrices.quad || item.price),
   };
 
+  const rawPriceNumeric = typeof item.price === 'number' ? item.price : (parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0);
+  const displayPrice = item.price
+    ? (typeof item.price === 'string' && item.price.startsWith('Rs') ? item.price : `Rs ${rawPriceNumeric.toLocaleString()}`)
+    : (rawPrices.sharing ? `Rs ${formatPriceVal(rawPrices.sharing)}` : 'Contact for Price');
+
+  const mainImage = item.image || (Array.isArray(item.images) ? (item.images[0]?.file || item.images[0]) : null) || 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80';
+
   return {
     id,
     title,
+    name: title,
+    duration: item.duration,
     durationDays,
+    departure_date: item.departure_date || outbound.date,
+    airline: item.airline || groupTicket.airline,
     airlineCode,
     airlineName,
+    route: item.route || groupTicket.route,
     sector,
     seatsLeft,
+    price: displayPrice,
+    priceNumeric: rawPriceNumeric,
+    image: mainImage,
+    image_alt_text: item.image_alt_text || title,
+    badge: 'GROUP UMRAH',
+    category: 'Group Umrah',
     outbound,
     inbound,
     makkahHotel,
     madinahHotel,
     pricing,
+    seo: item.seo || null,
   } as unknown as GroupUmrahPackage;
 }
 
@@ -362,6 +383,22 @@ export const umrahService = {
       );
       if (found) return normalizeGroupUmrahPackage(found) as unknown as GroupUmrahPackage;
       return null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /group-umrah-packages/lookups
+   * Returns durations, departure_dates, airlines, routes, sectors for group Umrah.
+   */
+  async getGroupUmrahLookups(): Promise<ApiGroupUmrahLookups | null> {
+    try {
+      const res = await apiGet<ApiGroupUmrahLookups>(
+        '/group-umrah-packages/lookups',
+        { cache: "no-store" } as RequestInit,
+      );
+      return res.data ?? null;
     } catch {
       return null;
     }

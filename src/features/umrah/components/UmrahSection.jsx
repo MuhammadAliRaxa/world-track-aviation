@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { UmrahPackageCard } from './UmrahPackageCard';
 import { umrahService } from '../../../services/umrah.service';
@@ -50,6 +50,22 @@ export function UmrahSection({ initialPackages = [], searchFilter = null, onClea
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const isFilterActive = Boolean(
+    searchFilter &&
+      (searchFilter.results !== undefined ||
+        searchFilter.route ||
+        searchFilter.departureDate ||
+        searchFilter.noOfDays ||
+        searchFilter.fromCity)
+  );
+
+  const displayPackages = useMemo(() => {
+    if (searchFilter?.results !== undefined) {
+      return searchFilter.results;
+    }
+    return packages;
+  }, [searchFilter, packages]);
+
   return (
     <section className="umrah-feature-section" id="umrah">
       <div className="section-container">
@@ -69,14 +85,24 @@ export function UmrahSection({ initialPackages = [], searchFilter = null, onClea
         </div>
 
         {/* Active Filter Notice Bar if search filter was submitted from Hero */}
-        {searchFilter && (
+        {isFilterActive && (
           <div className="section-active-filter-bar">
             <div className="section-active-filter-left">
               <span className="filter-pill-label">FILTER ACTIVE</span>
               <span className="filter-pill-desc">
-                Umrah packages departing from <strong>{searchFilter.fromCity || 'Pakistan'}</strong>
-                {searchFilter.adults ? ` · ${searchFilter.adults} ${searchFilter.adults === 1 ? 'Pilgrim' : 'Pilgrims'}` : ''}
-                {searchFilter.departDate ? ` · Departing ${searchFilter.departDate}` : ''}
+                {searchFilter?.route ? (
+                  <>Umrah packages for Route: <strong>{searchFilter.route}</strong></>
+                ) : searchFilter?.fromCity ? (
+                  <>Umrah packages departing from <strong>{searchFilter.fromCity}</strong></>
+                ) : (
+                  <>Filtered Umrah packages</>
+                )}
+                {searchFilter?.durationLabel || searchFilter?.noOfDays
+                  ? ` · ${searchFilter.durationLabel || `${searchFilter.noOfDays} Days`}`
+                  : ''}
+                {searchFilter?.departureDateLabel || searchFilter?.departureDate || searchFilter?.departDate
+                  ? ` · Departing ${searchFilter.departureDateLabel || searchFilter.departureDate || searchFilter.departDate}`
+                  : ''}
               </span>
             </div>
             <button
@@ -121,11 +147,22 @@ export function UmrahSection({ initialPackages = [], searchFilter = null, onClea
         {/* 3 Premium Package Cards Grid */}
         {!loading && !error && (
           <>
-            {packages.length > 0 ? (
+            {displayPackages.length > 0 ? (
               <div className="umrah-packages-grid">
-                {packages.slice(0, 3).map((pkg) => (
+                {displayPackages.slice(0, 3).map((pkg) => (
                   <UmrahPackageCard key={pkg.id} pkg={pkg} />
                 ))}
+              </div>
+            ) : isFilterActive ? (
+              <div className="section-empty-state">
+                <p>No Umrah packages match your selected route or duration.</p>
+                <button
+                  type="button"
+                  className="section-retry-btn"
+                  onClick={onClearFilter}
+                >
+                  Clear Filter / Show All Packages
+                </button>
               </div>
             ) : (
               <div className="section-empty-state">

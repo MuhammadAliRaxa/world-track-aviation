@@ -14,4 +14,7 @@ export * from './components/ErrorBoundary';
 export * from './components/PageLoader';
 export * from './components/icons/PassportIcon';
 export * from './components/icons/WhatsAppIcon';
+export * from './components/icons/FacebookIcon';
+export * from './components/icons/InstagramIcon';
+export * from './components/SearchResultsSection';
 export * from './hooks';

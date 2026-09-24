@@ -18,6 +18,7 @@ import { apiPost, apiGet } from './api.client';
 import type {
   ApiVisa,
   ApiVisaFilters,
+  ApiVisaLookups,
   ApiPagination,
 } from '../types/api.types';
 
@@ -235,6 +236,21 @@ export const visaService = {
       return Array.isArray(res.data) ? res.data : [];
     } catch {
       return [];
+    }
+  },
+
+  /**
+   * GET /visa/lookups
+   * Returns countries and visa_types for filter UI.
+   */
+  async getVisaLookups(): Promise<ApiVisaLookups | null> {
+    try {
+      const res = await apiGet<ApiVisaLookups>('/visa/lookups', {
+        cache: 'no-store',
+      } as RequestInit);
+      return res.data ?? null;
+    } catch {
+      return null;
     }
   },
 } as const;

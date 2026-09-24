@@ -1,3 +1,5 @@
+import type { ApiSeoObject } from './api.types';
+
 export interface HotelSummary {
   name: string;
   distance: string;
@@ -19,6 +21,8 @@ export interface UmrahPackage {
   price: string;
   priceNumeric: number;
   hotelCategory: string;
+  description?: string;
+  seo?: ApiSeoObject | null;
 }
 
 export interface GroupUmrahPackage extends UmrahPackage {

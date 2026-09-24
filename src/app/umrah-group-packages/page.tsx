@@ -16,6 +16,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const packages = await umrahService.getGroupUmrahPackages();
-  return <GroupUmrahPage initialPackages={packages} />;
+  const [packagesRes, lookupsRes] = await Promise.allSettled([
+    umrahService.getGroupUmrahPackages(),
+    umrahService.getGroupUmrahLookups(),
+  ]);
+
+  const packages = packagesRes.status === 'fulfilled' ? packagesRes.value : [];
+  const lookups = lookupsRes.status === 'fulfilled' ? lookupsRes.value : null;
+
+  return <GroupUmrahPage initialPackages={packages} initialLookups={lookups} />;
 }
+

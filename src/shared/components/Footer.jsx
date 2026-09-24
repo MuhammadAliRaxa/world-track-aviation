@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Phone, Lock } from 'lucide-react';
 import { Logo } from './Logo';
+import { FacebookIcon } from './icons/FacebookIcon';
+import { InstagramIcon } from './icons/InstagramIcon';
 
 export function Footer() {
   const [email, setEmail] = useState('');
@@ -81,11 +83,23 @@ export function Footer() {
               <span className="trust-pill-tag trust-pill-dts">DTS Approved</span>
             </div>
             <div className="footer-social-icons">
-              <a href="https://web.facebook.com/worldtrackaviation/" target="_blank" rel="noreferrer" className="footer-social-box" aria-label="Facebook">
-                <span>f</span>
+              <a
+                href="https://web.facebook.com/worldtrackaviation/"
+                target="_blank"
+                rel="noreferrer"
+                className="footer-social-box facebook"
+                aria-label="Facebook"
+              >
+                <FacebookIcon size={14} />
               </a>
-              <a href="https://www.instagram.com/worldtrackaviation/" target="_blank" rel="noreferrer" className="footer-social-box" aria-label="Instagram">
-                <span>ig</span>
+              <a
+                href="https://www.instagram.com/worldtrackaviation/"
+                target="_blank"
+                rel="noreferrer"
+                className="footer-social-box instagram"
+                aria-label="Instagram"
+              >
+                <InstagramIcon size={14} />
               </a>
             </div>
           </div>
@@ -160,11 +174,19 @@ export function Footer() {
           </p>
           <div className="footer-designer-credit">
             <span>Design and Developed by</span>
-            <img
-              src="/assets/evolix-logo.svg"
-              alt="evolix Technologies"
-              className="evolix-logo-img"
-            />
+            <a
+              href="https://evolixtechnologies.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="evolix-credit-link"
+              aria-label="evolix Technologies - Software Development Company"
+            >
+              <img
+                src="/assets/evolix-logo.png"
+                alt="evolix Technologies"
+                className="evolix-logo-img"
+              />
+            </a>
           </div>
         </div>
       </div>

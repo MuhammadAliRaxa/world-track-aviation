@@ -21,8 +21,103 @@ import { AppBar } from '../../../shared/components/AppBar';
 import { Footer } from '../../../shared/components/Footer';
 import { Modals } from '../../../shared/components/Modals';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
-import { HOTELS_MAP_DATA, HOLY_CENTERS } from '../data/hotelsMapData';
+import { HOTELS_MAP_DATA, HOLY_CENTERS, DUAL_CITIES_BOUNDS } from '../data/hotelsMapData';
 import { hotelService } from '../../../services/hotel.service';
+
+const CURATED_MAP_HOTELS = [
+  // Makkah verified hotels
+  {
+    id: 'makkah-clock-royal',
+    name: 'Makkah Clock Royal Tower',
+    shortName: 'Clock Royal Tower',
+    city: 'makkah',
+    badge: '5 STARS',
+    distance: '50m from Haram',
+    price: 'SAR 850',
+    unit: '/ night',
+    coordinates: [21.4189, 39.8264],
+    description: 'Iconic luxury hotel in Abraj Al Bait complex directly facing the Holy Kaaba.',
+    gate: 'King Abdulaziz Gate',
+    stars: 5,
+    image: 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'swissotel-makkah',
+    name: 'Swissôtel Al Maqam Makkah',
+    shortName: 'Swissôtel Al Maqam',
+    city: 'makkah',
+    badge: '5 STARS',
+    distance: '100m from Haram',
+    price: 'SAR 720',
+    unit: '/ night',
+    coordinates: [21.4195, 39.8248],
+    description: 'Prestigious Haram-facing tower offering direct covered access to the Holy Mosque.',
+    gate: 'Ajyad Tunnel Entrance',
+    stars: 5,
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'pullman-zamzam-makkah',
+    name: 'Pullman Zamzam Makkah',
+    shortName: 'Pullman Zamzam',
+    city: 'makkah',
+    badge: '5 STARS',
+    distance: '120m from Haram',
+    price: 'SAR 680',
+    unit: '/ night',
+    coordinates: [21.4198, 39.8255],
+    description: 'Modern 5-star sanctuary nestled in the Abraj Al Bait complex overlooking the Grand Mosque.',
+    gate: 'King Fahd Gate',
+    stars: 5,
+    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'hyatt-regency-makkah',
+    name: 'Jabal Omar Hyatt Regency',
+    shortName: 'Hyatt Regency Makkah',
+    city: 'makkah',
+    badge: '5 STARS',
+    distance: '200m from Haram',
+    price: 'SAR 640',
+    unit: '/ night',
+    coordinates: [21.4235, 39.8230],
+    description: 'Hospitality crafted for pilgrims with effortless prayer access and stunning views.',
+    gate: 'Ibrahim Al Khalil Road',
+    stars: 5,
+    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80',
+  },
+  // Madinah verified hotels
+  {
+    id: 'oberoi-madina',
+    name: 'The Oberoi Madina',
+    shortName: 'The Oberoi Madina',
+    city: 'madinah',
+    badge: '5 STARS',
+    distance: '50m from Nabawi',
+    price: 'SAR 790',
+    unit: '/ night',
+    coordinates: [24.4710, 39.6110],
+    description: 'Supreme luxury adjacent to the sacred courtyard of Al-Masjid an-Nabawi.',
+    gate: 'Women & Men Courtyard Gates',
+    stars: 5,
+    image: 'https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'dar-al-taqwa-madina',
+    name: 'Dar Al Taqwa Hotel Madinah',
+    shortName: 'Dar Al Taqwa',
+    city: 'madinah',
+    badge: '5 STARS',
+    distance: '70m from Nabawi',
+    price: 'SAR 650',
+    unit: '/ night',
+    coordinates: [24.4700, 39.6105],
+    description: 'Unrivaled positioning just steps away from the Prophet’s Rawdah entrance.',
+    gate: 'Bab Al Salam',
+    stars: 5,
+    image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80',
+  },
+];
 
 function normalizeMapHotel(hotel, index) {
   const locStr = String(hotel.location || hotel.category || hotel.address || hotel.city || '').toLowerCase();
@@ -77,7 +172,7 @@ export function HotelsMapPage() {
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isCardVisible, setIsCardVisible] = useState(false);
-  const [mapHotels, setMapHotels] = useState([]);
+  const [mapHotels, setMapHotels] = useState(CURATED_MAP_HOTELS);
   const [loading, setLoading] = useState(true);
 
   // Fetch API Hotels on mount
@@ -87,10 +182,19 @@ export function HotelsMapPage() {
       .getHotels()
       .then((items) => {
         if (!isMounted) return;
-        if (Array.isArray(items) && items.length > 0) {
-          const normalized = items.map(normalizeMapHotel);
-          setMapHotels(normalized);
+        const apiHotels = Array.isArray(items) && items.length > 0 ? items.map(normalizeMapHotel) : [];
+        const hasMakkah = apiHotels.some((h) => h.city === 'makkah');
+        const hasMadinah = apiHotels.some((h) => h.city === 'madinah');
+
+        const supplemental = [];
+        if (!hasMakkah) {
+          supplemental.push(...CURATED_MAP_HOTELS.filter((h) => h.city === 'makkah'));
         }
+        if (!hasMadinah) {
+          supplemental.push(...CURATED_MAP_HOTELS.filter((h) => h.city === 'madinah'));
+        }
+
+        setMapHotels([...apiHotels, ...supplemental]);
       })
       .catch(() => {})
       .finally(() => {
@@ -178,13 +282,28 @@ export function HotelsMapPage() {
         return;
       }
 
-      const initialCenter = HOLY_CENTERS.makkah.coordinates;
+      const isAll = selectedCity === 'all';
+      const initialCenter = isAll
+        ? [22.9448, 39.7186]
+        : selectedCity === 'madinah'
+        ? HOLY_CENTERS.madinah.coordinates
+        : HOLY_CENTERS.makkah.coordinates;
+
       const map = L.map(mapContainerRef.current, {
         center: initialCenter,
-        zoom: 16,
+        zoom: isAll ? 7 : 16,
+        minZoom: 5,
+        maxZoom: 19,
         zoomControl: false,
         attributionControl: false,
       });
+
+      if (isAll) {
+        map.fitBounds(DUAL_CITIES_BOUNDS, {
+          padding: [50, 50],
+          maxZoom: 8,
+        });
+      }
 
       mapInstanceRef.current = map;
 
@@ -311,10 +430,19 @@ export function HotelsMapPage() {
         iconAnchor: [80, 35],
       });
 
-      L.marker(centerInfo.coordinates, {
+      const holyCenterMarker = L.marker(centerInfo.coordinates, {
         icon: holyCenterIcon,
         zIndexOffset: 100,
-      }).addTo(circlesLayerGroupRef.current);
+      });
+
+      holyCenterMarker.on('click', () => {
+        if (map.getZoom() < 13) {
+          setSelectedCity(cKey);
+          map.flyTo(centerInfo.coordinates, 16, { duration: 1.0 });
+        }
+      });
+
+      circlesLayerGroupRef.current.addLayer(holyCenterMarker);
     });
 
     // 2. Hotel Pins
@@ -387,16 +515,25 @@ export function HotelsMapPage() {
     setActiveHotel(null);
     setIsCardVisible(false);
 
-    const targetCenter =
-      cityKey === 'madinah'
-        ? HOLY_CENTERS.madinah.coordinates
-        : HOLY_CENTERS.makkah.coordinates;
-
     if (mapInstanceRef.current) {
       import('leaflet').then((L) => {
-        mapInstanceRef.current.flyTo(targetCenter, 16, {
-          duration: 1.0,
-        });
+        if (cityKey === 'all') {
+          mapInstanceRef.current.flyToBounds(DUAL_CITIES_BOUNDS, {
+            padding: [50, 50],
+            duration: 1.2,
+            maxZoom: 8,
+          });
+        } else {
+          const targetCenter =
+            cityKey === 'madinah'
+              ? HOLY_CENTERS.madinah.coordinates
+              : HOLY_CENTERS.makkah.coordinates;
+
+          mapInstanceRef.current.flyTo(targetCenter, 16, {
+            duration: 1.0,
+          });
+        }
+
         renderCenterAndPins(L, mapInstanceRef.current, cityKey, null);
       });
     }

@@ -1,122 +1,595 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Plane,
   Building2,
-  Car,
-  ShieldCheck,
   ChevronDown,
-  Calendar,
+  Check,
 } from 'lucide-react';
 import Image from 'next/image';
 import { PassportIcon } from './icons/PassportIcon';
 import { AirlineMarquee } from './AirlineMarquee';
-import heroBg from '../../assets/hero_sunset.webp';
+import heroBg from '../../assets/Main header.webp';
+import { apiPost } from '../../services/api.client';
+import { hotelService, normalizeHotelDetail } from '../../services/hotel.service';
+import { visaService, normalizeVisaDetail } from '../../services/visa.service';
+import { umrahService, normalizeGroupUmrahPackage } from '../../services/umrah.service';
+import { useHotelsDispatch } from '../../features/hotels/state/HotelsContext';
 
-export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCategory }) {
+function getTodayIso() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getFutureIso(daysAhead = 3) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysAhead);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+}
+
+function HeroDropdownField({
+  label,
+  value,
+  displayValue,
+  options = [],
+  isOpen,
+  onToggle,
+  onSelect,
+  isWide = false,
+  alignRight = false,
+}) {
+  return (
+    <div
+      className={`hero-pill-field ${isWide ? 'hero-pill-field-wide' : ''} ${isOpen ? 'is-active' : ''}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+      role="button"
+      tabIndex={0}
+      aria-haspopup="listbox"
+      aria-expanded={isOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
+    >
+      <div className="pill-field-content">
+        <span className="pill-field-label">{label}</span>
+        <span className="pill-field-value">{displayValue || value}</span>
+      </div>
+
+      <ChevronDown
+        size={16}
+        strokeWidth={2.8}
+        className={`pill-field-chevron ${isOpen ? 'is-open' : ''}`}
+      />
+
+      {isOpen && (
+        <div
+          className={`hero-pill-dropdown-menu ${alignRight ? 'align-right' : ''}`}
+          role="listbox"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {options.map((opt) => {
+            const optVal = typeof opt === 'object' ? opt.value : opt;
+            const optLabel = typeof opt === 'object' ? opt.label : opt;
+            const isSelected = String(value) === String(optVal);
+
+            return (
+              <div
+                key={String(optVal)}
+                role="option"
+                aria-selected={isSelected}
+                className={`hero-pill-dropdown-item ${isSelected ? 'is-selected' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(optVal);
+                }}
+              >
+                <span className="hero-pill-dropdown-item-label">{optLabel}</span>
+                {isSelected && (
+                  <Check size={16} strokeWidth={2.6} className="hero-pill-dropdown-check" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function HeroSection({
+  onSearchSubmit,
+  activeCategory = 'all',
+  onSelectCategory,
+  initialLookups = null,
+  initialVisaLookups = null,
+  initialGroupUmrahLookups = null,
+}) {
+  const hotelsDispatch = useHotelsDispatch();
+  const [isSearchingHotel, setIsSearchingHotel] = useState(false);
+  const [isSearchingVisa, setIsSearchingVisa] = useState(false);
+  const [isSearchingUmrah, setIsSearchingUmrah] = useState(false);
   const [activeTab, setActiveTab] = useState(() =>
-    activeCategory === 'hotels' ? 'hotels' : activeCategory === 'visa' ? 'visa' : 'hotels'
+    activeCategory === 'visa' ? 'visa' : activeCategory === 'umrah' ? 'umrah' : 'hotels'
   );
   const [prevCategory, setPrevCategory] = useState(activeCategory);
 
-  // Hotel fields
-  const [hotelDestination, setHotelDestination] = useState('Singapore');
-  const [checkIn, setCheckIn] = useState('2026-04-15');
-  const [hotelVisaType, setHotelVisaType] = useState('Tourist');
+  // Active floating dropdown identifier ('hotel-dest', 'hotel-room-type', 'visa-dest', 'visa-type', 'umrah-routes', 'umrah-duration', etc.)
+  const [openDropdown, setOpenDropdown] = useState(null);
 
-  // Umrah/Flights fields
-  const [fromCity, setFromCity] = useState('Multan (MUX)');
-  const [departDate, setDepartDate] = useState('2026-05-10');
+  // Close dropdown on outside click or Escape key
+  useEffect(() => {
+    if (!openDropdown) return;
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.hero-pill-field')) {
+        setOpenDropdown(null);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setOpenDropdown(null);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openDropdown]);
 
-  // Visas fields
-  const [visaDestination, setVisaDestination] = useState('Dubai, UAE');
-  const [visaCheckIn, setVisaCheckIn] = useState('2026-04-15');
-  const [visaCheckOut, setVisaCheckOut] = useState('2026-04-20');
-  const [visaGuests, setVisaGuests] = useState('2 adults');
+  // Hotel fields: Real API data only from GET /hotel/lookups
+  const [lookupCities, setLookupCities] = useState(() => initialLookups?.cities || []);
+  const [lookupRoomTypes, setLookupRoomTypes] = useState(() => initialLookups?.room_types || []);
+  const [hotelDestination, setHotelDestination] = useState(
+    () => initialLookups?.cities?.[0]?.name || 'Madina'
+  );
+  const [hotelCheckIn, setHotelCheckIn] = useState(() => getTodayIso());
+  const [hotelCheckOut, setHotelCheckOut] = useState(() => getFutureIso(3));
+  const [hotelRoomType, setHotelRoomType] = useState('All Room Types');
 
-  // Umrah additional fields
-  const [umrahNoOfDays, setUmrahNoOfDays] = useState('15');
-  const [umrahVisaType, setUmrahVisaType] = useState('Tourist');
+  const handleHotelCheckInChange = (val) => {
+    setHotelCheckIn(val);
+    if (!hotelCheckOut || hotelCheckOut <= val) {
+      const d = new Date(val);
+      d.setDate(d.getDate() + 1);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      setHotelCheckOut(`${year}-${month}-${day}`);
+    }
+  };
 
-  // Car Rentals fields
-  const [carLocation, setCarLocation] = useState('Jeddah, Saudi Arabia');
-  const [carPickupDate, setCarPickupDate] = useState('2026-05-10');
-  const [carDropoffDate, setCarDropoffDate] = useState('2026-05-17');
-  const [carType, setCarType] = useState('GMC Yukon (VIP Umrah)');
+  const handleHotelCheckOutChange = (val) => {
+    if (!val || val <= hotelCheckIn) {
+      const d = new Date(hotelCheckIn);
+      d.setDate(d.getDate() + 1);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      setHotelCheckOut(`${year}-${month}-${day}`);
+    } else {
+      setHotelCheckOut(val);
+    }
+  };
+
+  // Fetch hotel lookups to populate destination and room type options directly from API
+  useEffect(() => {
+    let isMounted = true;
+    hotelService
+      .getHotelLookups()
+      .then((lookups) => {
+        if (!isMounted) return;
+        const cities = lookups?.cities || [];
+        const roomTypes = lookups?.room_types || [];
+        if (Array.isArray(cities) && cities.length > 0) {
+          setLookupCities(cities);
+          setHotelDestination((current) => {
+            if (!current || current === 'All Destinations') return current || 'All Destinations';
+            const exists = cities.some(
+              (c) => c.name.toLowerCase() === (current || '').toLowerCase()
+            );
+            return exists ? current : cities[0].name;
+          });
+        }
+        if (Array.isArray(roomTypes) && roomTypes.length > 0) {
+          setLookupRoomTypes(roomTypes);
+        }
+      })
+      .catch((err) => {
+        console.error('[HeroSection] getHotelLookups error:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Visas fields: Real API data only from GET /visa/lookups
+  const [lookupVisaCountries, setLookupVisaCountries] = useState(
+    () => initialVisaLookups?.countries || []
+  );
+  const [lookupVisaTypes, setLookupVisaTypes] = useState(
+    () => initialVisaLookups?.visa_types || []
+  );
+  const [visaDestination, setVisaDestination] = useState(
+    () => initialVisaLookups?.countries?.[0]?.value || 'All Destinations'
+  );
+  const [visaCheckIn, setVisaCheckIn] = useState(() => getFutureIso(7));
+  const [visaType, setVisaType] = useState('All Visa Types');
+
+  // Fetch visa lookups directly from GET /visa/lookups
+  useEffect(() => {
+    let isMounted = true;
+    visaService
+      .getVisaLookups()
+      .then((lookups) => {
+        if (!isMounted) return;
+        const countries = lookups?.countries || [];
+        const visaTypes = lookups?.visa_types || [];
+        if (Array.isArray(countries) && countries.length > 0) {
+          setLookupVisaCountries(countries);
+        }
+        if (Array.isArray(visaTypes) && visaTypes.length > 0) {
+          setLookupVisaTypes(visaTypes);
+        }
+      })
+      .catch((err) => {
+        console.error('[HeroSection] getVisaLookups error:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Group Umrah fields: Real API data only from GET /group-umrah-packages/lookups
+  const [lookupRoutes, setLookupRoutes] = useState(() => initialGroupUmrahLookups?.routes || []);
+  const [lookupDurations, setLookupDurations] = useState(() => initialGroupUmrahLookups?.durations || []);
+  const [lookupDepartureDates, setLookupDepartureDates] = useState(
+    () => initialGroupUmrahLookups?.departure_dates || []
+  );
+  const [selectedRoute, setSelectedRoute] = useState('All Routes');
+  const [selectedDepartureDate, setSelectedDepartureDate] = useState('All Departure Dates');
+  const [umrahDuration, setUmrahDuration] = useState('All Durations');
+
+  // Fetch group Umrah lookups directly from GET /group-umrah-packages/lookups
+  useEffect(() => {
+    let isMounted = true;
+    umrahService
+      .getGroupUmrahLookups()
+      .then((lookups) => {
+        if (!isMounted) return;
+        const routes = lookups?.routes || [];
+        const durations = lookups?.durations || [];
+        const dates = lookups?.departure_dates || [];
+        if (Array.isArray(routes) && routes.length > 0) {
+          setLookupRoutes(routes);
+        }
+        if (Array.isArray(durations) && durations.length > 0) {
+          setLookupDurations(durations);
+        }
+        if (Array.isArray(dates) && dates.length > 0) {
+          setLookupDepartureDates(dates);
+        }
+      })
+      .catch((err) => {
+        console.error('[HeroSection] getGroupUmrahLookups error:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Sync activeTab if activeCategory changes externally
   if (activeCategory !== prevCategory) {
     setPrevCategory(activeCategory);
     if (activeCategory === 'hotels' || activeCategory === 'umrah' || activeCategory === 'visa') {
       setActiveTab(activeCategory);
+      setOpenDropdown(null);
     }
   }
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
+  // Options configuration — Real API data only, zero hardcoded options
+  const hotelDestOptions = useMemo(() => {
+    const list = [{ value: 'All Destinations', label: 'All Destinations' }];
+    if (Array.isArray(lookupCities) && lookupCities.length > 0) {
+      lookupCities.forEach((c) => {
+        list.push({ value: c.name, label: c.name });
+      });
+    }
+    return list;
+  }, [lookupCities]);
 
-    let params = {};
+  const hotelRoomTypeOptions = useMemo(() => {
+    const list = [{ value: 'All Room Types', label: 'All Room Types' }];
+    if (Array.isArray(lookupRoomTypes) && lookupRoomTypes.length > 0) {
+      lookupRoomTypes.forEach((rt) => {
+        list.push({ value: String(rt.id), label: rt.room_type });
+      });
+    }
+    return list;
+  }, [lookupRoomTypes]);
+
+  const selectedRoomTypeLabel = useMemo(() => {
+    if (!hotelRoomType || hotelRoomType === 'All Room Types') return 'All Room Types';
+    const found = lookupRoomTypes.find((r) => String(r.id) === String(hotelRoomType));
+    return found?.room_type || hotelRoomType;
+  }, [hotelRoomType, lookupRoomTypes]);
+
+  const visaDestOptions = useMemo(() => {
+    const list = [{ value: 'All Destinations', label: 'All Destinations' }];
+    if (Array.isArray(lookupVisaCountries) && lookupVisaCountries.length > 0) {
+      lookupVisaCountries.forEach((c) => {
+        list.push({ value: c.value, label: c.value });
+      });
+    }
+    return list;
+  }, [lookupVisaCountries]);
+
+  const visaTypeOptions = useMemo(() => {
+    const list = [{ value: 'All Visa Types', label: 'All Visa Types' }];
+    if (Array.isArray(lookupVisaTypes) && lookupVisaTypes.length > 0) {
+      lookupVisaTypes.forEach((t) => {
+        list.push({ value: t.value, label: t.value });
+      });
+    }
+    return list;
+  }, [lookupVisaTypes]);
+
+  const groupUmrahRouteOptions = useMemo(() => {
+    const list = [{ value: 'All Routes', label: 'All Routes' }];
+    if (Array.isArray(lookupRoutes) && lookupRoutes.length > 0) {
+      lookupRoutes.forEach((r) => {
+        list.push({ value: String(r.id), label: r.name });
+      });
+    }
+    return list;
+  }, [lookupRoutes]);
+
+  const selectedRouteLabel = useMemo(() => {
+    if (!selectedRoute || selectedRoute === 'All Routes') return 'All Routes';
+    const found = lookupRoutes.find((r) => String(r.id) === String(selectedRoute));
+    return found?.name || selectedRoute;
+  }, [selectedRoute, lookupRoutes]);
+
+  const groupUmrahDepartureDateOptions = useMemo(() => {
+    const list = [{ value: 'All Departure Dates', label: 'All Departure Dates' }];
+    if (Array.isArray(lookupDepartureDates) && lookupDepartureDates.length > 0) {
+      lookupDepartureDates.forEach((d) => {
+        list.push({
+          value: d.value,
+          label: d.label || d.value,
+        });
+      });
+    }
+    return list;
+  }, [lookupDepartureDates]);
+
+  const selectedDepartureDateLabel = useMemo(() => {
+    if (!selectedDepartureDate || selectedDepartureDate === 'All Departure Dates') {
+      return 'All Departure Dates';
+    }
+    const found = lookupDepartureDates.find((d) => d.value === selectedDepartureDate);
+    return found?.label || selectedDepartureDate;
+  }, [selectedDepartureDate, lookupDepartureDates]);
+
+  const groupUmrahDurationOptions = useMemo(() => {
+    const list = [{ value: 'All Durations', label: 'All Durations' }];
+    if (Array.isArray(lookupDurations) && lookupDurations.length > 0) {
+      lookupDurations.forEach((d) => {
+        list.push({
+          value: String(d.value),
+          label: d.label || `${d.value} Days`,
+        });
+      });
+    }
+    return list;
+  }, [lookupDurations]);
+
+  const selectedDurationLabel = useMemo(() => {
+    if (!umrahDuration || umrahDuration === 'All Durations') return 'All Durations';
+    const found = lookupDurations.find((d) => String(d.value) === String(umrahDuration));
+    return found?.label || `${umrahDuration} Days`;
+  }, [umrahDuration, lookupDurations]);
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setOpenDropdown(null);
+
     if (activeTab === 'hotels') {
-      params = {
-        destination: hotelDestination,
-        checkIn,
-        visaType: hotelVisaType
-      };
-    } else if (activeTab === 'umrah') {
-      params = {
-        fromCity,
-        departDate,
-        noOfDays: umrahNoOfDays,
-        visaType: umrahVisaType
-      };
-    } else if (activeTab === 'visa') {
-      params = {
-        destinationCountry: visaDestination,
-        checkIn: visaCheckIn,
-        checkOut: visaCheckOut,
-        guests: visaGuests
-      };
-    } else if (activeTab === 'cars') {
-      params = {
-        pickupLocation: carLocation,
-        pickupDate: carPickupDate,
-        dropoffDate: carDropoffDate,
-        carType
-      };
+      setIsSearchingHotel(true);
+      const city = hotelDestination.split(',')[0].trim();
+      const normalizedCity = city.toLowerCase() === 'madinah' ? 'Madina' : city;
+
+      // POST /hotel/minRate
+      const filters = {};
+      if (normalizedCity && normalizedCity !== 'All Destinations' && normalizedCity !== 'all') {
+        filters.city = normalizedCity;
+      }
+      if (hotelCheckIn && hotelCheckOut && hotelCheckOut > hotelCheckIn) {
+        filters.check_in = hotelCheckIn;
+        filters.check_out = hotelCheckOut;
+      }
+      if (hotelRoomType && hotelRoomType !== 'All Room Types' && hotelRoomType !== 'all') {
+        filters.room_types = [Number(hotelRoomType)];
+      }
+
+      try {
+        const res = await apiPost('/hotel/minRate', { filters });
+        const rawHotels = Array.isArray(res?.data) ? res.data : [];
+        const normalized = rawHotels.map(normalizeHotelDetail).filter(Boolean);
+
+        if (normalized.length > 0 && hotelsDispatch) {
+          hotelsDispatch({ type: 'SET_HOTELS', payload: normalized });
+        }
+
+        onSearchSubmit?.({
+          tab: 'hotels',
+          params: {
+            destination: hotelDestination === 'All Destinations' ? '' : hotelDestination,
+            city: normalizedCity === 'All Destinations' ? '' : normalizedCity,
+            roomType: hotelRoomType === 'All Room Types' ? '' : selectedRoomTypeLabel,
+            checkIn: hotelCheckIn,
+            checkOut: hotelCheckOut,
+            results: normalized,
+          },
+        });
+      } catch (err) {
+        console.error('[HeroSection] POST /hotel/minRate error:', err);
+        onSearchSubmit?.({
+          tab: 'hotels',
+          params: {
+            destination: hotelDestination === 'All Destinations' ? '' : hotelDestination,
+            city: normalizedCity === 'All Destinations' ? '' : normalizedCity,
+            roomType: hotelRoomType === 'All Room Types' ? '' : selectedRoomTypeLabel,
+            checkIn: hotelCheckIn,
+            checkOut: hotelCheckOut,
+            results: [],
+          },
+        });
+      } finally {
+        setIsSearchingHotel(false);
+      }
+      return;
     }
 
-    onSearchSubmit?.({ tab: activeTab, params });
+    if (activeTab === 'visa') {
+      setIsSearchingVisa(true);
+      const filters = {};
+      if (visaDestination && visaDestination !== 'All Destinations' && visaDestination !== 'all') {
+        filters.country = visaDestination;
+      }
+      if (visaType && visaType !== 'All Visa Types' && visaType !== 'all') {
+        filters.visa_type = visaType;
+      }
+
+      try {
+        const hasFilters = Object.keys(filters).length > 0;
+        const res = await apiPost('/visa/list', hasFilters ? { filters } : {});
+        const rawVisas = Array.isArray(res?.data) ? res.data : [];
+        const normalized = rawVisas.map(normalizeVisaDetail).filter(Boolean);
+
+        onSearchSubmit?.({
+          tab: 'visa',
+          params: {
+            destinationCountry: visaDestination === 'All Destinations' ? '' : visaDestination,
+            country: visaDestination === 'All Destinations' ? '' : visaDestination,
+            visaType: visaType === 'All Visa Types' ? '' : visaType,
+            checkIn: visaCheckIn,
+            results: normalized,
+          },
+        });
+      } catch (err) {
+        console.error('[HeroSection] POST /visa/list error:', err);
+        onSearchSubmit?.({
+          tab: 'visa',
+          params: {
+            destinationCountry: visaDestination === 'All Destinations' ? '' : visaDestination,
+            country: visaDestination === 'All Destinations' ? '' : visaDestination,
+            visaType: visaType === 'All Visa Types' ? '' : visaType,
+            checkIn: visaCheckIn,
+            results: [],
+          },
+        });
+      } finally {
+        setIsSearchingVisa(false);
+      }
+      return;
+    }
+
+    if (activeTab === 'umrah') {
+      setIsSearchingUmrah(true);
+      const filters = {};
+      if (selectedRoute && selectedRoute !== 'All Routes' && selectedRoute !== 'all') {
+        filters.routes = [Number(selectedRoute)];
+      }
+      if (selectedDepartureDate && selectedDepartureDate !== 'All Departure Dates' && selectedDepartureDate !== 'all') {
+        filters.departure_date = selectedDepartureDate;
+      }
+      if (umrahDuration && umrahDuration !== 'All Durations' && umrahDuration !== 'all') {
+        filters.duration = [Number(umrahDuration)];
+      }
+
+      try {
+        const hasFilters = Object.keys(filters).length > 0;
+        const res = await apiPost('/group-umrah-packages/list', hasFilters ? { filters } : {});
+        const rawPackages = Array.isArray(res?.data) ? res.data : [];
+        const normalized = rawPackages.map(normalizeGroupUmrahPackage).filter(Boolean);
+
+        onSearchSubmit?.({
+          tab: 'umrah',
+          params: {
+            route: selectedRoute === 'All Routes' ? '' : selectedRouteLabel,
+            routeId: selectedRoute === 'All Routes' ? '' : selectedRoute,
+            departureDate: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDate,
+            departureDateLabel: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDateLabel,
+            departDate: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDateLabel,
+            noOfDays: umrahDuration === 'All Durations' ? '' : umrahDuration,
+            durationLabel: umrahDuration === 'All Durations' ? '' : selectedDurationLabel,
+            results: normalized,
+          },
+        });
+      } catch (err) {
+        console.error('[HeroSection] POST /group-umrah-packages/list error:', err);
+        onSearchSubmit?.({
+          tab: 'umrah',
+          params: {
+            route: selectedRoute === 'All Routes' ? '' : selectedRouteLabel,
+            routeId: selectedRoute === 'All Routes' ? '' : selectedRoute,
+            departureDate: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDate,
+            departureDateLabel: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDateLabel,
+            departDate: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDateLabel,
+            noOfDays: umrahDuration === 'All Durations' ? '' : umrahDuration,
+            durationLabel: umrahDuration === 'All Durations' ? '' : selectedDurationLabel,
+            results: [],
+          },
+        });
+      } finally {
+        setIsSearchingUmrah(false);
+      }
+      return;
+    }
+
+    onSearchSubmit?.({ tab: activeTab, params: {} });
   };
 
   const TABS = [
-    {
-      id: 'visa',
-      label: 'Visas',
-      icon: <PassportIcon size={18} className="tab-icon-svg" />,
-    },
     {
       id: 'hotels',
       label: 'Hotels',
       icon: <Building2 size={18} className="tab-icon-svg" />,
     },
     {
+      id: 'visa',
+      label: 'Visas',
+      icon: <PassportIcon size={18} className="tab-icon-svg" />,
+    },
+    {
       id: 'umrah',
-      label: 'Umrah',
+      label: 'Group Umrah',
       icon: (
         <svg className="tab-icon-svg" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2.5a.75.75 0 0 1 .75.75v1.05c2.14.41 3.75 2.25 3.75 4.45v2.75h1a.75.75 0 0 1 .75.75v7.5H4.75v-7.5a.75.75 0 0 1 .75-.75h1V8.75c0-2.2 1.61-4.04 3.75-4.45V3.25A.75.75 0 0 1 12 2.5zM4 20.5h16v1.5H4v-1.5zm8-8.5a2 2 0 0 0-2 2v4.5h4v-4.5a2 2 0 0 0-2-2z"/>
-        </svg>
-      ),
-    },
-    {
-      id: 'cars',
-      label: 'Car Rentals',
-      icon: (
-        <svg className="tab-icon-svg" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/>
-          <circle cx="7.5" cy="14.5" r="1.5" />
-          <circle cx="16.5" cy="14.5" r="1.5" />
         </svg>
       ),
     },
@@ -159,6 +632,7 @@ export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCa
                   className={`service-tab-pill ${activeTab === tab.id ? 'active-pill' : ''}`}
                   onClick={() => {
                     setActiveTab(tab.id);
+                    setOpenDropdown(null);
                   }}
                 >
                   {tab.icon}
@@ -170,271 +644,251 @@ export function HeroSection({ onSearchSubmit, activeCategory = 'all', onSelectCa
 
           {/* ─── HOTELS Search Bar ─── */}
           {activeTab === 'hotels' && (
-            <form onSubmit={handleFormSubmit} className="hero-flat-search-bar">
-              {/* City */}
-              <div className="flat-search-field flat-search-field-wide">
-                <label className="flat-field-label">CITY</label>
-                <div className="flat-field-value-row">
-                  <select
-                    className="flat-field-select"
-                    value={hotelDestination}
-                    onChange={(e) => setHotelDestination(e.target.value)}
-                  >
-                    <option value="Singapore">Singapore</option>
-                    <option value="Saudi Arabia">Saudi Arabia (Makkah &amp; Madina)</option>
-                    <option value="Dubai">Dubai, UAE</option>
-                    <option value="Baku">Baku, Azerbaijan</option>
-                    <option value="Istanbul">Istanbul, Turkey</option>
-                    <option value="Kuala Lumpur">Kuala Lumpur, Malaysia</option>
-                  </select>
-                  <ChevronDown size={14} className="flat-field-chevron" />
+            <form onSubmit={handleFormSubmit} className="hero-pill-search-bar">
+              {/* Field 1: DESTINATION Dropdown */}
+              <HeroDropdownField
+                label="DESTINATION"
+                value={hotelDestination}
+                options={hotelDestOptions}
+                isWide={true}
+                isOpen={openDropdown === 'hotel-dest'}
+                onToggle={() =>
+                  setOpenDropdown((curr) => (curr === 'hotel-dest' ? null : 'hotel-dest'))
+                }
+                onSelect={(val) => {
+                  setHotelDestination(val);
+                  setOpenDropdown(null);
+                }}
+              />
+
+              {/* Field 2: CHECK-IN Date */}
+              <div
+                className="hero-pill-field"
+                onClick={(e) => {
+                  setOpenDropdown(null);
+                  const input = e.currentTarget.querySelector('input[type="date"]');
+                  if (input && typeof input.showPicker === 'function') {
+                    try { input.showPicker(); } catch (_) {}
+                  }
+                }}
+              >
+                <div className="pill-field-content">
+                  <span className="pill-field-label">CHECK-IN</span>
+                  <span className="pill-field-value">{formatDisplayDate(hotelCheckIn)}</span>
                 </div>
+                <input
+                  type="date"
+                  className="pill-native-date-input"
+                  value={hotelCheckIn}
+                  onChange={(e) => handleHotelCheckInChange(e.target.value)}
+                  aria-label="Check-in Date"
+                />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="pill-field-calendar-svg">
+                  <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
+                </svg>
               </div>
 
-              <div className="flat-search-divider" />
-
-              {/* Check-In */}
-              <div className="flat-search-field">
-                <label className="flat-field-label">CHECK-IN</label>
-                <div className="flat-field-value-row">
-                  <input
-                    type="date"
-                    className="flat-field-input"
-                    value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
-                  />
-                  <Calendar size={14} className="flat-field-icon" />
+              {/* Field 3: CHECK-OUT Date */}
+              <div
+                className="hero-pill-field"
+                onClick={(e) => {
+                  setOpenDropdown(null);
+                  const input = e.currentTarget.querySelector('input[type="date"]');
+                  if (input && typeof input.showPicker === 'function') {
+                    try { input.showPicker(); } catch (_) {}
+                  }
+                }}
+              >
+                <div className="pill-field-content">
+                  <span className="pill-field-label">CHECK-OUT</span>
+                  <span className="pill-field-value">{formatDisplayDate(hotelCheckOut)}</span>
                 </div>
+                <input
+                  type="date"
+                  className="pill-native-date-input"
+                  value={hotelCheckOut}
+                  onChange={(e) => handleHotelCheckOutChange(e.target.value)}
+                  aria-label="Check-out Date"
+                />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="pill-field-calendar-svg">
+                  <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
+                </svg>
               </div>
 
-              <div className="flat-search-divider" />
-
-              {/* Visa Type */}
-              <div className="flat-search-field flat-search-field-wide">
-                <label className="flat-field-label">VISA TYPE</label>
-                <div className="flat-field-value-row">
-                  <select
-                    className="flat-field-select"
-                    value={hotelVisaType}
-                    onChange={(e) => setHotelVisaType(e.target.value)}
-                  >
-                    <option value="Tourist">Tourist</option>
-                    <option value="Umrah">Umrah</option>
-                    <option value="eVisa">eVisa</option>
-                    <option value="Business">Business</option>
-                  </select>
-                  <ChevronDown size={14} className="flat-field-chevron" />
-                </div>
-              </div>
+              {/* Field 4: ROOM TYPE Dropdown */}
+              <HeroDropdownField
+                label="ROOM TYPE"
+                value={hotelRoomType}
+                displayValue={selectedRoomTypeLabel}
+                options={hotelRoomTypeOptions}
+                alignRight={true}
+                isOpen={openDropdown === 'hotel-room-type'}
+                onToggle={() =>
+                  setOpenDropdown((curr) => (curr === 'hotel-room-type' ? null : 'hotel-room-type'))
+                }
+                onSelect={(val) => {
+                  setHotelRoomType(val);
+                  setOpenDropdown(null);
+                }}
+              />
 
               {/* Search Button */}
-              <button type="submit" className="flat-search-btn">
-                Search
+              <button
+                type="submit"
+                className="hero-pill-search-btn"
+                disabled={isSearchingHotel}
+              >
+                {isSearchingHotel ? (
+                  <span className="hero-search-spinner" aria-label="Searching..." />
+                ) : (
+                  'Search'
+                )}
               </button>
-            </form>
-          )}
-
-          {/* ─── UMRAH Search Bar ─── */}
-          {activeTab === 'umrah' && (
-            <form onSubmit={handleFormSubmit} className="hero-flat-search-bar">
-              <div className="flat-search-field flat-search-field-wide">
-                <label className="flat-field-label">DEPARTURE FROM</label>
-                <div className="flat-field-value-row">
-                  <select className="flat-field-select" value={fromCity} onChange={(e) => setFromCity(e.target.value)}>
-                    <option value="Multan (MUX)">Multan (MUX)</option>
-                    <option value="Lahore (LHE)">Lahore (LHE)</option>
-                    <option value="Islamabad (ISB)">Islamabad (ISB)</option>
-                    <option value="Karachi (KHI)">Karachi (KHI)</option>
-                    <option value="Peshawar (PEW)">Peshawar (PEW)</option>
-                    <option value="Sialkot (SKT)">Sialkot (SKT)</option>
-                  </select>
-                  <ChevronDown size={16} className="flat-field-chevron" />
-                </div>
-              </div>
-              <div className="flat-search-divider" />
-              <div className="flat-search-field">
-                <label className="flat-field-label">DEPARTURE DATE</label>
-                <div className="flat-field-value-row">
-                  <input type="date" className="flat-field-input" value={departDate} onChange={(e) => setDepartDate(e.target.value)} />
-                  <Calendar size={16} className="flat-field-icon" />
-                </div>
-              </div>
-              <div className="flat-search-divider" />
-              <div className="flat-search-field">
-                <label className="flat-field-label">NO. OF DAYS</label>
-                <div className="flat-field-value-row">
-                  <select
-                    className="flat-field-select"
-                    value={umrahNoOfDays}
-                    onChange={(e) => setUmrahNoOfDays(e.target.value)}
-                  >
-                    <option value="7">7</option>
-                    <option value="10">10</option>
-                    <option value="14">14</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                    <option value="21">21</option>
-                    <option value="28">28</option>
-                  </select>
-                  <ChevronDown size={16} className="flat-field-chevron" />
-                </div>
-              </div>
-              <div className="flat-search-divider" />
-              <div className="flat-search-field">
-                <label className="flat-field-label">VISA TYPE</label>
-                <div className="flat-field-value-row">
-                  <select
-                    className="flat-field-select"
-                    value={umrahVisaType}
-                    onChange={(e) => setUmrahVisaType(e.target.value)}
-                  >
-                    <option value="Tourist">Tourist</option>
-                    <option value="Umrah">Umrah</option>
-                    <option value="eVisa">eVisa</option>
-                  </select>
-                  <ChevronDown size={16} className="flat-field-chevron" />
-                </div>
-              </div>
-              <button type="submit" className="flat-search-btn">Search</button>
             </form>
           )}
 
           {/* ─── VISAS Search Bar ─── */}
           {activeTab === 'visa' && (
-            <form onSubmit={handleFormSubmit} className="hero-flat-search-bar">
-              <div className="flat-search-field flat-search-field-wide">
-                <label className="flat-field-label">DESTINATION COUNTRY</label>
-                <div className="flat-field-value-row">
-                  <select
-                    className="flat-field-select"
-                    value={visaDestination}
-                    onChange={(e) => setVisaDestination(e.target.value)}
-                  >
-                    <option value="Dubai, UAE">Dubai, UAE</option>
-                    <option value="Baku, Azerbaijan">Baku, Azerbaijan</option>
-                    <option value="Malaysia">Malaysia</option>
-                    <option value="Saudi Arabia">Saudi Arabia (Umrah / Tourist)</option>
-                    <option value="Turkey">Turkey</option>
-                    <option value="Thailand">Thailand</option>
-                    <option value="United Kingdom">United Kingdom (UK)</option>
-                    <option value="United States">United States (USA)</option>
-                  </select>
-                  <ChevronDown size={16} className="flat-field-chevron" />
+            <form onSubmit={handleFormSubmit} className="hero-pill-search-bar">
+              {/* Field 1: DESTINATION COUNTRY Dropdown */}
+              <HeroDropdownField
+                label="DESTINATION COUNTRY"
+                value={visaDestination}
+                options={visaDestOptions}
+                isWide={true}
+                isOpen={openDropdown === 'visa-dest'}
+                onToggle={() =>
+                  setOpenDropdown((curr) => (curr === 'visa-dest' ? null : 'visa-dest'))
+                }
+                onSelect={(val) => {
+                  setVisaDestination(val);
+                  setOpenDropdown(null);
+                }}
+              />
+
+              {/* Field 2: ENTRY DATE */}
+              <div
+                className="hero-pill-field"
+                onClick={(e) => {
+                  setOpenDropdown(null);
+                  const input = e.currentTarget.querySelector('input[type="date"]');
+                  if (input && typeof input.showPicker === 'function') {
+                    try { input.showPicker(); } catch (_) {}
+                  }
+                }}
+              >
+                <div className="pill-field-content">
+                  <span className="pill-field-label">ENTRY DATE</span>
+                  <span className="pill-field-value">{formatDisplayDate(visaCheckIn)}</span>
                 </div>
+                <input
+                  type="date"
+                  className="pill-native-date-input"
+                  value={visaCheckIn}
+                  onChange={(e) => setVisaCheckIn(e.target.value)}
+                  aria-label="Entry Date"
+                />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="pill-field-calendar-svg">
+                  <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
+                </svg>
               </div>
-              <div className="flat-search-divider" />
-              <div className="flat-search-field">
-                <label className="flat-field-label">CHECK-IN</label>
-                <div className="flat-field-value-row">
-                  <input
-                    type="date"
-                    className="flat-field-input"
-                    value={visaCheckIn}
-                    onChange={(e) => setVisaCheckIn(e.target.value)}
-                  />
-                  <Calendar size={16} className="flat-field-icon" />
-                </div>
-              </div>
-              <div className="flat-search-divider" />
-              <div className="flat-search-field">
-                <label className="flat-field-label">CHECK-OUT</label>
-                <div className="flat-field-value-row">
-                  <input
-                    type="date"
-                    className="flat-field-input"
-                    value={visaCheckOut}
-                    onChange={(e) => setVisaCheckOut(e.target.value)}
-                  />
-                  <Calendar size={16} className="flat-field-icon" />
-                </div>
-              </div>
-              <div className="flat-search-divider" />
-              <div className="flat-search-field">
-                <label className="flat-field-label">GUESTS</label>
-                <div className="flat-field-value-row">
-                  <select
-                    className="flat-field-select"
-                    value={visaGuests}
-                    onChange={(e) => setVisaGuests(e.target.value)}
-                  >
-                    <option value="1 adult">1 adult</option>
-                    <option value="2 adults">2 adults</option>
-                    <option value="3 adults">3 adults</option>
-                    <option value="4 adults">4 adults</option>
-                    <option value="5+ adults">5+ adults</option>
-                  </select>
-                  <ChevronDown size={16} className="flat-field-chevron" />
-                </div>
-              </div>
-              <button type="submit" className="flat-search-btn">Search</button>
+
+              {/* Field 3: VISA TYPE Dropdown */}
+              <HeroDropdownField
+                label="VISA TYPE"
+                value={visaType}
+                options={visaTypeOptions}
+                alignRight={true}
+                isOpen={openDropdown === 'visa-type'}
+                onToggle={() =>
+                  setOpenDropdown((curr) => (curr === 'visa-type' ? null : 'visa-type'))
+                }
+                onSelect={(val) => {
+                  setVisaType(val);
+                  setOpenDropdown(null);
+                }}
+              />
+
+              <button
+                type="submit"
+                className="hero-pill-search-btn"
+                disabled={isSearchingVisa}
+              >
+                {isSearchingVisa ? (
+                  <span className="hero-search-spinner" aria-label="Searching..." />
+                ) : (
+                  'Search'
+                )}
+              </button>
             </form>
           )}
 
-          {/* ─── CAR RENTALS Search Bar ─── */}
-          {activeTab === 'cars' && (
-            <form onSubmit={handleFormSubmit} className="hero-flat-search-bar">
-              <div className="flat-search-field flat-search-field-wide">
-                <label className="flat-field-label">PICK-UP LOCATION</label>
-                <div className="flat-field-value-row">
-                  <select
-                    className="flat-field-select"
-                    value={carLocation}
-                    onChange={(e) => setCarLocation(e.target.value)}
-                  >
-                    <option value="Jeddah, Saudi Arabia">Jeddah, Saudi Arabia</option>
-                    <option value="Makkah, Saudi Arabia">Makkah, Saudi Arabia</option>
-                    <option value="Madinah, Saudi Arabia">Madinah, Saudi Arabia</option>
-                    <option value="Dubai, UAE">Dubai, UAE</option>
-                    <option value="Singapore">Singapore</option>
-                  </select>
-                  <ChevronDown size={16} className="flat-field-chevron" />
-                </div>
-              </div>
-              <div className="flat-search-divider" />
-              <div className="flat-search-field">
-                <label className="flat-field-label">PICK-UP DATE</label>
-                <div className="flat-field-value-row">
-                  <input
-                    type="date"
-                    className="flat-field-input"
-                    value={carPickupDate}
-                    onChange={(e) => setCarPickupDate(e.target.value)}
-                  />
-                  <Calendar size={16} className="flat-field-icon" />
-                </div>
-              </div>
-              <div className="flat-search-divider" />
-              <div className="flat-search-field">
-                <label className="flat-field-label">DROP-OFF DATE</label>
-                <div className="flat-field-value-row">
-                  <input
-                    type="date"
-                    className="flat-field-input"
-                    value={carDropoffDate}
-                    onChange={(e) => setCarDropoffDate(e.target.value)}
-                  />
-                  <Calendar size={16} className="flat-field-icon" />
-                </div>
-              </div>
-              <div className="flat-search-divider" />
-              <div className="flat-search-field">
-                <label className="flat-field-label">CAR TYPE</label>
-                <div className="flat-field-value-row">
-                  <select
-                    className="flat-field-select"
-                    value={carType}
-                    onChange={(e) => setCarType(e.target.value)}
-                  >
-                    <option value="GMC Yukon (VIP Umrah)">GMC Yukon (VIP Umrah)</option>
-                    <option value="Executive SUV">Executive SUV</option>
-                    <option value="Sedan">Sedan</option>
-                    <option value="Toyota HiAce (Group)">Toyota HiAce (Group)</option>
-                    <option value="Toyota Coaster (Family Bus)">Toyota Coaster (Family Bus)</option>
-                  </select>
-                  <ChevronDown size={16} className="flat-field-chevron" />
-                </div>
-              </div>
-              <button type="submit" className="flat-search-btn">Search</button>
+          {/* ─── GROUP UMRAH Search Bar ─── */}
+          {activeTab === 'umrah' && (
+            <form onSubmit={handleFormSubmit} className="hero-pill-search-bar">
+              {/* Field 1: ROUTES Dropdown */}
+              <HeroDropdownField
+                label="ROUTES"
+                value={selectedRoute}
+                displayValue={selectedRouteLabel}
+                options={groupUmrahRouteOptions}
+                isWide={true}
+                isOpen={openDropdown === 'umrah-routes'}
+                onToggle={() =>
+                  setOpenDropdown((curr) => (curr === 'umrah-routes' ? null : 'umrah-routes'))
+                }
+                onSelect={(val) => {
+                  setSelectedRoute(val);
+                  setOpenDropdown(null);
+                }}
+              />
+
+              {/* Field 2: DEPARTURE DATE Dropdown */}
+              <HeroDropdownField
+                label="DEPARTURE DATE"
+                value={selectedDepartureDate}
+                displayValue={selectedDepartureDateLabel}
+                options={groupUmrahDepartureDateOptions}
+                isOpen={openDropdown === 'umrah-departure-date'}
+                onToggle={() =>
+                  setOpenDropdown((curr) =>
+                    curr === 'umrah-departure-date' ? null : 'umrah-departure-date'
+                  )
+                }
+                onSelect={(val) => {
+                  setSelectedDepartureDate(val);
+                  setOpenDropdown(null);
+                }}
+              />
+
+              {/* Field 3: DURATION Dropdown */}
+              <HeroDropdownField
+                label="DURATION"
+                value={umrahDuration}
+                displayValue={selectedDurationLabel}
+                options={groupUmrahDurationOptions}
+                alignRight={true}
+                isOpen={openDropdown === 'umrah-duration'}
+                onToggle={() =>
+                  setOpenDropdown((curr) => (curr === 'umrah-duration' ? null : 'umrah-duration'))
+                }
+                onSelect={(val) => {
+                  setUmrahDuration(val);
+                  setOpenDropdown(null);
+                }}
+              />
+
+              <button
+                type="submit"
+                className="hero-pill-search-btn"
+                disabled={isSearchingUmrah}
+              >
+                {isSearchingUmrah ? (
+                  <span className="hero-search-spinner" aria-label="Searching..." />
+                ) : (
+                  'Search'
+                )}
+              </button>
             </form>
           )}
 

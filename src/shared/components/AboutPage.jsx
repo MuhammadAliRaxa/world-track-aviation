@@ -76,7 +76,7 @@ export function AboutPage() {
       <AppBar heroContent={heroSection} />
 
       {/* 2. Partner Airlines Marquee (Matching Home Page) */}
-      <AirlineMarquee trustText="15+ Airlines. One Search. Trusted Travel Agency in Islamabad." />
+      <AirlineMarquee trustText="18+ Airlines. One Search. Trusted Travel Agency in Islamabad." />
 
       {/* 3. About World Track: Crafting Meaningful Journeys & Sacred Memories Since 2022 */}
       <AboutSection isAboutPage={true} />

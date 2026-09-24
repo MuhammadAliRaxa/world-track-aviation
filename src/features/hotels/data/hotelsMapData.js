@@ -17,5 +17,10 @@ export const HOLY_CENTERS = {
   },
 };
 
+export const DUAL_CITIES_BOUNDS = [
+  [21.36, 39.55],
+  [24.52, 39.85],
+];
+
 export const HOTELS_MAP_DATA = [];
 

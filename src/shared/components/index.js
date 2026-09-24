@@ -15,4 +15,5 @@ export * from './ContactPage';
 export * from './ScrollToTop';
 export * from './AirlineMarquee';
 export * from './InquiryForm';
+export * from './SearchResultsSection';
 

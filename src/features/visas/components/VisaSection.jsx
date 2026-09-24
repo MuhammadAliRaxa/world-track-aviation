@@ -32,6 +32,14 @@ export function VisaSection({ initialVisas = [], searchFilter = null, onClearFil
   const [loading, setLoading] = useState(initialVisas.length === 0);
   const [error, setError] = useState(null);
 
+  const isFilterActive = Boolean(
+    searchFilter &&
+      (searchFilter.destinationCountry ||
+        searchFilter.country ||
+        searchFilter.visaType ||
+        searchFilter.results !== undefined)
+  );
+
   const fetchVisas = () => {
     setLoading(true);
     setError(null);
@@ -53,10 +61,15 @@ export function VisaSection({ initialVisas = [], searchFilter = null, onClearFil
 
   // Real-time filtering when searchFilter is supplied from HeroSection
   const filteredVisas = useMemo(() => {
-    if (!searchFilter?.destinationCountry) {
+    // If searchFilter contains direct results from POST /visa/list, display them directly
+    if (searchFilter?.results !== undefined && Array.isArray(searchFilter.results)) {
+      return searchFilter.results.slice(0, 4);
+    }
+
+    if (!searchFilter?.destinationCountry && !searchFilter?.country) {
       return visas.slice(0, 4);
     }
-    const countryQuery = searchFilter.destinationCountry.toLowerCase().trim();
+    const countryQuery = (searchFilter.destinationCountry || searchFilter.country || '').toLowerCase().trim();
 
     let matched = visas.filter((visa) => {
       const cName = (visa.country || '').toLowerCase();
@@ -94,7 +107,8 @@ export function VisaSection({ initialVisas = [], searchFilter = null, onClearFil
     return matched.slice(0, 4);
   }, [searchFilter, visas]);
 
-  const displayVisas = filteredVisas.length > 0 ? filteredVisas.slice(0, 4) : visas.slice(0, 4);
+  const displayVisas = isFilterActive ? filteredVisas : visas.slice(0, 4);
+  const activeDestCountry = searchFilter?.destinationCountry || searchFilter?.country || '';
 
   return (
     <section className="visa-feature-section" id="visa">
@@ -126,21 +140,21 @@ export function VisaSection({ initialVisas = [], searchFilter = null, onClearFil
         </div>
 
         {/* Active Filter Notice Bar if search filter was submitted from Hero */}
-        {searchFilter?.destinationCountry && (
+        {isFilterActive && (
           <div className="section-active-filter-bar">
             <div className="section-active-filter-left">
               <span className="filter-pill-label">FILTER ACTIVE</span>
               <span className="filter-pill-desc">
-                {filteredVisas.length > 0 ? (
+                {displayVisas.length > 0 ? (
                   <>
-                    Showing visas for <strong>{searchFilter.destinationCountry}</strong>
-                    {searchFilter.visaType ? ` · ${searchFilter.visaType} Visa` : ''}
-                    {searchFilter.nationality ? ` · ${searchFilter.nationality}` : ''}
-                    {' '}({filteredVisas.length} {filteredVisas.length === 1 ? 'option' : 'options'} available)
+                    Showing visas for <strong>{activeDestCountry || 'all destinations'}</strong>
+                    {searchFilter?.visaType ? ` · ${searchFilter.visaType}` : ''}
+                    {' '}({displayVisas.length} {displayVisas.length === 1 ? 'option' : 'options'} available)
                   </>
                 ) : (
                   <>
-                    No direct e-Visa match for <strong>{searchFilter.destinationCountry}</strong>. Showing all popular fast-track visas.
+                    No visas found for <strong>{activeDestCountry || 'selected destination'}</strong>
+                    {searchFilter?.visaType ? ` (${searchFilter.visaType})` : ''}.
                   </>
                 )}
               </span>
@@ -172,9 +186,33 @@ export function VisaSection({ initialVisas = [], searchFilter = null, onClearFil
           </div>
         )}
 
-        {/* Responsive Grid */}
+        {/* Responsive Grid or Empty State */}
         {!loading && !error && (
-          displayVisas.length > 0 ? (
+          isFilterActive && displayVisas.length === 0 ? (
+            <div
+              className="section-empty-state"
+              style={{
+                textAlign: 'center',
+                padding: '48px 16px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                margin: '24px 0',
+              }}
+            >
+              <p style={{ fontSize: '1.1rem', color: '#94a3b8', marginBottom: '16px' }}>
+                No visas found matching your search criteria.
+              </p>
+              <button
+                type="button"
+                className="notice-reset-btn"
+                onClick={onClearFilter}
+                style={{ margin: '0 auto', display: 'inline-flex' }}
+              >
+                Clear Filter &amp; Show All Visas
+              </button>
+            </div>
+          ) : displayVisas.length > 0 ? (
             <div className="visa-catalog-grid">
               {displayVisas.map((visa) => (
                 <VisaCard key={visa.id} visa={visa} />
