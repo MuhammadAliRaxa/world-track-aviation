@@ -1123,7 +1123,7 @@
   transform: scale(1.05);
 }
 
-/* Bottom Dark Gradient Overlay with Centered Name & Role */
+/* Bottom Dark Gradient Overlay with Left-Aligned Name & Role */
 .specialist-card-overlay {
   position: absolute;
   inset: auto 0 0 0;
@@ -1137,10 +1137,10 @@
   );
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
-  text-align: center;
-  padding: 16px 16px 22px 16px;
+  text-align: left;
+  padding: 16px 20px 22px 20px;
   z-index: 2;
   pointer-events: none;
 }
@@ -1155,9 +1155,11 @@
   letter-spacing: -0.015em;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
   max-width: 100%;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
 }
 
 .specialist-role {
@@ -1169,9 +1171,11 @@
   letter-spacing: 0.01em;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   max-width: 100%;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
 }
 
 /* =====================================================================
@@ -1434,7 +1438,7 @@
    CURATED HOLIDAY TOURS & GETAWAYS (Pixel Perfect to Screenshot)
    ===================================================================== */
 .holidays-feature-section {
-  padding: 44px 0 40px 0;
+  padding: 24px 0 40px 0;
   background: #ffffff;
   position: relative;
 }
@@ -2073,7 +2077,7 @@
    ABOUT WORLD TRACK BRAND SECTION (Pixel Perfect to Reference Screenshot)
    ===================================================================== */
 .about-brand-section {
-  padding: 60px 0 50px 0;
+  padding: 60px 0 16px 0;
   background: #ffffff;
   position: relative;
 }
@@ -2405,7 +2409,8 @@
 }
 
 .umrah-header-left {
-  max-width: 760px;
+  max-width: 100%;
+  flex: 1;
 }
 
 .umrah-eyebrow-text {
@@ -2418,12 +2423,19 @@
 }
 
 .umrah-main-title {
-  font-size: clamp(24px, 2.7vw, 38px);
+  font-size: clamp(20px, 2.3vw, 36px);
   font-weight: 800;
   color: #ffffff;
   line-height: 1.2;
   margin-bottom: 12px;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .umrah-main-title {
+    white-space: normal;
+  }
 }
 
 .umrah-sub-title {
@@ -2599,12 +2611,9 @@
   line-height: 1.35;
   margin: 0 0 6px 0;
   letter-spacing: -0.015em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
-  word-break: break-word;
-  overflow-wrap: break-word;
+  text-overflow: ellipsis;
 }
 
 .umrah-card-tagline {

@@ -82,7 +82,7 @@ export function TeamSection({ isAboutPage = false, initialTeam = null }) {
             /* Skeleton Loading State */
             [1, 2, 3, 4, 5].map((i) => (
               <div key={`team-skeleton-${i}`} className="specialist-card animate-pulse">
-                <div className="specialist-card-inner bg-slate-800 flex flex-col justify-end items-center p-5 pb-6">
+                <div className="specialist-card-inner bg-slate-800 flex flex-col justify-end items-start p-5 pb-6">
                   <div className="h-5 bg-slate-700 rounded-full mb-2 w-3/4"></div>
                   <div className="h-3.5 bg-slate-700/80 rounded-full w-1/2"></div>
                 </div>
@@ -102,10 +102,10 @@ export function TeamSection({ isAboutPage = false, initialTeam = null }) {
                     height={315}
                   />
 
-                  {/* Bottom Dark Gradient with Centered Name & Role Matching Reference */}
+                  {/* Bottom Dark Gradient with Left-Aligned Name & Role */}
                   <div className="specialist-card-overlay">
-                    <h3 className="specialist-name" style={{ color: '#ffffff' }}>{member.name}</h3>
-                    <p className="specialist-role" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{member.role}</p>
+                    <h3 className="specialist-name" style={{ color: '#ffffff', textAlign: 'left' }}>{member.name}</h3>
+                    <p className="specialist-role" style={{ color: 'rgba(255, 255, 255, 0.9)', textAlign: 'left' }}>{member.role}</p>
                   </div>
                 </div>
               </div>

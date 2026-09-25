@@ -610,15 +610,17 @@
     font-size: 10px !important;
   }
 
-  /* Hotels / Visa / Umrah section padding */
   .hotels-feature-section,
   .visa-feature-section,
   .umrah-luxury-section,
   .holidays-feature-section,
-  .about-brand-section,
   .advantage-feature-section,
   .reviews-social-section {
     padding: 36px 0 !important;
+  }
+
+  .about-brand-section {
+    padding: 36px 0 16px 0 !important;
   }
 
   /* Umrah packages horizontal scroll on mobile */

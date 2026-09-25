@@ -20,8 +20,8 @@ export function HotelsProvider({ children, initialHotels = [] }) {
   });
 
   useEffect(() => {
-    // Skip fetch if server already supplied data
-    if (initialHotels.length > 0) return;
+    // Skip fetch if server already supplied data or state already has hotels
+    if (initialHotels.length > 0 || (state.allHotels && state.allHotels.length > 0)) return;
 
     // Only auto-fetch client-side if on a route that displays hotel listings
     const pathname = typeof window !== 'undefined' ? window.location.pathname : '';

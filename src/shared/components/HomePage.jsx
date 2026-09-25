@@ -148,90 +148,91 @@ function HomePageInner({
         }
       />
 
-      {/* If search is active, show only the dedicated SearchResultsSection. Otherwise, show regular homepage sections */}
-      {searchResults ? (
+      {/* If search is active, show the dedicated SearchResultsSection */}
+      {searchResults && (
         <SearchResultsSection
           searchData={searchResults}
           onClose={handleClearSearchResults}
         />
-      ) : (
-        <>
-          {/* Active filter badge / banner when a specific service is filtered */}
-          {activeCategory !== 'all' && (
-            <div className="section-container">
-              <div className="category-filter-notice-bar">
-                <div className="category-filter-notice-content">
-                  <span className="notice-badge">FILTER ACTIVE</span>
-                  <span className="notice-text">
-                    Showing <strong>{activeCategory === 'hotels' ? 'Popular Hotels & Luxury Stays' : activeCategory === 'umrah' ? 'Group Umrah Packages' : 'Visit Visas'}</strong> only
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="notice-reset-btn"
-                  onClick={() => {
-                    setSearchFilter(null);
-                    handleSelectCategory('all');
-                  }}
-                >
-                  Show All Sections
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Section 2 — Hotels & Luxury Stays + Direct Quote Banner */}
-          {(activeCategory === 'all' || activeCategory === 'hotels') && (
-            <>
-              <HotelsSection
-                searchFilter={searchFilter?.tab === 'hotels' ? searchFilter.params : null}
-                onClearFilter={handleClearSearchFilter}
-              />
-              {/* Direct Corporate Quote Banner right under Hotels */}
-              <QuoteBanner />
-            </>
-          )}
-
-          {/* Section 3 — Verified Umrah Packages & Haramain Stays */}
-          {(activeCategory === 'all' || activeCategory === 'umrah') && (
-            <UmrahSection
-              initialPackages={initialUmrahPackages}
-              searchFilter={searchFilter?.tab === 'umrah' ? searchFilter.params : null}
-              onClearFilter={handleClearSearchFilter}
-            />
-          )}
-
-          {/* Section 4 — Global Visit Visa Services */}
-          {(activeCategory === 'all' || activeCategory === 'visa') && (
-            <VisaSection
-              initialVisas={initialVisas}
-              searchFilter={searchFilter?.tab === 'visa' ? searchFilter.params : null}
-              onClearFilter={handleClearSearchFilter}
-            />
-          )}
-
-          {/* Section 5 — About World Track Aviation */}
-          {activeCategory === 'all' && <AboutSection />}
-
-          {/* Section 6 — International Tour Packages & Getaways */}
-          {activeCategory === 'all' && <HolidaysSection initialTours={initialTours} />}
-
-          {/* Section 7 — The World Track Aviation Advantage */}
-          {activeCategory === 'all' && <AdvantageSection />}
-
-          {/* Section 8 — Testimonials (What Our Pilgrims & Travelers Say) */}
-          {activeCategory === 'all' && <ReviewsSection initialReviews={initialReviews} />}
-
-          {/* Section 9 — Leadership Team */}
-          {activeCategory === 'all' && <TeamSection initialTeam={initialTeam} />}
-
-          {/* Section 10 — Blog (Travel Guides & Umrah Tips) */}
-          {activeCategory === 'all' && <InsightsSection initialBlogs={initialBlogs} />}
-
-          {/* Section 11 — Frequently Asked Questions (FAQ) */}
-          {activeCategory === 'all' && <FaqSection />}
-        </>
       )}
+
+      {/* Homepage sections — kept mounted so searching or clearing search never re-triggers other APIs */}
+      <div style={{ display: searchResults ? 'none' : 'contents' }}>
+        {/* Active filter badge / banner when a specific service is filtered */}
+        {activeCategory !== 'all' && (
+          <div className="section-container">
+            <div className="category-filter-notice-bar">
+              <div className="category-filter-notice-content">
+                <span className="notice-badge">FILTER ACTIVE</span>
+                <span className="notice-text">
+                  Showing <strong>{activeCategory === 'hotels' ? 'Popular Hotels & Luxury Stays' : activeCategory === 'umrah' ? 'Group Umrah Packages' : 'Visit Visas'}</strong> only
+                </span>
+              </div>
+              <button
+                type="button"
+                className="notice-reset-btn"
+                onClick={() => {
+                  setSearchFilter(null);
+                  handleSelectCategory('all');
+                }}
+              >
+                Show All Sections
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Section 2 — Hotels & Luxury Stays + Direct Quote Banner */}
+        {(activeCategory === 'all' || activeCategory === 'hotels') && (
+          <>
+            <HotelsSection
+              searchFilter={searchFilter?.tab === 'hotels' ? searchFilter.params : null}
+              onClearFilter={handleClearSearchFilter}
+            />
+            {/* Direct Corporate Quote Banner right under Hotels */}
+            <QuoteBanner />
+          </>
+        )}
+
+        {/* Section 3 — Verified Umrah Packages & Haramain Stays */}
+        {(activeCategory === 'all' || activeCategory === 'umrah') && (
+          <UmrahSection
+            initialPackages={initialUmrahPackages}
+            searchFilter={searchFilter?.tab === 'umrah' ? searchFilter.params : null}
+            onClearFilter={handleClearSearchFilter}
+          />
+        )}
+
+        {/* Section 4 — Global Visit Visa Services */}
+        {(activeCategory === 'all' || activeCategory === 'visa') && (
+          <VisaSection
+            initialVisas={initialVisas}
+            searchFilter={searchFilter?.tab === 'visa' ? searchFilter.params : null}
+            onClearFilter={handleClearSearchFilter}
+          />
+        )}
+
+        {/* Section 5 — About World Track Aviation */}
+        {activeCategory === 'all' && <AboutSection />}
+
+        {/* Section 6 — International Tour Packages & Getaways */}
+        {activeCategory === 'all' && <HolidaysSection initialTours={initialTours} />}
+
+        {/* Section 7 — The World Track Aviation Advantage */}
+        {activeCategory === 'all' && <AdvantageSection />}
+
+        {/* Section 8 — Testimonials (What Our Pilgrims & Travelers Say) */}
+        {activeCategory === 'all' && <ReviewsSection initialReviews={initialReviews} />}
+
+        {/* Section 9 — Leadership Team */}
+        {activeCategory === 'all' && <TeamSection initialTeam={initialTeam} />}
+
+        {/* Section 10 — Blog (Travel Guides & Umrah Tips) */}
+        {activeCategory === 'all' && <InsightsSection initialBlogs={initialBlogs} />}
+
+        {/* Section 11 — Frequently Asked Questions (FAQ) */}
+        {activeCategory === 'all' && <FaqSection />}
+      </div>
 
       {/* Section 12 & 13 — Newsletter CTA + Main Footer */}
       <Footer />

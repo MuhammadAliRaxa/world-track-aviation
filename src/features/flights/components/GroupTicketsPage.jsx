@@ -180,11 +180,13 @@ export function GroupTicketsPage({
   const [selAirlines, setSelAirlines] = useState([]);
   const [selRoutes, setSelRoutes] = useState([]);
   const [selPriceRange, setSelPriceRange] = useState('');
+  const [priceSlider, setPriceSlider] = useState(500000);
   const debouncedDurations = useDebounce(selDurations, 800);
   const debouncedDates = useDebounce(selDates, 800);
   const debouncedAirlines = useDebounce(selAirlines, 800);
   const debouncedRoutes = useDebounce(selRoutes, 800);
   const debouncedPriceRange = useDebounce(selPriceRange, 800);
+  const debouncedPriceSlider = useDebounce(priceSlider, 600);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Loading states
@@ -272,7 +274,8 @@ export function GroupTicketsPage({
       selDates.length ||
       selAirlines.length ||
       selRoutes.length ||
-      selPriceRange,
+      selPriceRange ||
+      priceSlider < 500000,
   );
 
   const clearAll = () => {
@@ -282,6 +285,7 @@ export function GroupTicketsPage({
     setSelAirlines([]);
     setSelRoutes([]);
     setSelPriceRange('');
+    setPriceSlider(500000);
   };
 
   // Flag to avoid refetching on first mount when SSR data is available
@@ -302,7 +306,11 @@ export function GroupTicketsPage({
     if (debouncedDates.length > 0) filters.departure_date = debouncedDates;
     if (debouncedAirlines.length > 0) filters.airlines = debouncedAirlines;
     if (debouncedRoutes.length > 0) filters.routes = debouncedRoutes;
-    if (debouncedPriceRange) filters.price_range = debouncedPriceRange;
+    if (debouncedPriceRange) {
+      filters.price_range = debouncedPriceRange;
+    } else if (debouncedPriceSlider < 500000) {
+      filters.price_range = `under_${debouncedPriceSlider}`;
+    }
     filters.nextPage = 1;
     filters.perPage = 12;
 
@@ -329,6 +337,7 @@ export function GroupTicketsPage({
     debouncedAirlines,
     debouncedRoutes,
     debouncedPriceRange,
+    debouncedPriceSlider,
   ]);
 
   // Load More: keep prior filters, update nextPage
@@ -343,7 +352,11 @@ export function GroupTicketsPage({
       if (debouncedDates.length > 0) filters.departure_date = debouncedDates;
       if (debouncedAirlines.length > 0) filters.airlines = debouncedAirlines;
       if (debouncedRoutes.length > 0) filters.routes = debouncedRoutes;
-      if (debouncedPriceRange) filters.price_range = debouncedPriceRange;
+      if (debouncedPriceRange) {
+        filters.price_range = debouncedPriceRange;
+      } else if (debouncedPriceSlider < 500000) {
+        filters.price_range = `under_${debouncedPriceSlider}`;
+      }
       filters.nextPage = pagination.nextPage;
       filters.perPage = 12;
 
@@ -635,18 +648,54 @@ export function GroupTicketsPage({
               <div className="gt-sb-section">
                 <div className="gt-sb-section-head">
                   <span className="gt-sb-section-title">PRICE RANGE</span>
-                  {selPriceRange && (
+                  {(selPriceRange || priceSlider < 500000) && (
                     <div className="gt-sb-actions">
                       <button
                         type="button"
                         className="gt-sb-act-clear"
-                        onClick={() => setSelPriceRange('')}
+                        onClick={() => {
+                          setSelPriceRange('');
+                          setPriceSlider(500000);
+                        }}
                       >
                         Clear
                       </button>
                     </div>
                   )}
                 </div>
+
+                {/* Interactive Slider */}
+                <div style={{ marginBottom: '14px' }}>
+                  <div className="um-sb-sec-head" style={{ marginBottom: '6px' }}>
+                    <span className="um-sb-sec-title">MAX BUDGET</span>
+                    <span className="um-sb-price-up">
+                      {priceSlider >= 500000
+                        ? 'Up to PKR 500,000+'
+                        : `Up to PKR ${priceSlider.toLocaleString()}`}
+                    </span>
+                  </div>
+
+                  <div className="um-slider-wrap">
+                    <input
+                      type="range"
+                      min={50000}
+                      max={500000}
+                      step={10000}
+                      value={priceSlider}
+                      onChange={(e) => {
+                        setPriceSlider(Number(e.target.value));
+                        setSelPriceRange('');
+                      }}
+                      className="um-slider"
+                    />
+                  </div>
+
+                  <div className="um-slider-labels">
+                    <span>PKR 50,000</span>
+                    <span>PKR 500,000+</span>
+                  </div>
+                </div>
+
                 <div className="gt-sb-list">
                   {PRICE_RANGE_OPTIONS.map((opt) => (
                     <label key={opt.value} className="gt-sb-row">

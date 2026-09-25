@@ -195,8 +195,11 @@ export function HeroSection({
     }
   };
 
-  // Fetch hotel lookups to populate destination and room type options directly from API
+  // Fetch hotel lookups to populate destination and room type options directly from API (if not supplied via SSR)
   useEffect(() => {
+    if (initialLookups && (initialLookups.cities?.length > 0 || initialLookups.room_types?.length > 0)) {
+      return;
+    }
     let isMounted = true;
     hotelService
       .getHotelLookups()
@@ -227,7 +230,7 @@ export function HeroSection({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialLookups]);
 
   // Visas fields: Real API data only from GET /visa/lookups
   const [lookupVisaCountries, setLookupVisaCountries] = useState(
@@ -242,8 +245,11 @@ export function HeroSection({
   const [visaCheckIn, setVisaCheckIn] = useState(() => getFutureIso(7));
   const [visaType, setVisaType] = useState('All Visa Types');
 
-  // Fetch visa lookups directly from GET /visa/lookups
+  // Fetch visa lookups directly from GET /visa/lookups (if not supplied via SSR)
   useEffect(() => {
+    if (initialVisaLookups && (initialVisaLookups.countries?.length > 0 || initialVisaLookups.visa_types?.length > 0)) {
+      return;
+    }
     let isMounted = true;
     visaService
       .getVisaLookups()
@@ -274,7 +280,7 @@ export function HeroSection({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialVisaLookups]);
 
   // Group Umrah fields: Real API data only from GET /group-umrah-packages/lookups
   const [lookupRoutes, setLookupRoutes] = useState(() => initialGroupUmrahLookups?.routes || []);
@@ -286,8 +292,11 @@ export function HeroSection({
   const [selectedDepartureDate, setSelectedDepartureDate] = useState('All Departure Dates');
   const [umrahDuration, setUmrahDuration] = useState('All Durations');
 
-  // Fetch group Umrah lookups directly from GET /group-umrah-packages/lookups
+  // Fetch group Umrah lookups directly from GET /group-umrah-packages/lookups (if not supplied via SSR)
   useEffect(() => {
+    if (initialGroupUmrahLookups && (initialGroupUmrahLookups.routes?.length > 0 || initialGroupUmrahLookups.durations?.length > 0)) {
+      return;
+    }
     let isMounted = true;
     umrahService
       .getGroupUmrahLookups()
@@ -313,7 +322,7 @@ export function HeroSection({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialGroupUmrahLookups]);
 
   // Sync activeTab if activeCategory changes externally
   if (activeCategory !== prevCategory) {

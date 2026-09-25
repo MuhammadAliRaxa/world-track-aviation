@@ -203,6 +203,8 @@ export const umrahService = {
         }
         if (filters.priceRange && filters.priceRange !== 'all') {
           apiFilters.price_range = filters.priceRange;
+        } else if (filters.maxPrice) {
+          apiFilters.price_range = `under_${filters.maxPrice}`;
         }
         if (filters.stars && filters.stars.length > 0) {
           apiFilters.package_rating = filters.stars;
@@ -215,12 +217,7 @@ export const umrahService = {
         { cache: "no-store" } as RequestInit,
       );
       const pkgs = Array.isArray(res.data) ? res.data : [];
-      let normalized = pkgs.map(normalizeUmrahDetail).filter(Boolean) as unknown as UmrahPackage[];
-
-      // Keep maxPrice local filtering since it's a slider value not exactly matched to backend tier keys
-      if (filters?.maxPrice && filters.maxPrice < 350000) {
-        normalized = normalized.filter((p) => p.priceNumeric <= filters.maxPrice!);
-      }
+      const normalized = pkgs.map(normalizeUmrahDetail).filter(Boolean) as unknown as UmrahPackage[];
 
       return normalized;
     } catch (err) {

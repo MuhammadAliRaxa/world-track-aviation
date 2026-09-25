@@ -203,25 +203,7 @@ export function BlogDetailPage({ initialArticle = null }) {
 
         {/* Right Column: Sidebar Rail */}
         <aside className="blog-sidebar-right">
-          {/* 1. Popular Tags Card */}
-          <div className="blog-popular-tags-card">
-            <h3 className="sidebar-card-heading">Popular Tags</h3>
-            <div className="sidebar-tags-wrap">
-              {(article.tags || [
-                'Flight Hacks',
-                'Cheap Airfare',
-                'Baggage Allowance',
-                'GDS Fares',
-                'Airline Deals'
-              ]).map((tag, tIdx) => (
-                <span key={tIdx} className="sidebar-tag-chip">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* 2. Send Us a Message Card */}
+          {/* 1. Send Us a Message Card */}
           <div className="blog-inquiry-card">
             <h3 className="inquiry-main-title">Send Us a Message</h3>
             <p className="inquiry-subtitle">
@@ -311,7 +293,7 @@ export function BlogDetailPage({ initialArticle = null }) {
             )}
           </div>
 
-          {/* 3. 24/7 Questions Support Box */}
+          {/* 2. 24/7 Questions Support Box */}
           <div className="blog-questions-support-box">
             <h4 className="support-box-heading">
               Still have questions regarding your upcoming trip?
@@ -334,6 +316,24 @@ export function BlogDetailPage({ initialArticle = null }) {
                 <Phone size={13} />
                 <span>Call +92 301 0044147</span>
               </a>
+            </div>
+          </div>
+
+          {/* 3. Popular Tags Card (Positioned at bottom) */}
+          <div className="blog-popular-tags-card">
+            <h3 className="sidebar-card-heading">Popular Tags</h3>
+            <div className="sidebar-tags-wrap">
+              {(article.tags || [
+                'Flight Hacks',
+                'Cheap Airfare',
+                'Baggage Allowance',
+                'GDS Fares',
+                'Airline Deals'
+              ]).map((tag, tIdx) => (
+                <span key={tIdx} className="sidebar-tag-chip">
+                  {tag}
+                </span>
+              ))}
             </div>
           </div>
         </aside>

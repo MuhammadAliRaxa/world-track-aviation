@@ -38,8 +38,8 @@ export function UmrahPackagesPage({
   const debouncedSearch = useDebounce(searchQuery, 800);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
-  const [priceSlider, setPriceSlider] = useState(350000);
-  const debouncedPriceSlider = useDebounce(priceSlider, 800);
+  const [priceSlider, setPriceSlider] = useState(600000);
+  const debouncedPriceSlider = useDebounce(priceSlider, 600);
   const [selectedStars, setSelectedStars] = useState([]);
   const [isContactOpen, setIsContactOpen] = useState(false);
 
@@ -146,7 +146,7 @@ export function UmrahPackagesPage({
     );
   };
 
-  const hasFilters = selectedCategory !== 'all' || selectedPrice !== 'all' || priceSlider < 350000 || selectedStars.length > 0 || searchQuery.trim() !== '';
+  const hasFilters = selectedCategory !== 'all' || selectedPrice !== 'all' || priceSlider < 600000 || selectedStars.length > 0 || searchQuery.trim() !== '';
 
   useEffect(() => {
     const fetchFilteredPackages = async () => {
@@ -157,12 +157,12 @@ export function UmrahPackagesPage({
         else if (selectedPrice === '60to120') apiPriceRange = '60000_120000';
         else if (selectedPrice === '120to200') apiPriceRange = '120000_200000';
         else if (selectedPrice === 'above200') apiPriceRange = 'above_200000';
+        else if (debouncedPriceSlider < 600000) apiPriceRange = `under_${debouncedPriceSlider}`;
 
         const results = await umrahService.getUmrahPackages({
           searchQuery: debouncedSearch,
           category: selectedCategory,
           priceRange: apiPriceRange,
-          maxPrice: debouncedPriceSlider < 350000 ? debouncedPriceSlider : undefined,
           stars: selectedStars,
         });
         setPackages(results);
@@ -277,10 +277,10 @@ export function UmrahPackagesPage({
                 {/* Section 2: PRICE PER NIGHT */}
                 <div className="um-sb-section">
                   <div className="um-sb-sec-head">
-                    <span className="um-sb-sec-title">PRICE PER NIGHT</span>
+                    <span className="um-sb-sec-title">MAX BUDGET</span>
                     <span className="um-sb-price-up">
-                      {priceSlider >= 350000
-                        ? 'Up to Rs 350,000'
+                      {priceSlider >= 600000
+                        ? 'Up to Rs 600,000+'
                         : `Up to Rs ${priceSlider.toLocaleString()}`}
                     </span>
                   </div>
@@ -288,9 +288,9 @@ export function UmrahPackagesPage({
                   <div className="um-slider-wrap">
                     <input
                       type="range"
-                      min={40000}
-                      max={350000}
-                      step={10000}
+                      min={100000}
+                      max={600000}
+                      step={25000}
                       value={priceSlider}
                       onChange={(e) => setPriceSlider(Number(e.target.value))}
                       className="um-slider"
@@ -298,8 +298,8 @@ export function UmrahPackagesPage({
                   </div>
 
                   <div className="um-slider-labels">
-                    <span>Rs 40,000</span>
-                    <span>Rs 350,000+</span>
+                    <span>Rs 100,000</span>
+                    <span>Rs 600,000+</span>
                   </div>
 
                   <div className="um-price-boxes">
