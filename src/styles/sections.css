@@ -1076,6 +1076,7 @@
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -1083,9 +1084,9 @@
 
 /* Specialist Team Card Matching Reference Image */
 .specialist-card {
-  flex: 0 0 230px;
-  width: 230px;
-  height: 310px;
+  flex: 0 0 300px;
+  width: 300px;
+  height: 330px;
   position: relative;
   border-radius: 26px;
   background: #0f172a;
@@ -1128,13 +1129,11 @@
   position: absolute;
   inset: auto 0 0 0;
   height: 52%;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.25) 30%,
-    rgba(0, 0, 0, 0.72) 68%,
-    rgba(0, 0, 0, 0.94) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.25) 30%,
+      rgba(0, 0, 0, 0.72) 68%,
+      rgba(0, 0, 0, 0.94) 100%);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1143,6 +1142,68 @@
   padding: 16px 20px 22px 20px;
   z-index: 2;
   pointer-events: none;
+  transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+}
+
+.specialist-card:hover .specialist-card-overlay {
+  height: 60%;
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.35) 24%,
+      rgba(0, 0, 0, 0.78) 64%,
+      rgba(0, 0, 0, 0.96) 100%);
+}
+
+/* Hover Social Media in Top of Name */
+.specialist-socials {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.specialist-card:hover .specialist-socials {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.specialist-social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px !important;
+  background: #ffffff !important;
+  border: 1px solid #ffffff;
+  color: #0080f6;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+}
+
+.specialist-social-btn svg {
+  color: #0080f6;
+  fill: #0080f6;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.specialist-social-btn:hover {
+  transform: translateY(-2px) scale(1.1);
+  background: #ffffff !important;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+}
+
+.specialist-social-btn:hover svg {
+  color: #0056b3;
+  fill: #0056b3;
 }
 
 .specialist-card .specialist-name,
@@ -1934,11 +1995,13 @@
     min-width: 88%;
     max-width: 88%;
   }
+
   .reviews-header-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
+
   .reviews-header-actions {
     margin-left: 0;
     width: 100%;
@@ -4365,6 +4428,7 @@
     align-items: flex-start;
     gap: 10px;
   }
+
   .filter-pill-clear-btn {
     align-self: flex-start;
   }
@@ -4387,6 +4451,7 @@
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -4676,13 +4741,12 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
   .search-results-close-btn {
     align-self: flex-start;
   }
+
   .search-results-title {
     font-size: 22px;
   }
 }
-
-
-

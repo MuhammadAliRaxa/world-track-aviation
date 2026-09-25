@@ -69,7 +69,7 @@ export function UmrahSection({ initialPackages = [], searchFilter = null, onClea
   return (
     <section className="umrah-feature-section" id="umrah">
       <div className="section-container">
-        {/* Top Header Row with Title & View All Hotels CTA Matching Reference */}
+        {/* Top Header Row with Title & View All Packages CTA */}
         <div className="umrah-header-row">
           <div className="umrah-header-left">
             <div className="umrah-eyebrow-text">
@@ -89,9 +89,9 @@ export function UmrahSection({ initialPackages = [], searchFilter = null, onClea
             <button
               type="button"
               className="umrah-header-view-all-btn"
-              onClick={() => router.push('/our-hotels')}
+              onClick={() => router.push('/umrah-packages')}
             >
-              View All Hotels
+              View All Packages
             </button>
           </div>
         </div>

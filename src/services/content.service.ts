@@ -44,9 +44,7 @@ export const contentService = {
    */
   async getTeam(): Promise<{ members: TeamMember[]; stats: StatItem[] }> {
     try {
-      const res = await apiGet<ApiTeamMember[]>('/team/list', {
-        cache: "no-store",
-      } as RequestInit);
+      const res = await apiGet<ApiTeamMember[]>('/team/list');
       return {
         members: (Array.isArray(res.data) ? res.data : []) as unknown as TeamMember[],
         stats: [],

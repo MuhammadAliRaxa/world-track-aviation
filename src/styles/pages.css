@@ -2722,22 +2722,29 @@
 }
 
 .specialist-social-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #eff6ff;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px !important;
+  background: #ffffff !important;
   color: #0080f6;
-  border: none;
-  display: flex;
+  border: 1px solid #ffffff;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .specialist-social-btn:hover {
-  background: #0080f6;
-  color: #ffffff;
+  transform: translateY(-2px) scale(1.1);
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+}
+
+.specialist-social-btn:hover svg {
+  color: #0056b3;
+  fill: #0056b3;
 }
 
 /* Responsive Queries for About Page */
@@ -5044,8 +5051,8 @@
 /* ── Two-column layout ────────────────────────────────────────── */
 .tr-layout {
   display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 20px;
+  grid-template-columns: 270px 1fr;
+  gap: 24px;
   align-items: start;
   padding-top: 6px;
 }
@@ -5054,11 +5061,10 @@
    SIDEBAR
    ════════════════════════════════════════════════════════════════ */
 .tr-sidebar {
-  background: #fff;
-  border-radius: 10px;
-  border: 1px solid #e4e9f0;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
   position: static;
 }
 
@@ -5567,11 +5573,13 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: 280px;
-    max-width: 88vw;
+    width: 290px;
+    max-width: 90vw;
     z-index: 150;
     overflow-y: auto;
     border-radius: 0 12px 12px 0;
+    background: #ffffff;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
   }
 
   .tr-sidebar.tr-sidebar-open { display: block; }

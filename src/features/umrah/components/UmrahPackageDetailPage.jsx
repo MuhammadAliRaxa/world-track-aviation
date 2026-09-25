@@ -10,6 +10,9 @@ import {
   Building2,
   MessageCircle,
   Phone,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { AppBar } from '../../../shared/components/AppBar';
 import { Footer } from '../../../shared/components/Footer';
@@ -65,7 +68,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
   const [form, setForm] = useState(() => ({
     checkIn: getIsoDate(7),
     checkOut: getIsoDate(21),
-    pax: '1 Child',
+    pax: '1 Adult',
     roomType: 'Triple Sharing',
     name: '',
     email: '',
@@ -73,15 +76,17 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
     message: '',
   }));
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   // Popup states for Pax & Room Type
   const [isPaxOpen, setIsPaxOpen] = useState(false);
   const [isRoomTypeOpen, setIsRoomTypeOpen] = useState(false);
 
-  // Pax counts: Adult (0), Child (1), Infant (0) to match mockup default "1 Child"
+  // Pax counts: Adult (1), Child (0), Infant (0) default
   const [paxCounts, setPaxCounts] = useState({
-    Adult: 0,
-    Child: 1,
+    Adult: 1,
+    Child: 0,
     Infant: 0,
   });
 
@@ -157,35 +162,41 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
 
   const handleSendInquiry = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+
+    if (!form.name?.trim() || !form.email?.trim() || !form.contact?.trim()) {
+      setErrorMsg('Please enter your Name, Email, and Phone number.');
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      await inquiryService.submitInquiry({
+      const payload = {
         type: 'umrah',
-        name: form.name || 'N/A',
-        email: form.email || 'N/A',
-        contact: form.contact || 'N/A',
+        name: form.name.trim(),
+        email: form.email.trim(),
+        contact: form.contact.trim(),
         checkin_date: form.checkIn,
         checkout_date: form.checkOut,
-        adults: paxCounts.Adult || 1,
-        children: paxCounts.Child || 0,
-        infants: paxCounts.Infant || 0,
-        room_type: form.roomType,
-        message: form.message || `Inquiry for ${pkg.title}`,
-      });
-    } catch (err) {
-      console.warn('Umrah inquiry submit error:', err);
-    }
-    const text = `Hi, I am inquiring about the "${pkg.title}" (${pkg.badge}).
-- Check-in: ${form.checkIn}
-- Check-out: ${form.checkOut}
-- No. of Pax: ${form.pax}
-- Room Type: ${form.roomType}
-- Name: ${form.name || 'N/A'}
-- Email: ${form.email || 'N/A'}
-- Contact: ${form.contact || 'N/A'}
-- Message: ${form.message || 'N/A'}`;
+        adults: Number(paxCounts?.Adult) || 1,
+        children: Number(paxCounts?.Child) || 0,
+        infants: Number(paxCounts?.Infant) || 0,
+        room_type: form.roomType || 'Triple Sharing',
+        message: form.message?.trim() || `Inquiry for Umrah package: ${pkg.title || 'Umrah Package'}`,
+      };
 
-    window.open(COMPANY_CONFIG.getWhatsAppUrl(text), '_blank');
-    setSent(true);
+      const res = await inquiryService.submitInquiry(payload);
+      if (res && (res.response !== false || res.message)) {
+        setSent(true);
+      } else {
+        setErrorMsg('Failed to submit inquiry. Please try again or chat with us on WhatsApp.');
+      }
+    } catch (err) {
+      console.error('Umrah inquiry submit error:', err);
+      setErrorMsg(err?.message || 'Failed to submit inquiry. Please check your details and try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleWhatsApp = () => {
@@ -292,187 +303,310 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                   All inquiries are screened and assigned to a dedicated case officer within 15 minutes.
                 </p>
 
-                <form onSubmit={handleSendInquiry}>
-                  {/* Check-In Date */}
-                  <div className="upd-form-group">
-                    <label className="upd-form-label">Check-In Date</label>
+                {sent ? (
+                  <div
+                    className="upd-inquiry-success"
+                    style={{
+                      padding: '24px 18px',
+                      background: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      borderRadius: '16px',
+                      textAlign: 'center',
+                      marginTop: '16px',
+                    }}
+                  >
                     <div
-                      className="upd-input-wrap"
-                      onClick={(e) => {
-                        const input = e.currentTarget.querySelector('input[type="date"]');
-                        if (input && typeof input.showPicker === 'function') {
-                          try { input.showPicker(); } catch (_) {}
-                        }
+                      style={{
+                        width: '46px',
+                        height: '46px',
+                        borderRadius: '50%',
+                        background: '#dcfce7',
+                        color: '#16a34a',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '10px',
                       }}
                     >
-                      <input
-                        type="date"
-                        className="upd-form-input upd-date-picker-input"
-                        value={form.checkIn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (typeof e.currentTarget.showPicker === 'function') {
-                            try { e.currentTarget.showPicker(); } catch (_) {}
-                          }
+                      <CheckCircle2 size={24} />
+                    </div>
+                    <h4 style={{ fontSize: '17px', fontWeight: '700', color: '#166534', margin: '0 0 6px 0' }}>
+                      Inquiry Sent Successfully!
+                    </h4>
+                    <p style={{ fontSize: '13px', color: '#15803d', lineHeight: '1.5', margin: '0 0 16px 0' }}>
+                      Thank you! Your inquiry for <strong>{pkg.title}</strong> has been received. Our Umrah specialist will contact you shortly.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={handleWhatsApp}
+                        style={{
+                          width: '100%',
+                          padding: '10px 16px',
+                          background: '#25D366',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '10px',
+                          fontWeight: '600',
+                          fontSize: '13px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          cursor: 'pointer',
                         }}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setForm((f) => ({
-                            ...f,
-                            checkIn: val,
-                            checkOut: f.checkOut && f.checkOut < val ? val : f.checkOut,
+                      >
+                        <MessageCircle size={16} />
+                        <span>Chat on WhatsApp</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSent(false);
+                          setForm((prev) => ({
+                            ...prev,
+                            name: '',
+                            email: '',
+                            contact: '',
+                            message: '',
                           }));
                         }}
-                        required
-                        aria-label="Check-In Date"
-                      />
-                      <Calendar size={14} className="upd-input-icon" />
+                        style={{
+                          width: '100%',
+                          padding: '8px 16px',
+                          background: '#ffffff',
+                          color: '#475569',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '10px',
+                          fontWeight: '500',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Send Another Inquiry
+                      </button>
                     </div>
                   </div>
+                ) : (
+                  <form onSubmit={handleSendInquiry}>
+                    {errorMsg && (
+                      <div
+                        style={{
+                          padding: '10px 14px',
+                          background: '#fef2f2',
+                          border: '1px solid #fecaca',
+                          borderRadius: '10px',
+                          color: '#b91c1c',
+                          fontSize: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          marginBottom: '14px',
+                        }}
+                      >
+                        <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                        <span>{errorMsg}</span>
+                      </div>
+                    )}
 
-                  {/* Check-out Date */}
-                  <div className="upd-form-group">
-                    <label className="upd-form-label">Check-out Date</label>
-                    <div
-                      className="upd-input-wrap"
-                      onClick={(e) => {
-                        const input = e.currentTarget.querySelector('input[type="date"]');
-                        if (input && typeof input.showPicker === 'function') {
-                          try { input.showPicker(); } catch (_) {}
-                        }
-                      }}
-                    >
-                      <input
-                        type="date"
-                        className="upd-form-input upd-date-picker-input"
-                        value={form.checkOut}
-                        min={form.checkIn || undefined}
+                    {/* Check-In Date */}
+                    <div className="upd-form-group">
+                      <label className="upd-form-label">Check-In Date</label>
+                      <div
+                        className="upd-input-wrap"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          if (typeof e.currentTarget.showPicker === 'function') {
-                            try { e.currentTarget.showPicker(); } catch (_) {}
+                          const input = e.currentTarget.querySelector('input[type="date"]');
+                          if (input && typeof input.showPicker === 'function') {
+                            try { input.showPicker(); } catch (_) {}
                           }
                         }}
-                        onChange={(e) => setForm((f) => ({ ...f, checkOut: e.target.value }))}
+                      >
+                        <input
+                          type="date"
+                          className="upd-form-input upd-date-picker-input"
+                          value={form.checkIn}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (typeof e.currentTarget.showPicker === 'function') {
+                              try { e.currentTarget.showPicker(); } catch (_) {}
+                            }
+                          }}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setForm((f) => ({
+                              ...f,
+                              checkIn: val,
+                              checkOut: f.checkOut && f.checkOut < val ? val : f.checkOut,
+                            }));
+                          }}
+                          required
+                          aria-label="Check-In Date"
+                        />
+                        <Calendar size={14} className="upd-input-icon" />
+                      </div>
+                    </div>
+
+                    {/* Check-out Date */}
+                    <div className="upd-form-group">
+                      <label className="upd-form-label">Check-out Date</label>
+                      <div
+                        className="upd-input-wrap"
+                        onClick={(e) => {
+                          const input = e.currentTarget.querySelector('input[type="date"]');
+                          if (input && typeof input.showPicker === 'function') {
+                            try { input.showPicker(); } catch (_) {}
+                          }
+                        }}
+                      >
+                        <input
+                          type="date"
+                          className="upd-form-input upd-date-picker-input"
+                          value={form.checkOut}
+                          min={form.checkIn || undefined}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (typeof e.currentTarget.showPicker === 'function') {
+                              try { e.currentTarget.showPicker(); } catch (_) {}
+                            }
+                          }}
+                          onChange={(e) => setForm((f) => ({ ...f, checkOut: e.target.value }))}
+                          required
+                          aria-label="Check-out Date"
+                        />
+                        <Calendar size={14} className="upd-input-icon" />
+                      </div>
+                    </div>
+
+                    {/* No. of Pax */}
+                    <div className="upd-form-group" ref={paxRef} style={{ position: 'relative' }}>
+                      <label className="upd-form-label">No. of Pax</label>
+                      <div className="upd-input-wrap">
+                        <button
+                          type="button"
+                          className="upd-form-trigger"
+                          onClick={() => {
+                            setIsPaxOpen((prev) => !prev);
+                            setIsRoomTypeOpen(false);
+                          }}
+                          aria-expanded={isPaxOpen}
+                          aria-label="Select Number of Pax"
+                        >
+                          <span className="upd-trigger-text">{form.pax}</span>
+                          <ChevronDown
+                            size={14}
+                            className={`upd-select-arrow ${isPaxOpen ? 'open' : ''}`}
+                          />
+                        </button>
+                        <GuestsPopup
+                          isOpen={isPaxOpen}
+                          onClose={() => setIsPaxOpen(false)}
+                          counts={paxCounts}
+                          onUpdateCount={updatePaxCount}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Room Type */}
+                    <div className="upd-form-group" ref={roomTypeRef} style={{ position: 'relative' }}>
+                      <label className="upd-form-label">Room Type</label>
+                      <div className="upd-input-wrap">
+                        <button
+                          type="button"
+                          className="upd-form-trigger"
+                          onClick={() => {
+                            setIsRoomTypeOpen((prev) => !prev);
+                            setIsPaxOpen(false);
+                          }}
+                          aria-expanded={isRoomTypeOpen}
+                          aria-label="Select Room Type"
+                        >
+                          <span className="upd-trigger-text">{form.roomType}</span>
+                          <ChevronDown
+                            size={14}
+                            className={`upd-select-arrow ${isRoomTypeOpen ? 'open' : ''}`}
+                          />
+                        </button>
+                        <RoomTypePopup
+                          isOpen={isRoomTypeOpen}
+                          onClose={() => setIsRoomTypeOpen(false)}
+                          counts={roomCounts}
+                          onUpdateCount={updateRoomCount}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Name */}
+                    <div className="upd-form-group">
+                      <label className="upd-form-label">Name *</label>
+                      <input
+                        type="text"
                         required
-                        aria-label="Check-out Date"
-                      />
-                      <Calendar size={14} className="upd-input-icon" />
-                    </div>
-                  </div>
-
-                  {/* No. of Pax */}
-                  <div className="upd-form-group" ref={paxRef} style={{ position: 'relative' }}>
-                    <label className="upd-form-label">No. of Pax</label>
-                    <div className="upd-input-wrap">
-                      <button
-                        type="button"
-                        className="upd-form-trigger"
-                        onClick={() => {
-                          setIsPaxOpen((prev) => !prev);
-                          setIsRoomTypeOpen(false);
-                        }}
-                        aria-expanded={isPaxOpen}
-                        aria-label="Select Number of Pax"
-                      >
-                        <span className="upd-trigger-text">{form.pax}</span>
-                        <ChevronDown
-                          size={14}
-                          className={`upd-select-arrow ${isPaxOpen ? 'open' : ''}`}
-                        />
-                      </button>
-                      <GuestsPopup
-                        isOpen={isPaxOpen}
-                        onClose={() => setIsPaxOpen(false)}
-                        counts={paxCounts}
-                        onUpdateCount={updatePaxCount}
+                        className="upd-form-input"
+                        placeholder="Enter your name"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
                       />
                     </div>
-                  </div>
 
-                  {/* Room Type */}
-                  <div className="upd-form-group" ref={roomTypeRef} style={{ position: 'relative' }}>
-                    <label className="upd-form-label">Room Type</label>
-                    <div className="upd-input-wrap">
-                      <button
-                        type="button"
-                        className="upd-form-trigger"
-                        onClick={() => {
-                          setIsRoomTypeOpen((prev) => !prev);
-                          setIsPaxOpen(false);
-                        }}
-                        aria-expanded={isRoomTypeOpen}
-                        aria-label="Select Room Type"
-                      >
-                        <span className="upd-trigger-text">{form.roomType}</span>
-                        <ChevronDown
-                          size={14}
-                          className={`upd-select-arrow ${isRoomTypeOpen ? 'open' : ''}`}
-                        />
-                      </button>
-                      <RoomTypePopup
-                        isOpen={isRoomTypeOpen}
-                        onClose={() => setIsRoomTypeOpen(false)}
-                        counts={roomCounts}
-                        onUpdateCount={updateRoomCount}
+                    {/* Email Address */}
+                    <div className="upd-form-group">
+                      <label className="upd-form-label">Email Address *</label>
+                      <input
+                        type="email"
+                        required
+                        className="upd-form-input"
+                        placeholder="john@example.com"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
                       />
                     </div>
-                  </div>
 
-                  {/* Name */}
-                  <div className="upd-form-group">
-                    <label className="upd-form-label">Name</label>
-                    <input
-                      type="text"
-                      className="upd-form-input"
-                      placeholder="Enter your name"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    />
-                  </div>
+                    {/* Contact */}
+                    <div className="upd-form-group">
+                      <label className="upd-form-label">Contact / Phone *</label>
+                      <input
+                        type="tel"
+                        required
+                        className="upd-form-input"
+                        placeholder="03001232123"
+                        value={form.contact}
+                        onChange={(e) => setForm({ ...form, contact: e.target.value })}
+                      />
+                    </div>
 
-                  {/* Email Address */}
-                  <div className="upd-form-group">
-                    <label className="upd-form-label">Email Address</label>
-                    <input
-                      type="email"
-                      className="upd-form-input"
-                      placeholder="john@example.com"
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    />
-                  </div>
+                    {/* Message Detail */}
+                    <div className="upd-form-group">
+                      <label className="upd-form-label">Message Detail</label>
+                      <textarea
+                        rows={3}
+                        className="upd-form-textarea"
+                        placeholder="Briefly state your departure point, travel dates, or specific requirements..."
+                        value={form.message}
+                        onChange={(e) => setForm({ ...form, message: e.target.value })}
+                      />
+                    </div>
 
-                  {/* Contact */}
-                  <div className="upd-form-group">
-                    <label className="upd-form-label">Contact</label>
-                    <input
-                      type="text"
-                      className="upd-form-input"
-                      placeholder="03001232123"
-                      value={form.contact}
-                      onChange={(e) => setForm({ ...form, contact: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Message Detail */}
-                  <div className="upd-form-group">
-                    <label className="upd-form-label">Message Detail</label>
-                    <textarea
-                      rows={3}
-                      className="upd-form-textarea"
-                      placeholder="Briefly state your departure point, travel dates, or embassy requirements..."
-                      value={form.message}
-                      onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Submit button */}
-                  <button type="submit" className="upd-submit-btn">
-                    <span>{sent ? 'Inquiry Sent! ✓' : 'Send Inquiry'}</span>
-                    <ChevronRight size={15} />
-                  </button>
-                </form>
+                    {/* Submit button */}
+                    <button
+                      type="submit"
+                      className="upd-submit-btn"
+                      disabled={submitting}
+                      style={{ opacity: submitting ? 0.75 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 size={15} className="animate-spin" />
+                          <span>Submitting Inquiry...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Send Inquiry</span>
+                          <ChevronRight size={15} />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
               </div>
 
               {/* Still have questions card */}

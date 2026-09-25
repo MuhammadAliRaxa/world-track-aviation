@@ -18,17 +18,17 @@ const BASE_URL =
 /** Default request timeout in milliseconds. Increased from 8s to 15s for heavy rate calculations. */
 const DEFAULT_TIMEOUT_MS = 15_000;
 
-/** Cache TTL for read queries (in ms). */
-const CACHE_TTL_MS = 30_000; // 30 seconds
+/** Cache TTL for read queries (in ms). Increased to 3 minutes to avoid hitting Hostinger rate limits. */
+const CACHE_TTL_MS = 3 * 60_000; // 3 minutes
 
 /** Stale fallback TTL (in ms) when an API returns 429 or times out. */
-const STALE_TTL_MS = 5 * 60_000; // 5 minutes
+const STALE_TTL_MS = 60 * 60_000; // 1 hour
 
 /** Maximum retries when server responds with 429 Too Many Requests. */
-const MAX_429_RETRIES = 2;
+const MAX_429_RETRIES = 3;
 
 // ---------------------------------------------------------------------------
-// In-Memory Cache & In-Flight Request Deduplication
+// In-Memory & Session Storage Cache & In-Flight Request Deduplication
 // ---------------------------------------------------------------------------
 
 interface CacheEntry<T> {
@@ -50,6 +50,35 @@ function buildCacheKey(endpoint: string, options: RequestInit): string {
   const method = (options.method || 'GET').toUpperCase();
   const body = options.body ? String(options.body) : '';
   return `${method}:${endpoint}:${body}`;
+}
+
+function getSessionCache<T>(key: string): T | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const safeKey = `wt_cache_${key.slice(0, 80).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+    const raw = sessionStorage.getItem(safeKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.timestamp === 'number' && Date.now() - parsed.timestamp < STALE_TTL_MS) {
+      return parsed.data as T;
+    }
+  } catch {
+    // Ignore storage parse or access errors
+  }
+  return null;
+}
+
+function setSessionCache<T>(key: string, data: T): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const safeKey = `wt_cache_${key.slice(0, 80).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+    sessionStorage.setItem(
+      safeKey,
+      JSON.stringify({ data, timestamp: Date.now() }),
+    );
+  } catch {
+    // Ignore storage quota or access errors
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -93,6 +122,7 @@ async function executeFetch<T>(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
     ...((options.headers as Record<string, string>) || {}),
   };
 
@@ -107,8 +137,8 @@ async function executeFetch<T>(
     if (retryCount < MAX_429_RETRIES) {
       const retryAfterHeader = response.headers.get('Retry-After');
       const delayMs = retryAfterHeader
-        ? (parseInt(retryAfterHeader, 10) * 1000 || 1200)
-        : (1000 * Math.pow(2, retryCount));
+        ? (parseInt(retryAfterHeader, 10) * 1000 || 1500)
+        : (1500 * Math.pow(2, retryCount));
       console.warn(`[apiClient] 429 Rate limited on ${endpoint}. Retrying in ${delayMs}ms (attempt ${retryCount + 1}/${MAX_429_RETRIES})...`);
       await new Promise((resolve) => setTimeout(resolve, delayMs));
       return executeFetch<T>(endpoint, options, retryCount + 1);
@@ -148,14 +178,21 @@ export async function apiClient<T>(
   const isMutation = isMutationEndpoint(endpoint, options.method);
   const cacheKey = buildCacheKey(endpoint, options);
 
-  // 1. If not a mutation and not skipping cache, check memory cache
+  // 1. If not a mutation and not skipping cache, check in-memory cache
   if (!isMutation && !options.skipCache) {
     const cached = memoryCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return cached.data as T;
     }
 
-    // 2. In-flight request deduplication: if identical request is pending, await it
+    // 2. Check session storage cache in browser
+    const sessionCached = getSessionCache<T>(cacheKey);
+    if (sessionCached) {
+      memoryCache.set(cacheKey, { data: sessionCached, timestamp: Date.now() });
+      return sessionCached;
+    }
+
+    // 3. In-flight request deduplication: if identical request is pending, await it
     const existing = inFlightRequests.get(cacheKey);
     if (existing) {
       return existing as Promise<T>;
@@ -170,16 +207,28 @@ export async function apiClient<T>(
           data: result,
           timestamp: Date.now(),
         });
+        setSessionCache(cacheKey, result);
       }
       return result;
     } catch (err) {
       // Resilient fallback: if query fails (429 or timeout) and we have any stale cached data, use it!
       if (!isMutation) {
         const stale = memoryCache.get(cacheKey);
-        if (stale && Date.now() - stale.timestamp < STALE_TTL_MS) {
+        if (stale) {
           console.warn(`[apiClient] Request failed for ${endpoint}, using stale cached response:`, (err as Error).message);
           return stale.data as T;
         }
+
+        const sessionData = getSessionCache<T>(cacheKey);
+        if (sessionData) {
+          console.warn(`[apiClient] Request failed for ${endpoint}, using session cached response:`, (err as Error).message);
+          memoryCache.set(cacheKey, { data: sessionData, timestamp: Date.now() });
+          return sessionData;
+        }
+
+        // Graceful fallback for 429 Rate Limit / Network timeout to prevent Next.js red error modal crash
+        console.warn(`[apiClient] API unavailable (${(err as Error).message}) for ${endpoint}. Returning safe empty fallback.`);
+        return { response: false, data: [] } as unknown as T;
       }
       throw err;
     } finally {

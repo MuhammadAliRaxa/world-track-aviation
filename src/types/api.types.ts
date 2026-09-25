@@ -499,10 +499,15 @@ export interface ApiTransportRate extends ApiTransportVehicleRate {
 export interface ApiTeamMember {
   id: number;
   name: string;
+  designation?: string;
   role?: string;
   position?: string;
+  photo?: string;
   image?: string;
   image_alt_text?: string;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
   [key: string]: unknown;
 }
 
@@ -615,6 +620,7 @@ export interface ApiUmrahInquiry extends ApiInquiryBase {
   adults: number;
   children?: number;
   infants?: number;
+  room_type?: string;
   room_type_id?: number;
 }
 

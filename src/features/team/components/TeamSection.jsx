@@ -3,12 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { Award } from 'lucide-react';
 import { contentService } from '../../../services/content.service';
+import { FacebookIcon } from '../../../shared/components/icons/FacebookIcon';
+import { InstagramIcon } from '../../../shared/components/icons/InstagramIcon';
+import { LinkedinIcon } from '../../../shared/components/icons/LinkedinIcon';
+
+const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';
 
 const resolveImageUrl = (img) => {
-  if (!img || typeof img !== 'string') return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';
+  if (!img || typeof img !== 'string') return DEFAULT_AVATAR;
   if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('data:')) return img;
   const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://admin.worldtracktravel.com').replace(/\/api\/?$/, '');
   return `${baseUrl}${img.startsWith('/') ? '' : '/'}${img}`;
+};
+
+const isValidUrl = (url) => {
+  return typeof url === 'string' && url.trim().length > 0 && url.trim() !== 'null' && url.trim() !== 'undefined' && url.trim() !== '#';
 };
 
 const normalizeTeam = (rawMembers) => {
@@ -16,10 +25,11 @@ const normalizeTeam = (rawMembers) => {
   return rawMembers.map((m, idx) => ({
     id: m.id || idx + 1,
     name: m.name || 'Team Specialist',
-    role: m.position || m.role || 'Travel Consultant',
-    image: resolveImageUrl(m.image),
-    facebookUrl: m.facebookUrl,
-    instagramUrl: m.instagramUrl,
+    role: m.designation || m.position || m.role || 'Travel Consultant',
+    image: resolveImageUrl(m.photo || m.image),
+    facebookUrl: m.facebook_url || m.facebookUrl,
+    instagramUrl: m.instagram_url || m.instagramUrl,
+    linkedinUrl: m.linkedin_url || m.linkedinUrl,
   }));
 };
 
@@ -98,12 +108,61 @@ export function TeamSection({ isAboutPage = false, initialTeam = null }) {
                     className="specialist-img"
                     loading="lazy"
                     decoding="async"
-                    width={240}
-                    height={315}
+                    width={260}
+                    height={330}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = DEFAULT_AVATAR;
+                    }}
                   />
 
                   {/* Bottom Dark Gradient with Left-Aligned Name & Role */}
                   <div className="specialist-card-overlay">
+                    {/* Hover Social Media in Top of Name (only rendered if URL is not null or empty) */}
+                    {(isValidUrl(member.linkedinUrl) || isValidUrl(member.facebookUrl) || isValidUrl(member.instagramUrl)) && (
+                      <div className="specialist-socials">
+                        {isValidUrl(member.linkedinUrl) && (
+                          <a
+                            href={member.linkedinUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="specialist-social-btn linkedin"
+                            aria-label={`LinkedIn - ${member.name}`}
+                            title={`LinkedIn - ${member.name}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <LinkedinIcon size={14} color="#0080f6" />
+                          </a>
+                        )}
+                        {isValidUrl(member.facebookUrl) && (
+                          <a
+                            href={member.facebookUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="specialist-social-btn facebook"
+                            aria-label={`Facebook - ${member.name}`}
+                            title={`Facebook - ${member.name}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <FacebookIcon size={14} color="#0080f6" />
+                          </a>
+                        )}
+                        {isValidUrl(member.instagramUrl) && (
+                          <a
+                            href={member.instagramUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="specialist-social-btn instagram"
+                            aria-label={`Instagram - ${member.name}`}
+                            title={`Instagram - ${member.name}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <InstagramIcon size={14} color="#0080f6" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+
                     <h3 className="specialist-name" style={{ color: '#ffffff', textAlign: 'left' }}>{member.name}</h3>
                     <p className="specialist-role" style={{ color: 'rgba(255, 255, 255, 0.9)', textAlign: 'left' }}>{member.role}</p>
                   </div>
