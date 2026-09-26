@@ -18,8 +18,8 @@ const BASE_URL =
 /** Default request timeout in milliseconds. Increased from 8s to 15s for heavy rate calculations. */
 const DEFAULT_TIMEOUT_MS = 15_000;
 
-/** Cache TTL for read queries (in ms). Increased to 3 minutes to avoid hitting Hostinger rate limits. */
-const CACHE_TTL_MS = 3 * 60_000; // 3 minutes
+/** Cache TTL for in-memory read queries (in ms). Kept short (30s) so admin updates show promptly while preventing rapid navigation spam. */
+const CACHE_TTL_MS = 30_000; // 30 seconds
 
 /** Stale fallback TTL (in ms) when an API returns 429 or times out. */
 const STALE_TTL_MS = 60 * 60_000; // 1 hour
@@ -185,14 +185,7 @@ export async function apiClient<T>(
       return cached.data as T;
     }
 
-    // 2. Check session storage cache in browser
-    const sessionCached = getSessionCache<T>(cacheKey);
-    if (sessionCached) {
-      memoryCache.set(cacheKey, { data: sessionCached, timestamp: Date.now() });
-      return sessionCached;
-    }
-
-    // 3. In-flight request deduplication: if identical request is pending, await it
+    // 2. In-flight request deduplication: if identical request is pending, await it
     const existing = inFlightRequests.get(cacheKey);
     if (existing) {
       return existing as Promise<T>;
