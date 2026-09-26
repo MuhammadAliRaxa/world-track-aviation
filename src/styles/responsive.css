@@ -1482,6 +1482,7 @@
     grid-template-columns: 240px 1fr;
     gap: 16px;
   }
+
   .vp-cards-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
@@ -2027,6 +2028,7 @@
     grid-template-columns: 240px 1fr;
     gap: 16px;
   }
+
   .hp-cards-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
@@ -2079,5 +2081,3 @@
     grid-template-columns: 1fr;
   }
 }
-
-
