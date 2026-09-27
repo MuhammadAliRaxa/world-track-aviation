@@ -191,7 +191,7 @@ export function VisaDetailPage({ initialVisa = null }) {
                 visa.featuredImage ||
                 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=80'
               }
-              alt={visa.title}
+              alt={visa?.imageAltText || visa?.seo?.image_alt || visa.title}
               className="visa-featured-img"
             />
           </div>

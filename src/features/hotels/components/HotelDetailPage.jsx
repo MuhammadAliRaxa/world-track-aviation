@@ -398,7 +398,7 @@ export function HotelDetailPage({ initialHotel = null }) {
             >
               <img
                 src={activeImage}
-                alt={hotel.name}
+                alt={hotel?.imageAlt || hotel?.seo?.image_alt || hotel.name}
                 className="hotel-main-photo"
               />
               {/* Photo count badge on main image */}

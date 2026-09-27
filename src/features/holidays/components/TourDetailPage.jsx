@@ -174,7 +174,7 @@ export function TourDetailPage({ initialTour = null }) {
 
               {/* Main image */}
               <div className="tdp-main-img-wrap">
-                <img src={tour.image} alt={tour.title} className="tdp-main-img" />
+                <img src={tour.image} alt={tour?.imageAltText || tour.title} className="tdp-main-img" />
               </div>
 
               {/* Package includes icons */}

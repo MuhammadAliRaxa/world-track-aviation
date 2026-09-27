@@ -71,6 +71,11 @@ export function normalizeHotelDetail(raw: any): Hotel | null {
   const rawImages = Array.isArray(item.images)
     ? item.images.map((img: any) => typeof img === 'string' ? img : (img?.file || '')).filter(Boolean)
     : [];
+  // Extract alt_text from the first image object for SEO
+  const firstImageObj = Array.isArray(item.images) && item.images.length > 0
+    ? (typeof item.images[0] === 'object' ? item.images[0] : null)
+    : null;
+  const imageAlt = firstImageObj?.alt_text || item.image_alt_text || item.seo?.image_alt || null;
   const mainImage = item.image || rawImages[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
   const gallery = rawImages.length > 0 ? rawImages : [mainImage];
 
@@ -123,6 +128,7 @@ export function normalizeHotelDetail(raw: any): Hotel | null {
     priceNumeric: Number(rawPrice) || 0,
     unit: '/ night',
     image: mainImage,
+    imageAlt: imageAlt || undefined,
     gallery,
     amenities,
     description,

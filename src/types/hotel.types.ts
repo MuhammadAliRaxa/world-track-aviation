@@ -22,6 +22,7 @@ export interface Hotel {
   priceNumeric?: number;
   unit: string;
   image: string | any;
+  imageAlt?: string;
   gallery: (string | any)[];
   amenities: string[];
   amenityKeys?: string[];
@@ -34,6 +35,8 @@ export interface Hotel {
   available_from?: string;
   lat?: string;
   lng?: string;
+  seo?: { image_alt?: string; url_slug?: string; [key: string]: any } | null;
+  slug?: string;
 }
 
 export interface HotelFilterParams {

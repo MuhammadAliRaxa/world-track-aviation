@@ -85,7 +85,7 @@ export function HolidayCard({ tour, onSelectTour }) {
       <div className="holiday-media-box">
         <img
           src={imageUrl}
-          alt={displayTitle}
+          alt={tour?.imageAltText || displayTitle}
           className="holiday-card-img"
           loading="lazy"
           decoding="async"
