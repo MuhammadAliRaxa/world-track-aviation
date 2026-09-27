@@ -57,7 +57,18 @@ export function JsonLdScript({ schema }: JsonLdScriptProps): React.ReactElement 
 // Schema Generators
 // ---------------------------------------------------------------------------
 
-export function getOrganizationSchema() {
+export function getOrganizationSchema(customSchema?: Record<string, unknown> | string | null) {
+  if (customSchema) {
+    try {
+      const parsed = typeof customSchema === 'string' ? JSON.parse(customSchema) : customSchema;
+      if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Fall back to default schema on parse error
+    }
+  }
+
   return {
     '@context': 'https://schema.org',
     '@type': 'TravelAgency',
@@ -161,7 +172,18 @@ export function getOrganizationSchema() {
   };
 }
 
-export function getWebsiteSchema() {
+export function getWebsiteSchema(customSchema?: Record<string, unknown> | string | null) {
+  if (customSchema) {
+    try {
+      const parsed = typeof customSchema === 'string' ? JSON.parse(customSchema) : customSchema;
+      if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Fall back to default schema on parse error
+    }
+  }
+
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',

@@ -49,18 +49,62 @@ async function _fetchPageSeo(pageKey: string): Promise<ApiPageSeo | null> {
   }
 }
 
+/**
+ * Safely extracts the Google Search Console verification code.
+ * Handles both plain verification tokens (e.g. "abc123xyz")
+ * and full HTML meta tag strings (e.g. '<meta name="google-site-verification" content="abc123xyz" />').
+ */
+export function extractGoogleVerificationCode(rawTag?: string | null): string | null {
+  if (!rawTag) return null;
+  const trimmed = rawTag.trim();
+  if (!trimmed) return null;
+
+  const match = trimmed.match(/content=["']([^"']+)["']/i);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+
+  if (!trimmed.includes('<')) {
+    return trimmed;
+  }
+
+  return null;
+}
+
+/**
+ * Safely extracts the GA4 Measurement ID (e.g., "G-XXXXXXXXXX" or "GTM-XXXXXXXX").
+ * Handles raw IDs as well as full pasted <script> snippets.
+ */
+export function extractGaMeasurementId(rawId?: string | null): string | null {
+  if (!rawId) return null;
+  const trimmed = rawId.trim();
+  if (!trimmed) return null;
+
+  // Extract G-XXXXXXXXXX, GTM-XXXXXXXX, or UA-XXXXX-Y from raw input or pasted script
+  const match = trimmed.match(/(G-[A-Z0-9]+|GTM-[A-Z0-9]+|UA-\d+-\d+)/i);
+  if (match && match[1]) {
+    return match[1].toUpperCase();
+  }
+
+  if (!trimmed.includes('<')) {
+    return trimmed;
+  }
+
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Cached public fetchers
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches global SEO settings. Cached for 1 hour.
+ * Fetches global SEO settings. Cached for 60 seconds so admin changes update quickly.
  * Used as the final fallback for all pages.
  */
 export const fetchGlobalSeo = unstable_cache(
   _fetchGlobalSeo,
   ['global-seo'],
-  { revalidate: 3600, tags: ['seo', 'global-seo'] },
+  { revalidate: 60, tags: ['seo', 'global-seo'] },
 );
 
 /**

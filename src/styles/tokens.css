@@ -97,3 +97,72 @@ textarea {
   margin: 0 auto;
   padding: 0 24px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Global Base Heading Typography & Hierarchy
+ * --------------------------------------------------------------------------- */
+h1, .h1 {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--dark-heading, #0f172a);
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+h2, .h2 {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: clamp(1.5rem, 3vw, 2.15rem);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--dark-heading, #0f172a);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+h3, .h3 {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1.35;
+  color: #1e293b;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+h4, .h4 {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  font-weight: 600;
+  line-height: 1.4;
+  color: #334155;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+h5, .h5 {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #475569;
+  margin-top: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+h6, .h6 {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Rich Text & Admin Dynamic Content Styling */
+.prose h1, .rich-text h1 { font-size: 2.25rem; font-weight: 800; margin-top: 1.5rem; margin-bottom: 1rem; color: #0f172a; }
+.prose h2, .rich-text h2 { font-size: 1.75rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #0f172a; }
+.prose h3, .rich-text h3 { font-size: 1.35rem; font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #1e293b; }
+.prose h4, .rich-text h4 { font-size: 1.15rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: #334155; }

@@ -62,7 +62,7 @@ export const metadata: Metadata = {
 };
 
 import Script from 'next/script';
-import { fetchGlobalSeo } from '../lib/seo';
+import { fetchGlobalSeo, extractGoogleVerificationCode, extractGaMeasurementId } from '../lib/seo';
 
 export default async function RootLayout({
   children,
@@ -70,8 +70,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const globalSeo = await fetchGlobalSeo();
-  const gaId = globalSeo?.google_analytics_id;
-  const gscTag = globalSeo?.google_search_console_tag;
+  const gaId = extractGaMeasurementId(globalSeo?.google_analytics_id);
+  const gscCode = extractGoogleVerificationCode(globalSeo?.google_search_console_tag);
+  const orgSchema = getOrganizationSchema(globalSeo?.default_schema_json);
+  const websiteSchema = getWebsiteSchema(
+    (globalSeo as any)?.website_schema_json ||
+    (globalSeo as any)?.website_schema ||
+    (globalSeo as any)?.default_website_schema_json
+  );
 
   return (
     <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`} data-scroll-behavior="smooth">
@@ -80,7 +86,10 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://admin.worldtracktravel.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://admin.worldtracktravel.com" />
-        {gscTag && <meta name="google-site-verification" content={gscTag} />}
+        {gscCode && <meta name="google-site-verification" content={gscCode} />}
+        <JsonLdScript schema={[orgSchema, websiteSchema]} />
+      </head>
+      <body className="antialiased font-sans bg-white text-slate-900 min-h-screen">
         {gaId && (
           <>
             <Script
@@ -99,9 +108,6 @@ export default async function RootLayout({
             </Script>
           </>
         )}
-        <JsonLdScript schema={[getOrganizationSchema(), getWebsiteSchema()]} />
-      </head>
-      <body className="antialiased font-sans bg-white text-slate-900 min-h-screen">
         <HotelsProvider>{children}</HotelsProvider>
       </body>
     </html>
