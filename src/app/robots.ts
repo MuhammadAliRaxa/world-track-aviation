@@ -20,6 +20,9 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       allow: '/',
       disallow: disallowList,
     },
-    sitemap: `${SITE_CONFIG.baseUrl}/sitemap.xml`,
+    sitemap: [
+      `${SITE_CONFIG.baseUrl}/sitemap_index.xml`,
+      `${SITE_CONFIG.baseUrl}/sitemap.xml`,
+    ],
   };
 }
