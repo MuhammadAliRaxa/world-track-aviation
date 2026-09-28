@@ -1,7 +1,7 @@
 import { getVisaSitemapUrls, buildUrlsetXml, resolveBaseUrl } from '@/lib/sitemap-builder';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600;
+export const revalidate = 60; // Dynamic revalidation every 60 seconds (1 minute)
 
 export async function GET(request: Request) {
   const baseUrl = resolveBaseUrl(request);
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+      'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=600',
     },
   });
 }

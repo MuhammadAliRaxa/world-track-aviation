@@ -160,6 +160,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/sitemap-index.xml',
+        destination: '/sitemap_index.xml',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
