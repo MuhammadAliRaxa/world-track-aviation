@@ -23,10 +23,13 @@ export default async function Page() {
   ]);
 
   return (
-    <HotelsMapPage
-      h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
-      heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
-      initialHotels={initialHotels}
-    />
+    <>
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      <HotelsMapPage
+        h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
+        heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
+        initialHotels={initialHotels}
+      />
+    </>
   );
 }
