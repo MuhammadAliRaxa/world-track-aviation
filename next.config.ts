@@ -162,33 +162,10 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      {
-        source: '/sitemap_index.xml',
-        destination: '/sitemap.xml',
-      },
+      // /sitemap-index.xml is an alias for /sitemap_index.xml (both are Route Handlers)
       {
         source: '/sitemap-index.xml',
-        destination: '/sitemap.xml',
-      },
-      {
-        source: '/page-sitemap.xml',
-        destination: '/sitemap/pages.xml',
-      },
-      {
-        source: '/listing-sitemap.xml',
-        destination: '/sitemap/listings.xml',
-      },
-      {
-        source: '/travel_packages-sitemap.xml',
-        destination: '/sitemap/travel-packages.xml',
-      },
-      {
-        source: '/visa-sitemap.xml',
-        destination: '/sitemap/visas.xml',
-      },
-      {
-        source: '/post-sitemap.xml',
-        destination: '/sitemap/posts.xml',
+        destination: '/sitemap_index.xml',
       },
     ];
   },
