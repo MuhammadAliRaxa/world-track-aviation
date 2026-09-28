@@ -20,6 +20,33 @@ export interface SitemapIndexItem {
   lastmod?: string;
 }
 
+/**
+ * Dynamically resolves the base URL from incoming Request headers (host/protocol),
+ * environment variables, or SITE_CONFIG fallback.
+ */
+export function resolveBaseUrl(request?: Request): string {
+  if (request) {
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+    const proto =
+      request.headers.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https');
+    if (host) {
+      return `${proto}://${host}`.replace(/\/+$/, '');
+    }
+  }
+
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '');
+  }
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/+$/, '');
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/+$/, '');
+  }
+
+  return (SITE_CONFIG.baseUrl || 'https://worldtracktravel.com').replace(/\/+$/, '');
+}
+
 export function escapeXml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -147,34 +174,34 @@ ${xmlItems}
 }
 
 // ---------------------------------------------------------------------------
-// Category Data Fetchers
+// Dynamic Category Data Fetchers
 // ---------------------------------------------------------------------------
 
-export async function getPageSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl = SITE_CONFIG.baseUrl;
+export async function getPageSitemapUrls(baseUrl?: string): Promise<SitemapUrl[]> {
+  const base = baseUrl || resolveBaseUrl();
   const now = new Date().toISOString();
 
   return [
-    { loc: `${baseUrl}/`, lastmod: now, changefreq: 'daily', priority: 1.0 },
-    { loc: `${baseUrl}/group-tickets/`, lastmod: now, changefreq: 'daily', priority: 0.9 },
-    { loc: `${baseUrl}/our-hotels/`, lastmod: now, changefreq: 'daily', priority: 0.9 },
-    { loc: `${baseUrl}/hotels-map/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
-    { loc: `${baseUrl}/visas/`, lastmod: now, changefreq: 'daily', priority: 0.9 },
-    { loc: `${baseUrl}/umrah-packages/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
-    { loc: `${baseUrl}/tour-packages/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
-    { loc: `${baseUrl}/customize-umrah-package/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
-    { loc: `${baseUrl}/umrah-group-packages/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
-    { loc: `${baseUrl}/private-transport/`, lastmod: now, changefreq: 'weekly', priority: 0.7 },
-    { loc: `${baseUrl}/about-us/`, lastmod: now, changefreq: 'monthly', priority: 0.6 },
-    { loc: `${baseUrl}/contact-us/`, lastmod: now, changefreq: 'monthly', priority: 0.6 },
-    { loc: `${baseUrl}/our-blogs/`, lastmod: now, changefreq: 'weekly', priority: 0.7 },
-    { loc: `${baseUrl}/privacy-policy/`, lastmod: now, changefreq: 'monthly', priority: 0.3 },
-    { loc: `${baseUrl}/terms-and-conditions/`, lastmod: now, changefreq: 'monthly', priority: 0.3 },
+    { loc: `${base}/`, lastmod: now, changefreq: 'daily', priority: 1.0 },
+    { loc: `${base}/group-tickets/`, lastmod: now, changefreq: 'daily', priority: 0.9 },
+    { loc: `${base}/our-hotels/`, lastmod: now, changefreq: 'daily', priority: 0.9 },
+    { loc: `${base}/hotels-map/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
+    { loc: `${base}/visas/`, lastmod: now, changefreq: 'daily', priority: 0.9 },
+    { loc: `${base}/umrah-packages/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
+    { loc: `${base}/tour-packages/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
+    { loc: `${base}/customize-umrah-package/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
+    { loc: `${base}/umrah-group-packages/`, lastmod: now, changefreq: 'weekly', priority: 0.8 },
+    { loc: `${base}/private-transport/`, lastmod: now, changefreq: 'weekly', priority: 0.7 },
+    { loc: `${base}/about-us/`, lastmod: now, changefreq: 'monthly', priority: 0.6 },
+    { loc: `${base}/contact-us/`, lastmod: now, changefreq: 'monthly', priority: 0.6 },
+    { loc: `${base}/our-blogs/`, lastmod: now, changefreq: 'weekly', priority: 0.7 },
+    { loc: `${base}/privacy-policy/`, lastmod: now, changefreq: 'monthly', priority: 0.3 },
+    { loc: `${base}/terms-and-conditions/`, lastmod: now, changefreq: 'monthly', priority: 0.3 },
   ];
 }
 
-export async function getListingSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl = SITE_CONFIG.baseUrl;
+export async function getListingSitemapUrls(baseUrl?: string): Promise<SitemapUrl[]> {
+  const base = baseUrl || resolveBaseUrl();
   const hotels = await hotelService.getHotels();
 
   return hotels
@@ -184,7 +211,7 @@ export async function getListingSitemapUrls(): Promise<SitemapUrl[]> {
       if (!slug) return [];
       return [
         {
-          loc: `${baseUrl}/our-hotels/${slug}/`,
+          loc: `${base}/our-hotels/${slug}/`,
           lastmod: parseItemDate(h),
           changefreq: 'weekly' as const,
           priority: 0.8,
@@ -194,8 +221,8 @@ export async function getListingSitemapUrls(): Promise<SitemapUrl[]> {
     });
 }
 
-export async function getTravelPackagesSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl = SITE_CONFIG.baseUrl;
+export async function getTravelPackagesSitemapUrls(baseUrl?: string): Promise<SitemapUrl[]> {
+  const base = baseUrl || resolveBaseUrl();
   const [tours, umrahs] = await Promise.all([
     tourService.getTours(),
     umrahService.getUmrahPackages(),
@@ -208,7 +235,7 @@ export async function getTravelPackagesSitemapUrls(): Promise<SitemapUrl[]> {
       if (!slug) return [];
       return [
         {
-          loc: `${baseUrl}/tour-packages/${slug}/`,
+          loc: `${base}/tour-packages/${slug}/`,
           lastmod: parseItemDate(t),
           changefreq: 'weekly' as const,
           priority: 0.8,
@@ -224,7 +251,7 @@ export async function getTravelPackagesSitemapUrls(): Promise<SitemapUrl[]> {
       if (!slug) return [];
       return [
         {
-          loc: `${baseUrl}/umrah-packages/${slug}/`,
+          loc: `${base}/umrah-packages/${slug}/`,
           lastmod: parseItemDate(u),
           changefreq: 'weekly' as const,
           priority: 0.8,
@@ -236,8 +263,8 @@ export async function getTravelPackagesSitemapUrls(): Promise<SitemapUrl[]> {
   return [...tourUrls, ...umrahUrls];
 }
 
-export async function getPostSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl = SITE_CONFIG.baseUrl;
+export async function getPostSitemapUrls(baseUrl?: string): Promise<SitemapUrl[]> {
+  const base = baseUrl || resolveBaseUrl();
   const blogs = await blogService.getBlogs();
 
   return blogs
@@ -247,7 +274,7 @@ export async function getPostSitemapUrls(): Promise<SitemapUrl[]> {
       if (!slug) return [];
       return [
         {
-          loc: `${baseUrl}/our-blogs/${slug}/`,
+          loc: `${base}/our-blogs/${slug}/`,
           lastmod: parseItemDate(b),
           changefreq: 'monthly' as const,
           priority: 0.7,
@@ -257,8 +284,8 @@ export async function getPostSitemapUrls(): Promise<SitemapUrl[]> {
     });
 }
 
-export async function getVisaSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl = SITE_CONFIG.baseUrl;
+export async function getVisaSitemapUrls(baseUrl?: string): Promise<SitemapUrl[]> {
+  const base = baseUrl || resolveBaseUrl();
   const visas = await visaService.getVisas();
 
   return visas
@@ -268,7 +295,7 @@ export async function getVisaSitemapUrls(): Promise<SitemapUrl[]> {
       if (!slug) return [];
       return [
         {
-          loc: `${baseUrl}/visas/${slug}/`,
+          loc: `${base}/visas/${slug}/`,
           lastmod: parseItemDate(v),
           changefreq: 'weekly' as const,
           priority: 0.8,
@@ -278,15 +305,15 @@ export async function getVisaSitemapUrls(): Promise<SitemapUrl[]> {
     });
 }
 
-export async function getSitemapIndexItems(): Promise<SitemapIndexItem[]> {
-  const baseUrl = SITE_CONFIG.baseUrl;
+export async function getSitemapIndexItems(baseUrl?: string): Promise<SitemapIndexItem[]> {
+  const base = baseUrl || resolveBaseUrl();
   const now = new Date().toISOString();
 
   return [
-    { loc: `${baseUrl}/page-sitemap.xml`, lastmod: now },
-    { loc: `${baseUrl}/post-sitemap.xml`, lastmod: now },
-    { loc: `${baseUrl}/listing-sitemap.xml`, lastmod: now },
-    { loc: `${baseUrl}/travel_packages-sitemap.xml`, lastmod: now },
-    { loc: `${baseUrl}/visa-sitemap.xml`, lastmod: now },
+    { loc: `${base}/page-sitemap.xml`, lastmod: now },
+    { loc: `${base}/post-sitemap.xml`, lastmod: now },
+    { loc: `${base}/listing-sitemap.xml`, lastmod: now },
+    { loc: `${base}/travel_packages-sitemap.xml`, lastmod: now },
+    { loc: `${base}/visa-sitemap.xml`, lastmod: now },
   ];
 }

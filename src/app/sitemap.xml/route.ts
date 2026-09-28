@@ -1,10 +1,11 @@
-import { getSitemapIndexItems, buildSitemapIndexXml } from '@/lib/sitemap-builder';
+import { getSitemapIndexItems, buildSitemapIndexXml, resolveBaseUrl } from '@/lib/sitemap-builder';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Revalidate every 1 hour
+export const revalidate = 3600;
 
-export async function GET() {
-  const items = await getSitemapIndexItems();
+export async function GET(request: Request) {
+  const baseUrl = resolveBaseUrl(request);
+  const items = await getSitemapIndexItems(baseUrl);
   const xml = buildSitemapIndexXml(items);
 
   return new Response(xml, {

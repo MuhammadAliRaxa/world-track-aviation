@@ -1,10 +1,11 @@
-import { getPostSitemapUrls, buildUrlsetXml } from '@/lib/sitemap-builder';
+import { getPostSitemapUrls, buildUrlsetXml, resolveBaseUrl } from '@/lib/sitemap-builder';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
-export async function GET() {
-  const urls = await getPostSitemapUrls();
+export async function GET(request: Request) {
+  const baseUrl = resolveBaseUrl(request);
+  const urls = await getPostSitemapUrls(baseUrl);
   const xml = buildUrlsetXml(urls);
 
   return new Response(xml, {
