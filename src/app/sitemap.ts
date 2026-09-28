@@ -52,7 +52,7 @@ export default async function sitemap({
   }
 
   return urls.map((u) => ({
-    url: u.loc,
+    url: encodeURI(u.loc),
     lastModified: u.lastmod ? new Date(u.lastmod) : new Date(),
     changeFrequency: u.changefreq || 'weekly',
     priority: u.priority !== undefined ? u.priority : 0.8,

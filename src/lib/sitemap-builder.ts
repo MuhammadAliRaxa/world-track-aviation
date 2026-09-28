@@ -62,15 +62,15 @@ export function toSafeSlug(raw: unknown): string | null {
   s = s.replace(/^https?:\/\/[^/]+/i, '');
   s = s.replace(/^\/?(?:our-hotels|visas|tour-packages|umrah-packages|our-blogs|tours|blogs)\//i, '');
   s = s.replace(/^\/+|\/+$/g, '');
+
+  // Replace & with 'and' for clean SEO slugs
+  s = s.replace(/&/g, 'and');
+
+  // Replace spaces with hyphens
   s = s.replace(/\s+/g, '-');
 
-  // Encode XML-unsafe characters
-  s = s
-    .replace(/&/g, '%26')
-    .replace(/</g, '%3C')
-    .replace(/>/g, '%3E')
-    .replace(/"/g, '%22')
-    .replace(/'/g, '%27');
+  // Remove any non-alphanumeric characters except hyphens and underscores
+  s = s.replace(/[^a-zA-Z0-9\-_]/g, '');
 
   if (!s) return null;
   if (/^\d+$/.test(s)) return null;

@@ -80,7 +80,7 @@ export default async function RootLayout({
   );
 
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`} data-scroll-behavior="smooth">
+    <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
@@ -89,7 +89,7 @@ export default async function RootLayout({
         {gscCode && <meta name="google-site-verification" content={gscCode} />}
         <JsonLdScript schema={[orgSchema, websiteSchema]} />
       </head>
-      <body className="antialiased font-sans bg-white text-slate-900 min-h-screen">
+      <body className="antialiased font-sans bg-white text-slate-900 min-h-screen" suppressHydrationWarning>
         {gaId && (
           <>
             <Script
