@@ -160,16 +160,36 @@
   display: flex;
   justify-content: center;
   padding: 0 32px;
+  transition: top 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* When user has scrolled past the hero — float becomes a fixed sticky bar */
+.navbar-floating-container.navbar-scrolled {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background: rgba(10, 25, 60, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.18);
+  animation: navbarDropIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Used on non-home pages: navbar sits in normal flow below the TopBar */
 .navbar-inline-container {
-  position: relative;
-  z-index: 40;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   justify-content: center;
-  padding: 12px 32px;
-  background: transparent;
+  padding: 10px 32px;
+  background: rgba(10, 25, 60, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
 }
 
 .header-glass-pill {
@@ -187,6 +207,14 @@
   justify-content: space-between;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
   box-sizing: border-box;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Solid state when scrolled — used inside .navbar-scrolled container */
+.header-glass-pill--solid {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .header-logo-anchor {
@@ -697,5 +725,17 @@
 
   to {
     transform: translateX(0);
+  }
+}
+
+@keyframes navbarDropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

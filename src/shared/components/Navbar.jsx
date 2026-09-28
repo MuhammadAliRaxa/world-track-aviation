@@ -31,11 +31,22 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedMobileMenu, setExpandedMobileMenu] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const dropdownTimeoutRef = useRef(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Sticky scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 60);
+    };
+    handleScroll(); // run once on mount
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -120,8 +131,8 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
   };
 
   return (
-    <div className="navbar-floating-container">
-      <nav className="header-glass-pill">
+    <div className={`navbar-floating-container${scrolled ? ' navbar-scrolled' : ''}`}>
+      <nav className={`header-glass-pill${scrolled ? ' header-glass-pill--solid' : ''}`}>
         {/* Logo */}
         <Link
           href="/"
