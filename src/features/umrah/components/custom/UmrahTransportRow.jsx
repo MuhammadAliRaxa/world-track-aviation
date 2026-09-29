@@ -1,6 +1,26 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Plus, Minus } from 'lucide-react';
+import { CufSelect } from './CufSelect';
+
+const FALLBACK_SECTORS = [
+  'Jeddah Airport - Makkah Hotel',
+  'Makkah Hotel - Medina Hotel',
+  'Medina Hotel - Medina Airport',
+  'Medina Airport - Medina Hotel',
+  'Makkah Hotel - Jeddah Airport',
+  'Makkah Ziarat',
+  'Medina Ziarat',
+];
+
+const FALLBACK_VEHICLES = [
+  'SEDAN (4 Person)',
+  'STARIA (7 Person)',
+  'HIACE (10 Person)',
+  'COASTER (22 Person)',
+  'BUS (45 Person)',
+];
 
 export function UmrahTransportRow({
   transport,
@@ -9,81 +29,98 @@ export function UmrahTransportRow({
   onUpdate,
   onAdd,
   onRemove,
+  transportLookups = {},
 }) {
+  const [open, setOpen] = useState(null);
+  const toggle = (key) => setOpen((c) => (c === key ? null : key));
+  const close = () => setOpen(null);
+
+  // Sector Options from API routes
+  const sectorOptions =
+    transportLookups?.routes && transportLookups.routes.length > 0
+      ? transportLookups.routes.map((r) => ({
+          value: r.route,
+          label: r.route,
+          id: r.id,
+        }))
+      : FALLBACK_SECTORS.map((s) => ({ value: s, label: s }));
+
+  // Find matching route for vehicle options with prices
+  const matchedRoute = (transportLookups?.routes || []).find(
+    (r) => r.route === transport.sector
+  );
+
+  const vehicleOptions =
+    matchedRoute && matchedRoute.vehicles && matchedRoute.vehicles.length > 0
+      ? matchedRoute.vehicles.map((v) => ({
+          value: v.vehicleType,
+          label: `${v.vehicleType} (${v.capacity} Person)${v.priceFormatted ? ` • ${v.priceFormatted}` : ''}`,
+        }))
+      : transportLookups?.vehicleTypes && transportLookups.vehicleTypes.length > 0
+      ? transportLookups.vehicleTypes.map((vt) => ({
+          value: vt.name,
+          label: `${vt.name} (${vt.capacity} Person)`,
+        }))
+      : FALLBACK_VEHICLES.map((v) => ({ value: v, label: v }));
+
   return (
-    <div className="umrah-section-block">
-      <h3 className="umrah-section-title">
-        Add Transport
-      </h3>
+    <div className="cuf-section">
+      <h3 className="cuf-section-title">Transport Details</h3>
+      <div className="cuf-transport-grid">
+        {/* Sector from /transport/list API */}
+        <CufSelect
+          label="Transport Sector"
+          value={transport.sector}
+          placeholder="Select sector"
+          options={sectorOptions}
+          onChange={(val) => {
+            onUpdate(transport.id, 'sector', val);
+            onUpdate(transport.id, 'vehicleType', '');
+          }}
+          isOpen={open === 'sector'}
+          onToggle={() => toggle('sector')}
+          onClose={close}
+          searchable={true}
+          searchPlaceholder="Search sector..."
+        />
 
-      <div className="umrah-transport-grid">
-        {/* Sector */}
-        <div className="umrah-field-group">
-          <label className="umrah-field-label">
-            Transport Sector
-          </label>
-          <select
-            value={transport.sector}
-            onChange={(e) => onUpdate(transport.id, 'sector', e.target.value)}
-            className="umrah-field-select"
-          >
-            <option value="Jed Apt - Mak Htl">Jed Apt - Mak Htl</option>
-            <option value="Mak Htl - Med Htl">Mak Htl - Med Htl</option>
-            <option value="Med Htl - Jed Apt">Med Htl - Jed Apt</option>
-            <option value="Med Apt - Med Htl">Med Apt - Med Htl</option>
-          </select>
-        </div>
+        {/* Vehicle Type from /transport/list API (with live capacity and rates) */}
+        <CufSelect
+          label="Vehicle Type"
+          value={transport.vehicleType}
+          placeholder="Select vehicle"
+          options={vehicleOptions}
+          onChange={(val) => onUpdate(transport.id, 'vehicleType', val)}
+          isOpen={open === 'vehicle'}
+          onToggle={() => toggle('vehicle')}
+          onClose={close}
+        />
 
-        {/* Vehicle Type */}
-        <div className="umrah-field-group">
-          <label className="umrah-field-label">
-            Vehicle Type
-          </label>
-          <select
-            value={transport.vehicleType}
-            onChange={(e) => onUpdate(transport.id, 'vehicleType', e.target.value)}
-            className="umrah-field-select"
-          >
-            <option value="GMC 5-7 Person">GMC 5-7 Person</option>
-            <option value="Hyundai H1 7 Person">Hyundai H1 7 Person</option>
-            <option value="Coaster 20 Person">Coaster 20 Person</option>
-            <option value="Bus 45 Person">Bus 45 Person</option>
-          </select>
-        </div>
-
-        {/* Action Button */}
-        <div>
-          {index === 0 && totalTransports > 1 ? (
+        {/* Buttons */}
+        <div className="cuf-field cuf-field--btns">
+          <label className="cuf-label">&nbsp;</label>
+          <div className="cuf-icon-btn-row">
             <button
               type="button"
-              onClick={() => onRemove(transport.id)}
-              className="umrah-btn-remove"
-              style={{ width: '100%' }}
+              onClick={() => totalTransports > 1 && onRemove(transport.id)}
+              className="cuf-icon-btn cuf-icon-btn--red"
+              style={{
+                opacity: totalTransports > 1 ? 1 : 0.85,
+                cursor: totalTransports > 1 ? 'pointer' : 'default',
+              }}
+              title="Remove transport"
             >
-              Remove
+              <Minus size={15} strokeWidth={2.5} />
             </button>
-          ) : index === totalTransports - 1 ? (
-            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-              {totalTransports > 1 && (
-                <button
-                  type="button"
-                  onClick={() => onRemove(transport.id)}
-                  className="umrah-btn-remove"
-                  style={{ flex: 1 }}
-                >
-                  Remove
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={onAdd}
-                className="umrah-btn-add"
-                style={{ flex: 1 }}
-              >
-                Add Transport
-              </button>
-            </div>
-          ) : null}
+            <button
+              type="button"
+              onClick={onAdd}
+              className="cuf-icon-btn cuf-icon-btn--blue"
+              title="Add transport"
+            >
+              <Plus size={15} strokeWidth={2.5} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

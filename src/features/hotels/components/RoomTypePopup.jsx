@@ -15,23 +15,24 @@ export function RoomTypePopup({
   onClose,
   counts = { Double: 0, Triple: 0, Quad: 0, Quint: 0 },
   onUpdateCount,
+  roomTypes = ['Double', 'Triple', 'Quad', 'Quint'],
 }) {
   if (!isOpen) return null;
 
-  const ROOM_TYPES = ['Double', 'Triple', 'Quad', 'Quint'];
+  const ROOM_TYPES = Array.isArray(roomTypes) && roomTypes.length > 0 ? roomTypes : ['Double', 'Triple', 'Quad', 'Quint'];
 
   return (
     <div
       style={{
         position: 'absolute',
         top: 'calc(100% + 6px)',
-        left: 0,
         right: 0,
+        minWidth: '240px',
         backgroundColor: '#ffffff',
-        borderRadius: '20px',
-        padding: '20px 22px 18px 22px',
+        borderRadius: '16px',
+        padding: '18px 20px',
         boxShadow: '0 16px 36px -6px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06)',
-        zIndex: 60,
+        zIndex: 1200,
       }}
     >
       {ROOM_TYPES.map((room) => {
