@@ -107,9 +107,11 @@ export function CustomUmrahPage({
     vehicleTypes: [],
   });
 
-  // Visa API lookups (sharing transport visa rate & rate of exchange ROE)
+  // Visa API lookups (sharing transport, private transport, infant visa rates & rate of exchange ROE)
   const [visaApiData, setVisaApiData] = useState({
-    sharingRateSar: 550,
+    sharingRateSar: 126,
+    privateRateSar: 550,
+    infantRateSar: 244,
     roe: 78,
   });
 
@@ -224,17 +226,30 @@ export function CustomUmrahPage({
         });
       }
 
-      // Extract sharing transport visa rate & exchange rate (ROE) from /calculator/visa/type API
+      // Extract sharing, private & infant visa rates & exchange rate (ROE) from /calculator/visa/type API
       if (visaRes.status === 'fulfilled' && visaRes.value) {
         const vData = visaRes.value;
         const items = Array.isArray(vData?.data) ? vData.data : [];
         const roe = Number(vData?.roe) || 78;
+
         const sharingItem = items.find(
-          (i) => i.id === 2 || (i.visa_type && i.visa_type.toLowerCase().includes('transport'))
+          (i) => (i.visa_type && i.visa_type.toLowerCase().includes('sharing')) || i.id === 1
         );
-        const sharingRate = Number(sharingItem?.visa_rates?.selling_price) || 550;
+        const privateItem = items.find(
+          (i) => (i.visa_type && i.visa_type.toLowerCase().includes('private')) || i.id === 2
+        );
+        const infantItem = items.find(
+          (i) => (i.visa_type && i.visa_type.toLowerCase().includes('infant')) || i.id === 4
+        );
+
+        const sharingRate = Number(sharingItem?.price) || Number(sharingItem?.visa_rates?.selling_price) || 126;
+        const privateRate = Number(privateItem?.price) || Number(privateItem?.visa_rates?.selling_price) || 550;
+        const infantRate = Number(infantItem?.price) || Number(infantItem?.visa_rates?.selling_price) || 244;
+
         setVisaApiData({
           sharingRateSar: sharingRate,
+          privateRateSar: privateRate,
+          infantRateSar: infantRate,
           roe,
         });
       }
@@ -534,15 +549,21 @@ export function CustomUmrahPage({
     });
 
 
-    // 2. Visa Estimate — Live API for Sharing Transport; Private Transport has no visa transport markup
-    let visaTotal = 0;
-    let perPaxSharingFee = 0;
+    // 2. Visa Estimate
+    // - Adults & Children: charged based on selected visa type (Sharing = 126 SAR, Private = 550 SAR)
+    // - Infants: automatically charged infant visa price (244 SAR) if traveling; not shown in dropdown
+    let adultChildVisaRate = 0;
     if (isSharing) {
-      perPaxSharingFee = Math.round(visaApiData.sharingRateSar * roe);
-      visaTotal = (adultsCount + childrenCount + infantsCount) * perPaxSharingFee;
-    } else {
-      visaTotal = 0;
+      adultChildVisaRate = Math.round((visaApiData.sharingRateSar || 126) * roe);
+    } else if (isPrivate) {
+      adultChildVisaRate = Math.round((visaApiData.privateRateSar || 550) * roe);
     }
+
+    const infantVisaRate = Math.round((visaApiData.infantRateSar || 244) * roe);
+
+    const adultChildVisaTotal = (adultsCount + childrenCount) * adultChildVisaRate;
+    const infantVisaTotal = infantsCount > 0 ? (infantsCount * infantVisaRate) : 0;
+    const visaTotal = adultChildVisaTotal + infantVisaTotal;
 
     // 3. Transport Estimate — Fixed Vehicle Price per route from API rates (NOT applied to children/infants)
     let transportTotal = 0;
@@ -591,16 +612,16 @@ export function CustomUmrahPage({
       : 0;
 
     const perAdult = adultsCount > 0
-      ? (hotelAndTransPerAdult + perPaxSharingFee + adultTicketRate)
+      ? (hotelAndTransPerAdult + adultChildVisaRate + adultTicketRate)
       : 0;
 
     // Children & infants: no hotel share, no transport share, ticket is 20,000 less than adult
     const perChild = childrenCount > 0
-      ? (perPaxSharingFee + childTicketRate)
+      ? (adultChildVisaRate + childTicketRate)
       : 0;
 
     const perInfant = infantsCount > 0
-      ? (perPaxSharingFee + infantTicketRate)
+      ? (infantVisaRate + infantTicketRate)
       : 0;
 
     // ── Console Rate Breakdown ──────────────────────────────────────────────
@@ -681,21 +702,19 @@ export function CustomUmrahPage({
     console.groupEnd();
 
     console.group('%c🛂 Visa', 'color:#166534;font-weight:700;');
-    if (visaType === 'Visa with Sharing Transport') {
-      const perPaxSharingFee = Math.round(visaApiData.sharingRateSar * roe);
-      console.table({
-        'Visa Type'              : visaType,
-        'API Rate (SAR)'         : visaApiData.sharingRateSar,
-        'ROE'                    : roe,
-        'Per-Pax Fee (PKR)'      : perPaxSharingFee.toLocaleString(),
-        'Total Pax'              : paxNum,
-        'Visa Total (PKR)'       : visaTotal.toLocaleString(),
-      });
-    } else if (visaType === 'Visa with Private Transport') {
-      console.log('Visa with Private Transport → Visa cost = PKR 0 (transport billed separately)');
-    } else {
-      console.log('No visa type selected → Visa cost = PKR 0');
-    }
+    console.table({
+      'Visa Type'              : activeVisaType || 'Not selected',
+      'Adult/Child Rate (SAR)' : isSharing ? visaApiData.sharingRateSar : (isPrivate ? visaApiData.privateRateSar : 0),
+      'Infant Rate (SAR)'      : visaApiData.infantRateSar,
+      'ROE'                    : roe,
+      'Adult/Child Fee (PKR)'  : adultChildVisaRate.toLocaleString(),
+      'Infant Fee (PKR)'       : infantVisaRate.toLocaleString(),
+      'Adults + Children'      : adultsCount + childrenCount,
+      'Infants'                : infantsCount,
+      'Adult/Child Visa (PKR)' : adultChildVisaTotal.toLocaleString(),
+      'Infant Visa (PKR)'      : infantVisaTotal.toLocaleString(),
+      'Total Visa (PKR)'       : visaTotal.toLocaleString(),
+    });
     console.log(`%c  Visa Total: PKR ${visaTotal.toLocaleString()}`, 'font-weight:800;color:#166534;font-size:12px;');
     console.groupEnd();
 

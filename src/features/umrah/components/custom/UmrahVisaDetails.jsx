@@ -3,13 +3,23 @@
 import React, { useState } from 'react';
 import { CufSelect } from './CufSelect';
 
-const VISA_TYPES = [
-  'Visa with Private Transport',
+const DEFAULT_VISA_TYPES = [
   'Visa with Sharing Transport',
+  'Visa with Private Transport',
 ];
 
-export function UmrahVisaDetails({ visaType, setVisaType, error, onClearError }) {
+export function UmrahVisaDetails({
+  visaType,
+  setVisaType,
+  error,
+  onClearError,
+  options = DEFAULT_VISA_TYPES,
+}) {
   const [isOpen, setIsOpen] = useState(false);
+  // Ensure only the first two options are shown and infant visa is never displayed
+  const visibleOptions = (options || DEFAULT_VISA_TYPES)
+    .filter((opt) => !String(opt).toLowerCase().includes('infant'))
+    .slice(0, 2);
 
   return (
     <div className="cuf-section">
@@ -20,7 +30,7 @@ export function UmrahVisaDetails({ visaType, setVisaType, error, onClearError })
           required={true}
           value={visaType}
           placeholder="Select type"
-          options={VISA_TYPES}
+          options={visibleOptions}
           onChange={(val) => {
             setVisaType(val);
             onClearError?.('visaType');
