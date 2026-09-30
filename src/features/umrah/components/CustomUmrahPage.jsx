@@ -1122,6 +1122,8 @@ export function CustomUmrahPage({
               setVisaType={handleVisaTypeChange}
               error={fieldErrors.visaType}
               onClearError={clearFieldError}
+              sharingRateSar={visaApiData.sharingRateSar}
+              privateRateSar={visaApiData.privateRateSar}
             />
 
             {/* ── HOTELS SECTION ── */}

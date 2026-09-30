@@ -13,13 +13,21 @@ export function UmrahVisaDetails({
   setVisaType,
   error,
   onClearError,
-  options = DEFAULT_VISA_TYPES,
+  sharingRateSar = 126,
+  privateRateSar = 550,
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  // Ensure only the first two options are shown and infant visa is never displayed
-  const visibleOptions = (options || DEFAULT_VISA_TYPES)
-    .filter((opt) => !String(opt).toLowerCase().includes('infant'))
-    .slice(0, 2);
+
+  const options = [
+    {
+      value: 'Visa with Sharing Transport',
+      label: `Visa with Sharing Transport — SAR ${sharingRateSar}`,
+    },
+    {
+      value: 'Visa with Private Transport',
+      label: `Visa with Private Transport — SAR ${privateRateSar}`,
+    },
+  ];
 
   return (
     <div className="cuf-section">
@@ -30,7 +38,7 @@ export function UmrahVisaDetails({
           required={true}
           value={visaType}
           placeholder="Select type"
-          options={visibleOptions}
+          options={options}
           onChange={(val) => {
             setVisaType(val);
             onClearError?.('visaType');
