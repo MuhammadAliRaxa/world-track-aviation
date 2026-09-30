@@ -30,6 +30,8 @@ export function UmrahTransportRow({
   onAdd,
   onRemove,
   transportLookups = {},
+  errors = {},
+  onClearError,
 }) {
   const [open, setOpen] = useState(null);
   const toggle = (key) => setOpen((c) => (c === key ? null : key));
@@ -75,10 +77,12 @@ export function UmrahTransportRow({
       sector: val,
       vehicleType: '',
     });
+    onClearError?.(`transport_${transport.id}_sector`);
   };
 
   const handleVehicleChange = (val) => {
     onUpdate(transport.id, 'vehicleType', val);
+    onClearError?.(`transport_${transport.id}_vehicle`);
   };
 
   return (
@@ -88,10 +92,12 @@ export function UmrahTransportRow({
         {/* Sector from /transport/list API */}
         <CufSelect
           label="Transport Sector"
+          required={true}
           value={transport.sector}
           placeholder="Select sector"
           options={sectorOptions}
           onChange={handleSectorChange}
+          error={errors[`transport_${transport.id}_sector`]}
           isOpen={open === 'sector'}
           onToggle={() => toggle('sector')}
           onClose={close}
@@ -102,10 +108,12 @@ export function UmrahTransportRow({
         {/* Vehicle Type from /transport/list API (with live capacity and rates) */}
         <CufSelect
           label="Vehicle Type"
+          required={true}
           value={transport.vehicleType}
           placeholder="Select vehicle"
           options={vehicleOptions}
           onChange={handleVehicleChange}
+          error={errors[`transport_${transport.id}_vehicle`]}
           isOpen={open === 'vehicle'}
           onToggle={() => toggle('vehicle')}
           onClose={close}

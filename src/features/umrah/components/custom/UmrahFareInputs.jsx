@@ -54,6 +54,8 @@ export function UmrahFareInputs({
   setSector,
   ticketLookups = {},
   allTickets = [],   // full raw ticket list from API
+  errors = {},
+  onClearError,
 }) {
   const [open, setOpen] = useState(null);
   const toggle = (key) => setOpen((c) => (c === key ? null : key));
@@ -190,10 +192,15 @@ export function UmrahFareInputs({
         {/* 1 — Sector */}
         <CufSelect
           label="Sector"
+          required={true}
           value={sector}
           placeholder="Select Sector"
           options={sectorOptions}
-          onChange={handleSectorChange}
+          onChange={(val) => {
+            handleSectorChange(val);
+            onClearError?.('ticketSector');
+          }}
+          error={errors.ticketSector}
           isOpen={open === 'sector'}
           onToggle={() => toggle('sector')}
           onClose={close}
@@ -202,10 +209,15 @@ export function UmrahFareInputs({
         {/* 2 — Departure Date (available only after sector is selected) */}
         <CufSelect
           label={dateLabel}
+          required={true}
           value={departure}
           placeholder={datePlaceholder}
           options={departureOptions}
-          onChange={handleDepartureChange}
+          onChange={(val) => {
+            handleDepartureChange(val);
+            onClearError?.('ticketDeparture');
+          }}
+          error={errors.ticketDeparture}
           isOpen={!dateDisabled && open === 'departure'}
           onToggle={() => !dateDisabled && toggle('departure')}
           onClose={close}
@@ -215,10 +227,15 @@ export function UmrahFareInputs({
         {/* 3 — Airline (available only after departure date is selected) */}
         <CufSelect
           label={airlineLabel}
+          required={true}
           value={airline}
           placeholder={airlinePlaceholder}
           options={airlineOptions}
-          onChange={setAirline}
+          onChange={(val) => {
+            setAirline(val);
+            onClearError?.('ticketAirline');
+          }}
+          error={errors.ticketAirline}
           alignRight
           isOpen={!airlineDisabled && open === 'airline'}
           onToggle={() => !airlineDisabled && toggle('airline')}

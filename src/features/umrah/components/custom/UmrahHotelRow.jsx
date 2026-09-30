@@ -23,6 +23,8 @@ export function UmrahHotelRow({
   onRemove,
   hotelLookups,
   adultCount = 1,
+  errors = {},
+  onClearError,
 }) {
   const [open, setOpen] = useState(null);
   const roomTypeWrapRef = useRef(null);
@@ -151,6 +153,10 @@ export function UmrahHotelRow({
       roomCounts: {},
       availableRoomTypes: [],
     });
+    onClearError?.(`hotel_${hotel.id}_name`);
+    onClearError?.(`hotel_${hotel.id}_rooms`);
+    onClearError?.(`hotel_${hotel.id}_checkIn`);
+    onClearError?.(`hotel_${hotel.id}_checkOut`);
   };
 
   // Fetch hotel details & real room rates from GET /hotel/{id} API
@@ -278,6 +284,7 @@ export function UmrahHotelRow({
         {/* 1. Location (from API lookups) */}
         <CufSelect
           label="Location"
+          required={true}
           value={hotel.location}
           placeholder="Select city"
           options={locationOptions}
@@ -289,33 +296,54 @@ export function UmrahHotelRow({
 
         {/* 2. Check In */}
         <div className="cuf-field">
-          <label className="cuf-label">Check In</label>
+          <label className="cuf-label">
+            Check In <span className="cuf-label-req">*</span>
+          </label>
           <input
             type="date"
-            className="cuf-input"
+            className={`cuf-input ${errors[`hotel_${hotel.id}_checkIn`] ? 'cuf-input--error' : ''}`}
             value={hotel.checkIn}
-            onChange={(e) => onUpdate(hotel.id, 'checkIn', e.target.value)}
+            onChange={(e) => {
+              onUpdate(hotel.id, 'checkIn', e.target.value);
+              onClearError?.(`hotel_${hotel.id}_checkIn`);
+            }}
           />
+          {errors[`hotel_${hotel.id}_checkIn`] && (
+            <span className="cuf-field-error-text">{errors[`hotel_${hotel.id}_checkIn`]}</span>
+          )}
         </div>
 
         {/* 3. Check Out */}
         <div className="cuf-field">
-          <label className="cuf-label">Check Out</label>
+          <label className="cuf-label">
+            Check Out <span className="cuf-label-req">*</span>
+          </label>
           <input
             type="date"
-            className="cuf-input"
+            className={`cuf-input ${errors[`hotel_${hotel.id}_checkOut`] ? 'cuf-input--error' : ''}`}
             value={hotel.checkOut}
-            onChange={(e) => onUpdate(hotel.id, 'checkOut', e.target.value)}
+            onChange={(e) => {
+              onUpdate(hotel.id, 'checkOut', e.target.value);
+              onClearError?.(`hotel_${hotel.id}_checkOut`);
+            }}
           />
+          {errors[`hotel_${hotel.id}_checkOut`] && (
+            <span className="cuf-field-error-text">{errors[`hotel_${hotel.id}_checkOut`]}</span>
+          )}
         </div>
 
         {/* 4. Hotel Name */}
         <CufSelect
           label="Hotel name"
+          required={true}
           value={hotel.hotelName}
           placeholder="Select Hotel"
           options={hotelOptions}
-          onChange={handleHotelSelect}
+          onChange={(val) => {
+            handleHotelSelect(val);
+            onClearError?.(`hotel_${hotel.id}_name`);
+          }}
+          error={errors[`hotel_${hotel.id}_name`]}
           isOpen={open === 'hotelName'}
           onToggle={() => toggle('hotelName')}
           onClose={close}
@@ -326,13 +354,19 @@ export function UmrahHotelRow({
 
         {/* 5. Select Room Type (Filtered strictly by API for selected hotel) */}
         <div className="cuf-field" ref={roomTypeWrapRef} style={{ position: 'relative' }}>
-          <label className="cuf-label">Select Room Type</label>
+          <label className="cuf-label">
+            Select Room Type <span className="cuf-label-req">*</span>
+          </label>
           <div className="cuf-inline-row">
             <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
               <button
                 type="button"
                 className={`cuf-custom-select-trigger ${open === 'roomType' ? 'cuf-custom-select-trigger--open' : ''} ${
-                  isUnderCapacity ? 'cuf-trigger--warning' : ''
+                  errors[`hotel_${hotel.id}_rooms`]
+                    ? 'cuf-custom-select-trigger--error'
+                    : isUnderCapacity
+                    ? 'cuf-trigger--warning'
+                    : ''
                 }`}
                 onClick={() => toggle('roomType')}
                 aria-expanded={open === 'roomType'}
@@ -356,12 +390,18 @@ export function UmrahHotelRow({
                 isOpen={open === 'roomType'}
                 onClose={close}
                 counts={roomCounts}
-                onUpdateCount={handleUpdateRoomCount}
+                onUpdateCount={(rType, delta) => {
+                  handleUpdateRoomCount(rType, delta);
+                  onClearError?.(`hotel_${hotel.id}_rooms`);
+                }}
                 roomTypes={availableRoomTypes}
                 adultCount={adultCount}
                 hotelName={hotel.hotelName}
                 isLoading={isLoadingRoomTypes}
               />
+              {errors[`hotel_${hotel.id}_rooms`] && (
+                <span className="cuf-field-error-text">{errors[`hotel_${hotel.id}_rooms`]}</span>
+              )}
             </div>
 
             <button

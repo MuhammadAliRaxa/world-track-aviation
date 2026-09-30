@@ -267,18 +267,20 @@ function buildQuotationHtml(data) {
   }
 
   /* Transport rows */
+  /* Transport rows */
   let transportRows = [];
-  if (transports && transports.length > 0 && transports[0].sector) {
+  const isSharing = (visaType || '').toLowerCase().includes('sharing');
+  if (!isSharing && transports && transports.length > 0 && transports[0].sector) {
     transports.forEach((t, i) => {
       transportRows.push({
-        vehicle: i === 0 ? (t.vehicleType || 'By Bus') : '',
+        vehicle: i === 0 ? (t.vehicleType || 'Private Vehicle') : '',
         qty: '01',
         route: t.sector,
         totalPax: pad2(totalPax),
       });
     });
   } else {
-    // Standard Umrah 4-leg route as in reference image
+    // Standard Umrah 4-leg route as in reference image (By Bus for Sharing Transport)
     const standardRoutes = [
       'Jeddah – Makkah',
       'Makkah – Medinah',
@@ -301,9 +303,15 @@ function buildQuotationHtml(data) {
   const finalGrandTotal = grandTotal > 0 ? grandTotal : (children > 0 ? 1576400 : 250698);
 
   const effectivePax = (adults + (children > 0 ? children * 0.7 : 0)) || 1;
-  const perAdult = adults > 0 ? Math.round(finalGrandTotal / effectivePax) : finalGrandTotal;
-  const perChild = children > 0 ? Math.round(perAdult * 0.7) : 0;
-  const perInfant = 0;
+  const perAdult = calculatedResult?.perAdult !== undefined
+    ? calculatedResult.perAdult
+    : (adults > 0 ? Math.round(finalGrandTotal / effectivePax) : finalGrandTotal);
+  const perChild = calculatedResult?.perChild !== undefined
+    ? calculatedResult.perChild
+    : (children > 0 ? Math.round(perAdult * 0.7) : 0);
+  const perInfant = calculatedResult?.perInfant !== undefined
+    ? calculatedResult.perInfant
+    : 0;
 
   const visaBadgeText = visaType || 'Visa With Transport';
 

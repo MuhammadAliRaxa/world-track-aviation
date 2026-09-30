@@ -15,7 +15,7 @@ import { hotelService } from '../../../services/hotel.service';
 import { flightService } from '../../../services/flight.service';
 import { transportService } from '../../../services/transport.service';
 import { visaService } from '../../../services/visa.service';
-import { validateHotelsCapacity } from '../utils/roomCapacity';
+import { validateHotelsCapacity, calculateTotalBeds } from '../utils/roomCapacity';
 
 export function CustomUmrahPage({
   h1 = 'Custom Umrah Package',
@@ -27,6 +27,7 @@ export function CustomUmrahPage({
   const [pax, setPax] = useState('1 Adult');
   const [duration, setDuration] = useState('');
   const [validationError, setValidationError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   // Extract adults count from pax string (e.g. "5 Adults, 1 Child" -> 5)
   const adultMatch = (String(pax).match(/(\d+)\s*adult/i) || [])[1];
@@ -378,6 +379,17 @@ export function CustomUmrahPage({
         return updated;
       })
     );
+
+    const updates =
+      typeof fieldOrObject === 'object' && fieldOrObject !== null
+        ? fieldOrObject
+        : { [fieldOrObject]: value };
+    if (updates.hotelName) clearFieldError(`hotel_${id}_name`);
+    if (updates.checkIn) clearFieldError(`hotel_${id}_checkIn`);
+    if (updates.checkOut) clearFieldError(`hotel_${id}_checkOut`);
+    if (updates.roomCounts && calculateTotalBeds(updates.roomCounts) >= adultCount) {
+      clearFieldError(`hotel_${id}_rooms`);
+    }
   };
 
   // Add Transport Handler
@@ -425,7 +437,11 @@ export function CustomUmrahPage({
   };
 
   // Calculate Package Cost
-  const computePackageCalculation = () => {
+  const computePackageCalculation = (overrideVisaType = null) => {
+    const activeVisaType = overrideVisaType !== null ? overrideVisaType : visaType;
+    const isSharing = (activeVisaType || '').toLowerCase().includes('sharing');
+    const isPrivate = (activeVisaType || '').toLowerCase().includes('private');
+
     const paxNum = parsePaxCount(pax);
     const roe = visaApiData.roe || 78;
 
@@ -521,16 +537,16 @@ export function CustomUmrahPage({
     // 2. Visa Estimate — Live API for Sharing Transport; Private Transport has no visa transport markup
     let visaTotal = 0;
     let perPaxSharingFee = 0;
-    if (visaType === 'Visa with Sharing Transport') {
+    if (isSharing) {
       perPaxSharingFee = Math.round(visaApiData.sharingRateSar * roe);
       visaTotal = (adultsCount + childrenCount + infantsCount) * perPaxSharingFee;
-    } else if (visaType === 'Visa with Private Transport') {
+    } else {
       visaTotal = 0;
     }
 
     // 3. Transport Estimate — Fixed Vehicle Price per route from API rates (NOT applied to children/infants)
     let transportTotal = 0;
-    if (visaType === 'Visa with Private Transport') {
+    if (isPrivate) {
       transports.forEach((t) => {
         const matchedRoute = (transportLookups?.routes || []).find((r) => r.route === t.sector);
         const matchedVehicle = matchedRoute?.vehicles?.find((v) => v.vehicleType === t.vehicleType);
@@ -748,13 +764,16 @@ export function CustomUmrahPage({
       visaTotal,
       ticketTotal,
       grandTotal,
+      perAdult,
+      perChild,
+      perInfant,
       nightsCount: totalNights,
       pax,
       paxNum,
       duration: duration || `${totalNights} Days`,
-      visaType: visaType || 'Not Selected',
+      visaType: activeVisaType || 'Not Selected',
       transportSummary:
-        visaType === 'Visa with Sharing Transport'
+        isSharing
           ? 'Included in Visa (Sharing Transport)'
           : `${transports.length} Private Vehicle${transports.length > 1 ? 's' : ''}`,
       hotels: hotels.map((h) => ({
@@ -763,31 +782,189 @@ export function CustomUmrahPage({
         nights: h.nights || 3,
         roomType: h.roomType || 'Standard Room',
       })),
-      transports: transports.map((t) => ({
-        sector: t.sector || 'Sector',
-        vehicleType: t.vehicleType || 'Vehicle',
-      })),
+      transports: isSharing
+        ? []
+        : transports.map((t) => ({
+            sector: t.sector || 'Sector',
+            vehicleType: t.vehicleType || 'Vehicle',
+          })),
       ticketSummary: !isCustomDays && departure && airline ? `${airline} (${departure})` : 'Not Included',
+    };
+  };
+
+  // Clear specific field error
+  const clearFieldError = (key) => {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  // Comprehensive validation across all required fields
+  const validateAllFormFields = () => {
+    const errors = {};
+    const missingLabels = [];
+
+    // 1. Personal Details
+    if (!fullName || !fullName.trim()) {
+      errors.fullName = 'Full Name is required';
+      missingLabels.push('Full Name');
+    }
+
+    if (!phone || !phone.trim()) {
+      errors.phone = 'Contact number is required';
+      missingLabels.push('Contact Number');
+    } else {
+      const cleanPhone = phone.replace(/[^0-9+]/g, '');
+      if (cleanPhone.length < 7) {
+        errors.phone = 'Please enter a valid phone number (at least 7 digits)';
+        missingLabels.push('Valid Contact Number');
+      }
+    }
+
+    if (!duration || !duration.trim()) {
+      errors.duration = 'Umrah Duration is required';
+      missingLabels.push('Umrah Duration');
+    }
+
+    // 2. Visa Details
+    if (!visaType || !visaType.trim()) {
+      errors.visaType = 'Please select a Visa Type';
+      missingLabels.push('Visa Type');
+    }
+
+    // 3. Hotels
+    if (!hotels || hotels.length === 0) {
+      errors.generalHotels = 'At least one hotel stay is required';
+      missingLabels.push('Hotel Stay');
+    } else {
+      hotels.forEach((h, idx) => {
+        const cityLabel = h.location || `Hotel #${idx + 1}`;
+
+        // Hotel name
+        if (!h.hotelName || !h.hotelName.trim()) {
+          errors[`hotel_${h.id}_name`] = 'Select hotel';
+          missingLabels.push(`Hotel in ${cityLabel}`);
+        }
+
+        // Check In / Check Out dates
+        if (!h.checkIn) {
+          errors[`hotel_${h.id}_checkIn`] = 'Select date';
+          missingLabels.push(`Check-in for ${cityLabel}`);
+        }
+        if (!h.checkOut) {
+          errors[`hotel_${h.id}_checkOut`] = 'Select date';
+          missingLabels.push(`Check-out for ${cityLabel}`);
+        } else if (h.checkIn && Number(h.nights) <= 0) {
+          errors[`hotel_${h.id}_checkOut`] = 'Invalid checkout';
+          missingLabels.push(`Valid date range for ${cityLabel}`);
+        }
+
+        // Room allocation & adult bed capacity
+        const beds = calculateTotalBeds(h.roomCounts);
+        if (!h.hotelName || !h.hotelName.trim()) {
+          errors[`hotel_${h.id}_rooms`] = 'Select hotel first';
+        } else if (beds === 0) {
+          errors[`hotel_${h.id}_rooms`] = 'Select room type';
+          missingLabels.push(`Room Type for ${cityLabel}`);
+        } else if (beds < adultCount) {
+          const diff = adultCount - beds;
+          errors[`hotel_${h.id}_rooms`] = `Need ${diff} more bed${diff > 1 ? 's' : ''}`;
+          missingLabels.push(`Room capacity for ${cityLabel} (need ${diff} more bed${diff > 1 ? 's' : ''})`);
+        }
+      });
+    }
+
+    // 4. Transport (if Visa with Private Transport)
+    if (visaType === 'Visa with Private Transport') {
+      if (!transports || transports.length === 0) {
+        errors.transports = 'At least one transport route is required';
+        missingLabels.push('Private Transport Route');
+      } else {
+        transports.forEach((t, idx) => {
+          if (!t.sector || !t.sector.trim()) {
+            errors[`transport_${t.id}_sector`] = 'Select route sector';
+            missingLabels.push(`Transport Sector #${idx + 1}`);
+          }
+          if (!t.vehicleType || !t.vehicleType.trim()) {
+            errors[`transport_${t.id}_vehicle`] = 'Select vehicle';
+            missingLabels.push(`Vehicle Type #${idx + 1}`);
+          }
+        });
+      }
+    }
+
+    // 5. Flight / Ticket (if standard duration is chosen)
+    const isCustomDays = duration && !durationOptions.includes(duration);
+    if (duration && !isCustomDays) {
+      if (!sector || !sector.trim()) {
+        errors.ticketSector = 'Select flight sector';
+        missingLabels.push('Flight Sector');
+      }
+      if (!departure || !departure.trim()) {
+        errors.ticketDeparture = 'Select departure date';
+        missingLabels.push('Flight Departure Date');
+      }
+      if (!airline || !airline.trim()) {
+        errors.ticketAirline = 'Select airline';
+        missingLabels.push('Flight Airline');
+      }
+    }
+
+    const isValid = Object.keys(errors).length === 0;
+    let summaryMessage = '';
+    if (!isValid) {
+      if (missingLabels.length <= 2) {
+        summaryMessage = `Please complete all required fields: ${missingLabels.join(', ')}.`;
+      } else {
+        summaryMessage = `Please complete all required fields (${missingLabels.length} missing: ${missingLabels.slice(0, 3).join(', ')}...).`;
+      }
+    }
+
+    return {
+      isValid,
+      errors,
+      summaryMessage,
     };
   };
 
   // Auto-clear validation error if room adjustments fix capacity
   useEffect(() => {
-    if (validationError) {
-      const check = validateHotelsCapacity(hotels, adultCount);
-      if (check.isValid) setValidationError('');
-    }
+    hotels.forEach((h) => {
+      if (h.hotelName) {
+        const beds = calculateTotalBeds(h.roomCounts);
+        if (beds >= adultCount && fieldErrors[`hotel_${h.id}_rooms`]) {
+          clearFieldError(`hotel_${h.id}_rooms`);
+        }
+      }
+    });
   }, [hotels, adultCount]);
+
+  // Auto-clear overall validation banner when all field errors are resolved
+  useEffect(() => {
+    if (validationError && Object.keys(fieldErrors).length === 0) {
+      setValidationError('');
+    }
+  }, [fieldErrors, validationError]);
 
   // Handle Calculate Package submit
   const handleCalculatePackage = (e) => {
     if (e?.preventDefault) e.preventDefault();
 
-    const check = validateHotelsCapacity(hotels, adultCount);
+    const check = validateAllFormFields();
     if (!check.isValid) {
-      setValidationError(check.error);
+      setFieldErrors(check.errors);
+      setValidationError(check.summaryMessage);
+      setTimeout(() => {
+        const el = document.querySelector('.cuf-input--error, .cuf-custom-select-trigger--error, .cuf-validation-banner');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
       return;
     }
+
+    setFieldErrors({});
     setValidationError('');
 
     const result = computePackageCalculation();
@@ -796,26 +973,59 @@ export function CustomUmrahPage({
 
   // Generate PDF / Print Quotation
   const handleGeneratePDF = () => {
-    const check = validateHotelsCapacity(hotels, adultCount);
+    const check = validateAllFormFields();
     if (!check.isValid) {
-      setValidationError(check.error);
+      setFieldErrors(check.errors);
+      setValidationError(check.summaryMessage);
+      setTimeout(() => {
+        const el = document.querySelector('.cuf-input--error, .cuf-custom-select-trigger--error, .cuf-validation-banner');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
       return;
     }
+
+    setFieldErrors({});
     setValidationError('');
 
-    const activeResult = calculatedResult || computePackageCalculation();
-    if (!calculatedResult) setCalculatedResult(activeResult);
+    const activeResult = computePackageCalculation();
+    setCalculatedResult(activeResult);
+    const isSharing = (visaType || '').toLowerCase().includes('sharing');
     openUmrahQuotationWindow({
       fullName,
       pax,
       visaType,
       hotels,
-      transports,
+      transports: isSharing ? [] : transports,
       departure,
       airline,
       sector,
       calculatedResult: activeResult,
       allTickets,
+    });
+  };
+
+  // Handle Visa Type change: clears private transport errors and recalculates immediately if already calculated
+  const handleVisaTypeChange = (newType) => {
+    setVisaType(newType);
+    clearFieldError('visaType');
+
+    const isSharing = (newType || '').toLowerCase().includes('sharing');
+    if (isSharing) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        Object.keys(next).forEach((k) => {
+          if (k.startsWith('transport_') || k === 'transports') {
+            delete next[k];
+          }
+        });
+        return next;
+      });
+    }
+
+    // Live update the calculation summary card if already calculated
+    setCalculatedResult((prev) => {
+      if (!prev) return null;
+      return computePackageCalculation(newType);
     });
   };
 
@@ -860,7 +1070,7 @@ export function CustomUmrahPage({
               CUSTOM GROUP BOOKING
             </span>
             <h2 className="custom-umrah-title">
-              Build your  Custom Umrah Package
+              Build your Custom Umrah Package
             </h2>
             <p className="custom-umrah-subtitle">
               Choose stays, transport and traveler details for an instant UBC calculation.
@@ -883,12 +1093,16 @@ export function CustomUmrahPage({
               duration={duration}
               setDuration={setDuration}
               durationOptions={durationOptions}
+              errors={fieldErrors}
+              onClearError={clearFieldError}
             />
 
             {/* ── VISA DETAILS SECTION ── */}
             <UmrahVisaDetails
               visaType={visaType}
-              setVisaType={setVisaType}
+              setVisaType={handleVisaTypeChange}
+              error={fieldErrors.visaType}
+              onClearError={clearFieldError}
             />
 
             {/* ── HOTELS SECTION ── */}
@@ -905,6 +1119,8 @@ export function CustomUmrahPage({
                   onAdd={handleAddHotel}
                   onRemove={handleRemoveHotel}
                   hotelLookups={hotelLookups}
+                  errors={fieldErrors}
+                  onClearError={clearFieldError}
                 />
               ))}
             </div>
@@ -922,6 +1138,8 @@ export function CustomUmrahPage({
                     onAdd={handleAddTransport}
                     onRemove={handleRemoveTransport}
                     transportLookups={transportLookups}
+                    errors={fieldErrors}
+                    onClearError={clearFieldError}
                   />
                 ))}
               </div>
@@ -938,8 +1156,9 @@ export function CustomUmrahPage({
                 setSector={setSector}
                 ticketLookups={ticketLookups}
                 allTickets={allTickets}
+                errors={fieldErrors}
+                onClearError={clearFieldError}
               />
-
             )}
 
             {/* Validation Banner */}

@@ -9687,6 +9687,38 @@
   background-color: #fffbeb !important;
 }
 
+.cuf-input--error,
+.cuf-select--error,
+.cuf-custom-select-trigger--error {
+  border-color: #ef4444 !important;
+  background-color: #fff8f8 !important;
+}
+
+.cuf-input--error:focus,
+.cuf-select--error:focus,
+.cuf-custom-select-trigger--error:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14) !important;
+}
+
+.cuf-field-error-text {
+  display: block;
+  font-size: 11px;
+  color: #dc2626;
+  font-weight: 500;
+  margin-top: 4px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cuf-label-req {
+  color: #ef4444;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
 .cuf-validation-banner {
   background: #fef2f2;
   border: 1px solid #fecaca;
@@ -9699,6 +9731,15 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 16px;
+  animation: cufShake 0.25s ease-in-out;
+}
+
+@keyframes cufShake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
 }
 
 /* Icon buttons (red / blue rounded squircles) */
@@ -9753,9 +9794,9 @@
 /* Hotel: Location | Check In | Check Out | Hotel Name | Room Type */
 .cuf-hotel-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 2fr 1.5fr;
+  grid-template-columns: 1.05fr 1.05fr 1.05fr 2.1fr 1.95fr;
   gap: 12px;
-  align-items: end;
+  align-items: flex-start;
   width: 100%;
 }
 
@@ -9764,7 +9805,7 @@
   display: grid;
   grid-template-columns: 1.5fr 1.5fr auto;
   gap: 12px;
-  align-items: end;
+  align-items: flex-start;
   width: 100%;
 }
 

@@ -15,6 +15,8 @@ export function UmrahContactInputs({
   pax, setPax,
   duration, setDuration,
   durationOptions = ['15 Days', '21 Days', '28 Days'],
+  errors = {},
+  onClearError,
 }) {
   const [open, setOpen] = useState(null);
   const paxRef = useRef(null);
@@ -51,6 +53,7 @@ export function UmrahContactInputs({
     const num = parseInt(raw, 10);
     const formatted = !isNaN(num) && num > 0 ? `${num} Days` : (raw.toLowerCase().includes('day') ? raw : `${raw} Days`);
     setDuration(formatted);
+    onClearError?.('duration');
     close();
   };
 
@@ -90,31 +93,49 @@ export function UmrahContactInputs({
       <div className="cuf-grid-4">
         {/* Name */}
         <div className="cuf-field">
-          <label className="cuf-label">Name</label>
+          <label className="cuf-label">
+            Name <span className="cuf-label-req">*</span>
+          </label>
           <input
             type="text"
-            className="cuf-input"
+            className={`cuf-input ${errors.fullName ? 'cuf-input--error' : ''}`}
             placeholder="Full Name"
             value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            onChange={(e) => {
+              setFullName(e.target.value);
+              onClearError?.('fullName');
+            }}
           />
+          {errors.fullName && (
+            <span className="cuf-field-error-text">{errors.fullName}</span>
+          )}
         </div>
 
         {/* Contact */}
         <div className="cuf-field">
-          <label className="cuf-label">Contact*</label>
+          <label className="cuf-label">
+            Contact <span className="cuf-label-req">*</span>
+          </label>
           <input
             type="tel"
-            className="cuf-input"
+            className={`cuf-input ${errors.phone ? 'cuf-input--error' : ''}`}
             placeholder="Phone Number"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              onClearError?.('phone');
+            }}
           />
+          {errors.phone && (
+            <span className="cuf-field-error-text">{errors.phone}</span>
+          )}
         </div>
 
         {/* No of Pax — Uses GuestsPopup matching Umrah Package Details page */}
         <div className="cuf-field" ref={paxRef} style={{ position: 'relative' }}>
-          <label className="cuf-label">No of Pax</label>
+          <label className="cuf-label">
+            No of Pax <span className="cuf-label-req">*</span>
+          </label>
           <div className="cuf-custom-select-field-wrap">
             <button
               type="button"
@@ -142,10 +163,15 @@ export function UmrahContactInputs({
         {/* Umrah Duration (API options + custom days write-in) */}
         <CufSelect
           label="Umrah Duration"
+          required={true}
           value={duration}
           placeholder="Select Days"
           options={activeDurationOptions}
-          onChange={setDuration}
+          onChange={(val) => {
+            setDuration(val);
+            onClearError?.('duration');
+          }}
+          error={errors.duration}
           alignRight
           isOpen={open === 'duration'}
           onToggle={() => toggle('duration')}

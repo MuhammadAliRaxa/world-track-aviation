@@ -8,7 +8,7 @@ const VISA_TYPES = [
   'Visa with Sharing Transport',
 ];
 
-export function UmrahVisaDetails({ visaType, setVisaType }) {
+export function UmrahVisaDetails({ visaType, setVisaType, error, onClearError }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -17,10 +17,15 @@ export function UmrahVisaDetails({ visaType, setVisaType }) {
       <div className="cuf-field cuf-field--narrow">
         <CufSelect
           label="Select Visa Type"
+          required={true}
           value={visaType}
           placeholder="Select type"
           options={VISA_TYPES}
-          onChange={setVisaType}
+          onChange={(val) => {
+            setVisaType(val);
+            onClearError?.('visaType');
+          }}
+          error={error}
           isOpen={isOpen}
           onToggle={() => setIsOpen((v) => !v)}
           onClose={() => setIsOpen(false)}

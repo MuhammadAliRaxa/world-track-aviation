@@ -37,6 +37,8 @@ export function CufSelect({
   header,
   footer,
   disabled = false,
+  error = null,
+  required = false,
 }) {
   const menuRef = useRef(null);
   const triggerRef = useRef(null);
@@ -84,14 +86,19 @@ export function CufSelect({
 
   return (
     <div className="cuf-custom-select-wrap">
-      {label && <label className="cuf-label">{label}</label>}
+      {label && (
+        <label className="cuf-label">
+          {label}
+          {required && <span className="cuf-label-req">*</span>}
+        </label>
+      )}
       <div className="cuf-custom-select-field-wrap">
         {/* Trigger */}
         <button
           ref={triggerRef}
           type="button"
           disabled={disabled}
-          className={`cuf-custom-select-trigger ${isOpen ? 'cuf-custom-select-trigger--open' : ''} ${disabled ? 'cuf-custom-select-trigger--disabled opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
+          className={`cuf-custom-select-trigger ${isOpen ? 'cuf-custom-select-trigger--open' : ''} ${error ? 'cuf-custom-select-trigger--error' : ''} ${disabled ? 'cuf-custom-select-trigger--disabled opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
           onClick={(e) => {
             if (disabled) return;
             e.stopPropagation();
@@ -185,6 +192,9 @@ export function CufSelect({
           </div>
         )}
       </div>
+      {error && typeof error === 'string' && (
+        <span className="cuf-field-error-text">{error}</span>
+      )}
     </div>
   );
 }
