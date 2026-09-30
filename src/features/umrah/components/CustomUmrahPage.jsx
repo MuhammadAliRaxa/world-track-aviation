@@ -15,6 +15,7 @@ import { hotelService } from '../../../services/hotel.service';
 import { flightService } from '../../../services/flight.service';
 import { transportService } from '../../../services/transport.service';
 import { visaService } from '../../../services/visa.service';
+import { validateHotelsCapacity } from '../utils/roomCapacity';
 
 export function CustomUmrahPage({
   h1 = 'Custom Umrah Package',
@@ -25,6 +26,11 @@ export function CustomUmrahPage({
   const [phone, setPhone] = useState('');
   const [pax, setPax] = useState('1 Adult');
   const [duration, setDuration] = useState('');
+  const [validationError, setValidationError] = useState('');
+
+  // Extract adults count from pax string (e.g. "5 Adults, 1 Child" -> 5)
+  const adultMatch = (String(pax).match(/(\d+)\s*adult/i) || [])[1];
+  const adultCount = adultMatch ? Math.max(1, parseInt(adultMatch, 10)) : 1;
 
   // Visa Details State
   const [visaType, setVisaType] = useState('');
@@ -423,7 +429,22 @@ export function CustomUmrahPage({
     const paxNum = parsePaxCount(pax);
     const roe = visaApiData.roe || 78;
 
-    // 1. Hotels Estimate — Use real API room rates (SAR × ROE) per hotel
+    // Parse traveler breakdown
+    const adultMatch = (String(pax).match(/(\d+)\s*adult/i) || [])[1];
+    const childMatch = (String(pax).match(/(\d+)\s*child/i) || [])[1];
+    const infantMatch = (String(pax).match(/(\d+)\s*infant/i) || [])[1];
+
+    let adultsCount = adultMatch ? parseInt(adultMatch, 10) : 0;
+    const childrenCount = childMatch ? parseInt(childMatch, 10) : 0;
+    const infantsCount = infantMatch ? parseInt(infantMatch, 10) : 0;
+
+    if (adultsCount === 0 && childrenCount === 0 && infantsCount === 0) {
+      adultsCount = paxNum || 1;
+    } else if (adultsCount === 0) {
+      adultsCount = 1;
+    }
+
+    // 1. Hotels Estimate — Use real API room rates (SAR × ROE) per hotel (NOT applied to children/infants)
     let calculatedHotelTotal = 0;
     let totalNights = 0;
 
@@ -499,16 +520,15 @@ export function CustomUmrahPage({
 
     // 2. Visa Estimate — Live API for Sharing Transport; Private Transport has no visa transport markup
     let visaTotal = 0;
+    let perPaxSharingFee = 0;
     if (visaType === 'Visa with Sharing Transport') {
-      // Live API rate in SAR × ROE exchange rate
-      const perPaxSharingFee = Math.round(visaApiData.sharingRateSar * roe);
-      visaTotal = paxNum * perPaxSharingFee;
+      perPaxSharingFee = Math.round(visaApiData.sharingRateSar * roe);
+      visaTotal = (adultsCount + childrenCount + infantsCount) * perPaxSharingFee;
     } else if (visaType === 'Visa with Private Transport') {
-      // For private transport, transport is billed separately as private vehicle rates
       visaTotal = 0;
     }
 
-    // 3. Transport Estimate — Fixed Vehicle Price per route from API rates
+    // 3. Transport Estimate — Fixed Vehicle Price per route from API rates (NOT applied to children/infants)
     let transportTotal = 0;
     if (visaType === 'Visa with Private Transport') {
       transports.forEach((t) => {
@@ -516,30 +536,56 @@ export function CustomUmrahPage({
         const matchedVehicle = matchedRoute?.vehicles?.find((v) => v.vehicleType === t.vehicleType);
 
         if (matchedVehicle && matchedVehicle.price) {
-          // Live price from /transport/list API in SAR converted using live ROE
           const sarPrice = Number(matchedVehicle.price) || 0;
           transportTotal += Math.round(sarPrice * roe);
         } else {
-          // Default route rate from API (430 SAR) converted using ROE
           transportTotal += Math.round(430 * roe);
         }
       });
     } else {
-      // Included in Visa with Sharing Transport
       transportTotal = 0;
     }
 
-    // 4. Ticket Estimate — live pricePKR from /group-tickets/list API
+    // 4. Ticket Estimate — children & infants rate is 20,000 PKR less than adult ticket rate
     let ticketTotal = 0;
+    let adultTicketRate = 0;
+    let childTicketRate = 0;
+    let infantTicketRate = 0;
+
     const TICKET_FALLBACK_PKR = 135000;
     const isCustomDays = duration && !durationOptions.includes(duration);
     if (!isCustomDays && departure && airline) {
-      const ratePerPax = ticketPricePerPax > 0 ? ticketPricePerPax : TICKET_FALLBACK_PKR;
-      ticketTotal = paxNum * ratePerPax;
+      adultTicketRate = ticketPricePerPax > 0 ? ticketPricePerPax : TICKET_FALLBACK_PKR;
+      // Per business rule: children & infants rate is 20,000 less than adult ticket rate
+      childTicketRate = Math.max(0, adultTicketRate - 20000);
+      infantTicketRate = Math.max(0, adultTicketRate - 20000);
+
+      const adultTicketTotal = adultsCount * adultTicketRate;
+      const childTicketTotal = childrenCount * childTicketRate;
+      const infantTicketTotal = infantsCount * infantTicketRate;
+      ticketTotal = adultTicketTotal + childTicketTotal + infantTicketTotal;
     }
 
     // 5. Grand Total
     const grandTotal = calculatedHotelTotal + transportTotal + visaTotal + ticketTotal;
+
+    // Per-person rates: hotels and transport are NOT applied to children and infants
+    const hotelAndTransPerAdult = adultsCount > 0
+      ? Math.round((calculatedHotelTotal + transportTotal) / adultsCount)
+      : 0;
+
+    const perAdult = adultsCount > 0
+      ? (hotelAndTransPerAdult + perPaxSharingFee + adultTicketRate)
+      : 0;
+
+    // Children & infants: no hotel share, no transport share, ticket is 20,000 less than adult
+    const perChild = childrenCount > 0
+      ? (perPaxSharingFee + childTicketRate)
+      : 0;
+
+    const perInfant = infantsCount > 0
+      ? (perPaxSharingFee + infantTicketRate)
+      : 0;
 
     // ── Console Rate Breakdown ──────────────────────────────────────────────
     console.group('%c💼 WTA Custom Umrah Package — Cost Breakdown', 'color:#1565c0;font-size:14px;font-weight:800;');
@@ -725,15 +771,38 @@ export function CustomUmrahPage({
     };
   };
 
+  // Auto-clear validation error if room adjustments fix capacity
+  useEffect(() => {
+    if (validationError) {
+      const check = validateHotelsCapacity(hotels, adultCount);
+      if (check.isValid) setValidationError('');
+    }
+  }, [hotels, adultCount]);
+
   // Handle Calculate Package submit
   const handleCalculatePackage = (e) => {
     if (e?.preventDefault) e.preventDefault();
+
+    const check = validateHotelsCapacity(hotels, adultCount);
+    if (!check.isValid) {
+      setValidationError(check.error);
+      return;
+    }
+    setValidationError('');
+
     const result = computePackageCalculation();
     setCalculatedResult(result);
   };
 
   // Generate PDF / Print Quotation
   const handleGeneratePDF = () => {
+    const check = validateHotelsCapacity(hotels, adultCount);
+    if (!check.isValid) {
+      setValidationError(check.error);
+      return;
+    }
+    setValidationError('');
+
     const activeResult = calculatedResult || computePackageCalculation();
     if (!calculatedResult) setCalculatedResult(activeResult);
     openUmrahQuotationWindow({
@@ -829,6 +898,7 @@ export function CustomUmrahPage({
                   key={hotel.id}
                   hotel={hotel}
                   index={index}
+                  adultCount={adultCount}
                   isLast={index === hotels.length - 1}
                   canRemove={hotels.length > 1}
                   onUpdate={handleUpdateHotel}
@@ -870,6 +940,14 @@ export function CustomUmrahPage({
                 allTickets={allTickets}
               />
 
+            )}
+
+            {/* Validation Banner */}
+            {validationError && (
+              <div className="cuf-validation-banner">
+                <span>⚠️</span>
+                <span>{validationError}</span>
+              </div>
             )}
 
             {/* Bottom Form Actions */}

@@ -5,9 +5,13 @@ import { ChevronDown, Plus, Minus } from 'lucide-react';
 import { CufSelect } from './CufSelect';
 import { RoomTypePopup } from '../../../hotels/components/RoomTypePopup';
 import { hotelService } from '../../../../services/hotel.service';
+import {
+  calculateTotalBeds,
+  formatRoomSelection,
+  suggestOptimalRooms,
+} from '../../utils/roomCapacity';
 
 const DEFAULT_LOCATIONS = ['Makkah', 'Madinah'];
-const DEFAULT_ROOM_TYPES = ['Double', 'Triple', 'Quad', 'Sharing'];
 
 export function UmrahHotelRow({
   hotel,
@@ -18,19 +22,19 @@ export function UmrahHotelRow({
   onAdd,
   onRemove,
   hotelLookups,
+  adultCount = 1,
 }) {
   const [open, setOpen] = useState(null);
   const roomTypeWrapRef = useRef(null);
 
-  // Available room types for the currently selected hotel (fetched from API)
+  // Available room types strictly from API for the selected hotel
   const [availableRoomTypes, setAvailableRoomTypes] = useState(
-    hotel.availableRoomTypes || DEFAULT_ROOM_TYPES
+    hotel.availableRoomTypes || []
   );
 
   // Multi-room counts (e.g. { Double: 2, Triple: 1 })
-  const [roomCounts, setRoomCounts] = useState(
-    hotel.roomCounts || { Double: 1, Triple: 0, Quad: 0, Quint: 0, Sharing: 0 }
-  );
+  const [roomCounts, setRoomCounts] = useState(hotel.roomCounts || {});
+  const [isLoadingRoomTypes, setIsLoadingRoomTypes] = useState(false);
 
   const toggle = (key) => setOpen((c) => (c === key ? null : key));
   const close = () => setOpen(null);
@@ -71,44 +75,87 @@ export function UmrahHotelRow({
     id: h.id,
     name: h.name,
     category: h.category,
-    // Real per-night rate in SAR from API (min_rate field)
     minRateSar: Number(h.priceNumeric || h.min_rate || 0),
   }));
 
-  // Fetch hotel room types from API when hotelId is known
-  const loadRoomTypesForHotel = (hotelId) => {
+  // Fetch hotel room types strictly from GET /hotel/room/type/{hotelId} API
+  const loadRoomTypesForHotel = (hotelId, currentSelectedCounts = null) => {
     if (!hotelId) return;
-    hotelService.getHotelRoomTypes(hotelId).then((res) => {
-      if (Array.isArray(res) && res.length > 0) {
-        const types = res.map((r) => r.type || r.room_type || r.name).filter(Boolean);
-        if (types.length > 0) {
-          const uniqueTypes = Array.from(new Set(types));
+    setIsLoadingRoomTypes(true);
+
+    hotelService.getHotelRoomTypes(hotelId)
+      .then((res) => {
+        setIsLoadingRoomTypes(false);
+        const rawTypes = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+        const types = rawTypes.map((r) => r.type || r.room_type || r.name).filter(Boolean);
+        const uniqueTypes = Array.from(new Set(types));
+
+        if (uniqueTypes.length > 0) {
           setAvailableRoomTypes(uniqueTypes);
-          onUpdate(hotel.id, 'availableRoomTypes', uniqueTypes);
+
+          // Clean existing room counts to only keep types present in the API
+          const cleanedCounts = {};
+          let hasExistingValidCounts = false;
+          if (currentSelectedCounts) {
+            uniqueTypes.forEach((t) => {
+              if (currentSelectedCounts[t] > 0) {
+                cleanedCounts[t] = currentSelectedCounts[t];
+                hasExistingValidCounts = true;
+              }
+            });
+          }
+
+          // If no valid rooms selected or beds are under capacity, auto-suggest optimal room configuration
+          const currentBeds = calculateTotalBeds(cleanedCounts);
+          let finalCounts = cleanedCounts;
+          if (!hasExistingValidCounts || currentBeds < adultCount) {
+            finalCounts = suggestOptimalRooms(uniqueTypes, adultCount);
+          }
+
+          setRoomCounts(finalCounts);
+          const { label, bedsText } = formatRoomSelection(finalCounts);
+
+          onUpdate(hotel.id, {
+            availableRoomTypes: uniqueTypes,
+            roomCounts: finalCounts,
+            roomType: label,
+            bedsText,
+          });
+        } else {
+          setAvailableRoomTypes([]);
+          setRoomCounts({});
+          onUpdate(hotel.id, {
+            availableRoomTypes: [],
+            roomCounts: {},
+            roomType: '',
+            bedsText: '',
+          });
         }
-      }
-    }).catch(() => {});
+      })
+      .catch((err) => {
+        console.warn(`[HotelRoomTypes] Failed to load room types for hotel ${hotelId}:`, err);
+        setIsLoadingRoomTypes(false);
+      });
   };
 
-  // When location changes, update location & reset hotel selection so placeholder shows
+  // When location changes, update location & reset hotel selection
   const handleLocationChange = (newLoc) => {
-    const resetCounts = { Double: 0, Triple: 0, Quad: 0, Quint: 0, Sharing: 0 };
-    setRoomCounts(resetCounts);
-    setAvailableRoomTypes(DEFAULT_ROOM_TYPES);
+    setRoomCounts({});
+    setAvailableRoomTypes([]);
     onUpdate(hotel.id, {
       location: newLoc,
       hotelName: '',
       hotelId: null,
       roomType: '',
       bedsText: '',
-      roomCounts: resetCounts,
+      roomCounts: {},
+      availableRoomTypes: [],
     });
   };
 
   // Fetch hotel details & real room rates from GET /hotel/{id} API
   const fetchHotelRates = (hotelId, name) => {
     if (!hotelId) return;
-    loadRoomTypesForHotel(hotelId);
 
     hotelService.getHotelDetail(hotelId).then((hotelDetail) => {
       if (!hotelDetail) return;
@@ -120,51 +167,24 @@ export function UmrahHotelRow({
       rawRates.forEach((r) => {
         const rType = r.room_type || r.type || r.name;
         const rawPrice = Number(r.price || r.selling_price || r.rate || 0);
-        // Normalize if entered in PKR in database (e.g. 100,000)
         const price = rawPrice > 10000 ? Math.round(rawPrice / 78) : rawPrice;
         if (rType && price > 0) rates[rType] = price;
       });
 
-      // Ensure sensible fallbacks for other room types if base exists
       const baseMin = Number(hotelDetail.price || hotelDetail.min_rate || 0);
       const cleanMin = baseMin > 10000 ? Math.round(baseMin / 78) : baseMin;
-      if (!rates['Double'] && cleanMin > 0) rates['Double'] = cleanMin;
-      if (!rates['Triple'] && rates['Double']) rates['Triple'] = rates['Double'];
-      if (!rates['Quad'] && rates['Triple']) rates['Quad'] = rates['Triple'];
-      if (!rates['Quint'] && rates['Quad']) rates['Quint'] = rates['Quad'];
-      if (!rates['Sharing']) {
-        rates['Sharing'] = rates['Quint'] || rates['Quad'] || rates['Triple'] || rates['Double'] || cleanMin;
-      }
-
-      // Update room types options if room_rates contains room types
-      if (rawRates.length > 0) {
-        const types = rawRates.map((r) => r.room_type).filter(Boolean);
-        if (types.length > 0) {
-          if (!types.includes('Sharing')) types.push('Sharing');
-          const uniqueTypes = Array.from(new Set(types));
-          setAvailableRoomTypes(uniqueTypes);
-          onUpdate(hotel.id, 'availableRoomTypes', uniqueTypes);
-        }
-      }
 
       onUpdate(hotel.id, {
         roomRates: rates,
         minRateSar: cleanMin > 0 ? cleanMin : hotel.minRateSar,
       });
-      console.log(`[HotelRates] ${name || hotelDetail.name} (ID: ${hotelId}) — room rates loaded from API (SAR):`, rates);
+      console.log(`[HotelRates] ${name || hotelDetail.name} (ID: ${hotelId}) rates (SAR):`, rates);
     }).catch((err) => {
       console.warn(`[HotelRates] Failed loading details for hotel ${hotelId}:`, err);
     });
   };
 
-  // Fetch room rates on mount or update if hotelId is present but roomRates not yet loaded
-  useEffect(() => {
-    if (hotel.hotelId && (!hotel.roomRates || Object.keys(hotel.roomRates).length === 0)) {
-      fetchHotelRates(hotel.hotelId, hotel.hotelName);
-    }
-  }, [hotel.hotelId]);
-
-  // When hotel is selected from dropdown, fetch room types + room rates from GET /hotel/{id}
+  // When hotel is selected from dropdown, fetch room types + room rates
   const handleHotelSelect = (selectedVal) => {
     const matched = hotelOptions.find((o) => o.value === selectedVal);
     const hotelId = matched?.id || null;
@@ -174,40 +194,61 @@ export function UmrahHotelRow({
       hotelName: selectedVal,
       hotelId: hotelId,
       minRateSar: minRate,
-      roomRates: {}, // reset until API returns
+      roomRates: {},
     });
 
     if (hotelId) {
+      loadRoomTypesForHotel(hotelId);
       fetchHotelRates(hotelId, selectedVal);
     }
   };
 
-  // Update room count (multi-selection like No of Pax: allows 2 or more Double, Triple, etc.)
+  // When adultCount changes in Personal Details, adapt room selection if current beds are insufficient
+  useEffect(() => {
+    if (hotel.hotelName && availableRoomTypes.length > 0) {
+      const currentBeds = calculateTotalBeds(roomCounts);
+      if (currentBeds < adultCount) {
+        const optimal = suggestOptimalRooms(availableRoomTypes, adultCount);
+        setRoomCounts(optimal);
+        const { label, bedsText } = formatRoomSelection(optimal);
+        onUpdate(hotel.id, {
+          roomCounts: optimal,
+          roomType: label,
+          bedsText,
+        });
+      }
+    }
+  }, [adultCount]);
+
+  // Load room types on mount if hotelId already exists
+  useEffect(() => {
+    if (hotel.hotelId && (!availableRoomTypes || availableRoomTypes.length === 0)) {
+      loadRoomTypesForHotel(hotel.hotelId, hotel.roomCounts);
+    }
+    if (hotel.hotelId && (!hotel.roomRates || Object.keys(hotel.roomRates).length === 0)) {
+      fetchHotelRates(hotel.hotelId, hotel.hotelName);
+    }
+  }, [hotel.hotelId]);
+
+  // Update room count for a specific API room type
   const handleUpdateRoomCount = (rType, delta) => {
     const current = roomCounts[rType] ?? 0;
     const next = Math.max(0, current + delta);
     const nextCounts = { ...roomCounts, [rType]: next };
 
-    // Format trigger label (e.g., "2 Double, 1 Triple")
-    const labelParts = [];
-    const bedParts = [];
-    Object.entries(nextCounts).forEach(([type, count]) => {
-      if (count > 0) {
-        labelParts.push(`${count} ${type}`);
-        bedParts.push(`(${count} ${type} Bed)`);
-      }
-    });
-
-    const label = labelParts.join(', ') || 'Select type';
-    const beds = bedParts.join(', ') || '';
+    const { label, bedsText } = formatRoomSelection(nextCounts);
 
     setRoomCounts(nextCounts);
     onUpdate(hotel.id, {
       roomType: label,
-      bedsText: beds,
+      bedsText,
       roomCounts: nextCounts,
     });
   };
+
+  // Calculate current capacity vs adults
+  const totalBeds = calculateTotalBeds(roomCounts);
+  const isUnderCapacity = hotel.hotelName && totalBeds < adultCount;
 
   return (
     <div className="cuf-section">
@@ -215,10 +256,20 @@ export function UmrahHotelRow({
       <div className="cuf-row-header">
         <h3 className="cuf-section-title">Hotel Details</h3>
         <div className="cuf-row-header-right">
-          {hotel.bedsText && (
-            <span className="cuf-badge cuf-badge--green">{hotel.bedsText}</span>
+          {hotel.hotelName && (
+            totalBeds === 0 ? (
+              <span className="cuf-badge cuf-badge--warning">⚠️ Select room type</span>
+            ) : isUnderCapacity ? (
+              <span className="cuf-badge cuf-badge--warning">
+                ⚠️ {totalBeds} / {adultCount} Adults ({adultCount - totalBeds} more bed{adultCount - totalBeds > 1 ? 's' : ''} needed)
+              </span>
+            ) : (
+              <span className="cuf-badge cuf-badge--green">
+                ✓ {totalBeds} Beds ({adultCount} Adults)
+              </span>
+            )
           )}
-          <span className="cuf-badge cuf-badge--muted">{hotel.nights} nights</span>
+          <span className="cuf-badge cuf-badge--muted">{hotel.nights || 0} nights</span>
         </div>
       </div>
 
@@ -258,7 +309,7 @@ export function UmrahHotelRow({
           />
         </div>
 
-        {/* 4. Hotel Name (Dropdown from API lookups with search filter and placeholder) */}
+        {/* 4. Hotel Name */}
         <CufSelect
           label="Hotel name"
           value={hotel.hotelName}
@@ -273,19 +324,27 @@ export function UmrahHotelRow({
           header={`Hotels in ${hotel.location || 'Location'} (${hotelOptions.length})`}
         />
 
-        {/* 5. Select Room Type (Counter popup like No of Pax: allows 2 or more Double, Triple, etc.) */}
+        {/* 5. Select Room Type (Filtered strictly by API for selected hotel) */}
         <div className="cuf-field" ref={roomTypeWrapRef} style={{ position: 'relative' }}>
           <label className="cuf-label">Select Room Type</label>
           <div className="cuf-inline-row">
             <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
               <button
                 type="button"
-                className={`cuf-custom-select-trigger ${open === 'roomType' ? 'cuf-custom-select-trigger--open' : ''}`}
+                className={`cuf-custom-select-trigger ${open === 'roomType' ? 'cuf-custom-select-trigger--open' : ''} ${
+                  isUnderCapacity ? 'cuf-trigger--warning' : ''
+                }`}
                 onClick={() => toggle('roomType')}
                 aria-expanded={open === 'roomType'}
               >
                 <span className={`cuf-custom-select-value ${!hotel.roomType ? 'cuf-custom-select-placeholder' : ''}`}>
-                  {hotel.roomType || 'Select type'}
+                  {!hotel.hotelName
+                    ? 'Select hotel first'
+                    : isLoadingRoomTypes
+                    ? 'Loading room types...'
+                    : hotel.roomType
+                    ? `${hotel.roomType}${isUnderCapacity ? ` (Need ${adultCount - totalBeds} more)` : ''}`
+                    : 'Select type'}
                 </span>
                 <ChevronDown
                   size={15}
@@ -299,6 +358,9 @@ export function UmrahHotelRow({
                 counts={roomCounts}
                 onUpdateCount={handleUpdateRoomCount}
                 roomTypes={availableRoomTypes}
+                adultCount={adultCount}
+                hotelName={hotel.hotelName}
+                isLoading={isLoadingRoomTypes}
               />
             </div>
 
@@ -325,3 +387,4 @@ export function UmrahHotelRow({
     </div>
   );
 }
+

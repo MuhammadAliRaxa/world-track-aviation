@@ -285,7 +285,9 @@ export const hotelService = {
         `/hotel/room/type/${hotelId}`,
         { cache: "no-store" } as RequestInit,
       );
-      return Array.isArray(res.data) ? res.data : [];
+      if (Array.isArray(res?.data)) return res.data;
+      if (Array.isArray(res)) return res;
+      return [];
     } catch {
       return [];
     }

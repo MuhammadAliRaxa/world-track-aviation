@@ -13,13 +13,39 @@ import { Minus, Plus } from 'lucide-react';
 export function RoomTypePopup({
   isOpen,
   onClose,
-  counts = { Double: 0, Triple: 0, Quad: 0, Quint: 0 },
+  counts = {},
   onUpdateCount,
-  roomTypes = ['Double', 'Triple', 'Quad', 'Quint'],
+  roomTypes = [],
+  adultCount = 1,
+  hotelName = '',
+  isLoading = false,
 }) {
   if (!isOpen) return null;
 
-  const ROOM_TYPES = Array.isArray(roomTypes) && roomTypes.length > 0 ? roomTypes : ['Double', 'Triple', 'Quad', 'Quint'];
+  const ROOM_TYPES = Array.isArray(roomTypes) ? roomTypes : [];
+
+  // Capacity mapping helper
+  const getCapacity = (type) => {
+    const t = String(type || '').trim().toLowerCase();
+    if (t === 'single' || t === 'sharing') return 1;
+    if (t === 'double' || t === 'twin') return 2;
+    if (t === 'triple') return 3;
+    if (t === 'quad') return 4;
+    if (t === 'quint') return 5;
+    if (t.includes('single')) return 1;
+    if (t.includes('double') || t.includes('twin')) return 2;
+    if (t.includes('triple')) return 3;
+    if (t.includes('quad')) return 4;
+    if (t.includes('quint')) return 5;
+    return 2;
+  };
+
+  const totalBeds = ROOM_TYPES.reduce((sum, r) => {
+    const c = Number(counts[r] || 0);
+    return sum + c * getCapacity(r);
+  }, 0);
+
+  const isUnderCapacity = totalBeds < adultCount;
 
   return (
     <div
@@ -27,7 +53,7 @@ export function RoomTypePopup({
         position: 'absolute',
         top: 'calc(100% + 6px)',
         right: 0,
-        minWidth: '240px',
+        minWidth: '280px',
         backgroundColor: '#ffffff',
         borderRadius: '16px',
         padding: '18px 20px',
@@ -35,6 +61,52 @@ export function RoomTypePopup({
         zIndex: 1200,
       }}
     >
+      {/* Loading state */}
+      {isLoading ? (
+        <div style={{ padding: '16px 8px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+          Loading hotel room types...
+        </div>
+      ) : ROOM_TYPES.length === 0 ? (
+        <div style={{ padding: '16px 8px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+          {hotelName ? 'No room types available for this hotel.' : 'Please select a hotel first to view room types.'}
+        </div>
+      ) : (
+        <>
+          {/* Capacity Validation Status Banner */}
+          <div
+            style={{
+              marginBottom: '14px',
+              padding: '10px 12px',
+              borderRadius: '10px',
+              background: isUnderCapacity ? '#fffbeb' : '#ecfdf5',
+              border: `1px solid ${isUnderCapacity ? '#fde68a' : '#a7f3d0'}`,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: isUnderCapacity ? '#92400e' : '#065f46',
+              }}
+            >
+              <span>Adults: {adultCount}</span>
+              <span>Beds: {totalBeds}</span>
+            </div>
+            <div
+              style={{
+                marginTop: '4px',
+                fontSize: '11.5px',
+                fontWeight: 500,
+                color: isUnderCapacity ? '#b45309' : '#047857',
+              }}
+            >
+              {isUnderCapacity
+                ? `⚠️ Need ${adultCount - totalBeds} more bed${adultCount - totalBeds > 1 ? 's' : ''} to accommodate ${adultCount} adults.`
+                : `✓ Accommodates all ${adultCount} adults (${totalBeds} beds).`}
+            </div>
+          </div>
       {ROOM_TYPES.map((room) => {
         const count = counts[room] ?? 0;
         const isAtMin = count <= 0;
@@ -149,6 +221,8 @@ export function RoomTypePopup({
           </div>
         );
       })}
+      </>
+      )}
 
       {/* Done Button */}
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
