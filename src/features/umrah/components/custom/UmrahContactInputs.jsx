@@ -63,26 +63,25 @@ export function UmrahContactInputs({
 
   // Update counts and format display label exactly like package details page
   const updatePaxCount = (type, delta) => {
-    setPaxCounts((prev) => {
-      const currentVal = prev[type] ?? 0;
-      const minVal = type === 'Adult' ? 1 : 0;
-      const nextVal = Math.max(minVal, currentVal + delta);
-      const nextCounts = { ...prev, [type]: nextVal };
+    const currentVal = paxCounts[type] ?? 0;
+    const minVal = type === 'Adult' ? 1 : 0;
+    const nextVal = Math.max(minVal, currentVal + delta);
+    const nextCounts = { ...paxCounts, [type]: nextVal };
 
-      const parts = [];
-      if (nextCounts.Adult > 0) {
-        parts.push(`${nextCounts.Adult} Adult${nextCounts.Adult > 1 ? 's' : ''}`);
-      }
-      if (nextCounts.Child > 0) {
-        parts.push(`${nextCounts.Child} Child${nextCounts.Child > 1 ? 'ren' : ''}`);
-      }
-      if (nextCounts.Infant > 0) {
-        parts.push(`${nextCounts.Infant} Infant${nextCounts.Infant > 1 ? 's' : ''}`);
-      }
-      const label = parts.join(', ') || '1 Adult';
-      setPax(label);
-      return nextCounts;
-    });
+    const parts = [];
+    if (nextCounts.Adult > 0) {
+      parts.push(`${nextCounts.Adult} Adult${nextCounts.Adult > 1 ? 's' : ''}`);
+    }
+    if (nextCounts.Child > 0) {
+      parts.push(`${nextCounts.Child} Child${nextCounts.Child > 1 ? 'ren' : ''}`);
+    }
+    if (nextCounts.Infant > 0) {
+      parts.push(`${nextCounts.Infant} Infant${nextCounts.Infant > 1 ? 's' : ''}`);
+    }
+    const label = parts.join(', ') || '1 Adult';
+
+    setPaxCounts(nextCounts);
+    setPax(label);
   };
 
   return (

@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { CufSelect } from './CufSelect';
 
 const VISA_TYPES = [
-  'Visa with Transport',
-  'Visa without Transport',
+  'Visa with Private Transport',
+  'Visa with Sharing Transport',
 ];
 
 export function UmrahVisaDetails({ visaType, setVisaType }) {

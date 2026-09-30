@@ -36,6 +36,7 @@ export function CufSelect({
   searchPlaceholder = 'Search...',
   header,
   footer,
+  disabled = false,
 }) {
   const menuRef = useRef(null);
   const triggerRef = useRef(null);
@@ -52,7 +53,9 @@ export function CufSelect({
   );
 
   const displayLabel =
-    normalizedOptions.find((o) => o.value === value)?.label || value;
+    normalizedOptions.find((o) =>
+      String(o.value).toLowerCase().trim() === String(value || '').toLowerCase().trim()
+    )?.label || value;
 
   // Filter options if searchable
   const filteredOptions =
@@ -87,8 +90,10 @@ export function CufSelect({
         <button
           ref={triggerRef}
           type="button"
-          className={`cuf-custom-select-trigger ${isOpen ? 'cuf-custom-select-trigger--open' : ''}`}
+          disabled={disabled}
+          className={`cuf-custom-select-trigger ${isOpen ? 'cuf-custom-select-trigger--open' : ''} ${disabled ? 'cuf-custom-select-trigger--disabled opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
           onClick={(e) => {
+            if (disabled) return;
             e.stopPropagation();
             onToggle?.();
           }}

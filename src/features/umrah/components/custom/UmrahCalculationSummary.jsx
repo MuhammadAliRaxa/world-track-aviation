@@ -1,9 +1,14 @@
 'use client';
 
 import React from 'react';
+import { MessageCircle, ShieldCheck } from 'lucide-react';
 
-export function UmrahCalculationSummary({ calculatedResult, onOpenContact }) {
+export function UmrahCalculationSummary({ calculatedResult, onOpenContact, whatsAppMessage = '' }) {
   if (!calculatedResult) return null;
+
+  const defaultWaMessage = `Hi World Track Aviation, I would like to book a Custom Umrah Package. Total Travelers: ${calculatedResult.pax || '1 Adult'}, Duration: ${calculatedResult.duration || `${calculatedResult.nightsCount} Nights`}, Estimated Total: PKR ${calculatedResult.grandTotal.toLocaleString()}. Please provide confirmation.`;
+  const textToSend = whatsAppMessage || defaultWaMessage;
+  const waUrl = `https://wa.me/923350122252?text=${encodeURIComponent(textToSend)}`;
 
   return (
     <div className="umrah-calc-summary-card">
@@ -31,7 +36,9 @@ export function UmrahCalculationSummary({ calculatedResult, onOpenContact }) {
         <div className="umrah-calc-breakdown-item">
           <span className="umrah-calc-item-label">Transport Estimate</span>
           <strong className="umrah-calc-item-val">
-            PKR {calculatedResult.transportTotal.toLocaleString()}
+            {calculatedResult.transportTotal > 0
+              ? `PKR ${calculatedResult.transportTotal.toLocaleString()}`
+              : (calculatedResult.visaType === 'Visa with Sharing Transport' ? 'Included in Visa (Sharing)' : 'PKR 0')}
           </strong>
         </div>
         <div className="umrah-calc-breakdown-item">
@@ -43,12 +50,23 @@ export function UmrahCalculationSummary({ calculatedResult, onOpenContact }) {
         <div className="umrah-calc-breakdown-item">
           <span className="umrah-calc-item-label">Ticket Estimate</span>
           <strong className="umrah-calc-item-val">
-            PKR {calculatedResult.ticketTotal.toLocaleString()}
+            {calculatedResult.ticketTotal > 0
+              ? `PKR ${calculatedResult.ticketTotal.toLocaleString()}`
+              : 'Not Included'}
           </strong>
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="umrah-calc-btn-whatsapp"
+        >
+          <MessageCircle size={16} />
+          Book via WhatsApp
+        </a>
         <button
           type="button"
           onClick={onOpenContact}

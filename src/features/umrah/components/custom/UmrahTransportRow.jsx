@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { CufSelect } from './CufSelect';
 
@@ -15,11 +15,11 @@ const FALLBACK_SECTORS = [
 ];
 
 const FALLBACK_VEHICLES = [
-  'SEDAN (4 Person)',
-  'STARIA (7 Person)',
-  'HIACE (10 Person)',
-  'COASTER (22 Person)',
-  'BUS (45 Person)',
+  { value: 'SEDAN', label: 'SEDAN (4 Person)' },
+  { value: 'STARIA', label: 'STARIA (7 Person)' },
+  { value: 'HIACE', label: 'HIACE (10 Person)' },
+  { value: 'COASTER', label: 'COASTER (22 Person)' },
+  { value: 'BUS', label: 'BUS (45 Person)' },
 ];
 
 export function UmrahTransportRow({
@@ -36,32 +36,50 @@ export function UmrahTransportRow({
   const close = () => setOpen(null);
 
   // Sector Options from API routes
-  const sectorOptions =
-    transportLookups?.routes && transportLookups.routes.length > 0
+  const sectorOptions = useMemo(() => {
+    return transportLookups?.routes && transportLookups.routes.length > 0
       ? transportLookups.routes.map((r) => ({
           value: r.route,
           label: r.route,
           id: r.id,
         }))
       : FALLBACK_SECTORS.map((s) => ({ value: s, label: s }));
+  }, [transportLookups?.routes]);
 
   // Find matching route for vehicle options with prices
-  const matchedRoute = (transportLookups?.routes || []).find(
-    (r) => r.route === transport.sector
-  );
+  const matchedRoute = useMemo(() => {
+    return (transportLookups?.routes || []).find(
+      (r) => (r.route || '').toLowerCase().trim() === (transport.sector || '').toLowerCase().trim()
+    );
+  }, [transportLookups?.routes, transport.sector]);
 
-  const vehicleOptions =
-    matchedRoute && matchedRoute.vehicles && matchedRoute.vehicles.length > 0
-      ? matchedRoute.vehicles.map((v) => ({
-          value: v.vehicleType,
-          label: `${v.vehicleType} (${v.capacity} Person)${v.priceFormatted ? ` • ${v.priceFormatted}` : ''}`,
-        }))
-      : transportLookups?.vehicleTypes && transportLookups.vehicleTypes.length > 0
-      ? transportLookups.vehicleTypes.map((vt) => ({
-          value: vt.name,
-          label: `${vt.name} (${vt.capacity} Person)`,
-        }))
-      : FALLBACK_VEHICLES.map((v) => ({ value: v, label: v }));
+  const vehicleOptions = useMemo(() => {
+    if (matchedRoute && matchedRoute.vehicles && matchedRoute.vehicles.length > 0) {
+      return matchedRoute.vehicles.map((v) => ({
+        value: v.vehicleType,
+        label: `${v.vehicleType} (${v.capacity} Person)${v.priceFormatted ? ` • ${v.priceFormatted}` : ''}`,
+      }));
+    }
+    if (transportLookups?.vehicleTypes && transportLookups.vehicleTypes.length > 0) {
+      return transportLookups.vehicleTypes.map((vt) => ({
+        value: vt.name,
+        label: `${vt.name} (${vt.capacity} Person)`,
+      }));
+    }
+    return FALLBACK_VEHICLES;
+  }, [matchedRoute, transportLookups?.vehicleTypes]);
+
+  // Atomic update: sets sector and clears vehicle in a single state pass
+  const handleSectorChange = (val) => {
+    onUpdate(transport.id, {
+      sector: val,
+      vehicleType: '',
+    });
+  };
+
+  const handleVehicleChange = (val) => {
+    onUpdate(transport.id, 'vehicleType', val);
+  };
 
   return (
     <div className="cuf-section">
@@ -73,10 +91,7 @@ export function UmrahTransportRow({
           value={transport.sector}
           placeholder="Select sector"
           options={sectorOptions}
-          onChange={(val) => {
-            onUpdate(transport.id, 'sector', val);
-            onUpdate(transport.id, 'vehicleType', '');
-          }}
+          onChange={handleSectorChange}
           isOpen={open === 'sector'}
           onToggle={() => toggle('sector')}
           onClose={close}
@@ -90,7 +105,7 @@ export function UmrahTransportRow({
           value={transport.vehicleType}
           placeholder="Select vehicle"
           options={vehicleOptions}
-          onChange={(val) => onUpdate(transport.id, 'vehicleType', val)}
+          onChange={handleVehicleChange}
           isOpen={open === 'vehicle'}
           onToggle={() => toggle('vehicle')}
           onClose={close}

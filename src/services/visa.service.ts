@@ -226,16 +226,19 @@ export const visaService = {
 
   /**
    * GET /calculator/visa/type
-   * Public calculator lookup for visa types dropdown.
+   * Public calculator lookup for visa types dropdown and ROE.
    */
-  async getCalculatorVisaTypes(): Promise<unknown[]> {
+  async getCalculatorVisaTypes(): Promise<{ data: any[]; roe: number }> {
     try {
-      const res = await apiGet<unknown[]>('/calculator/visa/type', {
+      const res = await apiGet<any>('/calculator/visa/type', {
         cache: "no-store",
       } as RequestInit);
-      return Array.isArray(res.data) ? res.data : [];
+      return {
+        data: Array.isArray(res.data) ? res.data : [],
+        roe: Number((res as any)?.roe) || 78,
+      };
     } catch {
-      return [];
+      return { data: [], roe: 78 };
     }
   },
 

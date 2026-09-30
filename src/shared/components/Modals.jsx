@@ -1,11 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, MapPin, PhoneCall, Mail, MessageCircle } from 'lucide-react';
 import { useHotels } from '../../features/hotels/hooks/useHotels';
 import { inquiryService } from '../../services/inquiry.service';
 
-export function Modals({ isContactOpen = false, onCloseContact } = {}) {
+export function Modals({
+  isContactOpen = false,
+  isOpen = false,
+  onCloseContact,
+  onClose,
+  initialName = '',
+  initialPhone = '',
+  initialEmail = '',
+  initialMessage = '',
+} = {}) {
+  const activeContactOpen = isContactOpen || isOpen;
+  const handleCloseContact = () => {
+    if (onCloseContact) onCloseContact();
+    else if (onClose) onClose();
+  };
+
   const {
     selectedHotelForBooking,
     closeBooking,
@@ -31,6 +46,15 @@ export function Modals({ isContactOpen = false, onCloseContact } = {}) {
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [contactSuccess, setContactSuccess] = useState(false);
+
+  useEffect(() => {
+    if (activeContactOpen) {
+      if (initialName) setContactName(initialName);
+      if (initialPhone) setContactPhone(initialPhone);
+      if (initialEmail) setContactEmail(initialEmail);
+      if (initialMessage) setContactMessage(initialMessage);
+    }
+  }, [activeContactOpen, initialName, initialPhone, initialEmail, initialMessage]);
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
@@ -96,7 +120,7 @@ export function Modals({ isContactOpen = false, onCloseContact } = {}) {
       setContactPhone('');
       setContactEmail('');
       setContactMessage('');
-      onCloseContact?.();
+      handleCloseContact();
     }, 2500);
   };
 
@@ -264,13 +288,13 @@ export function Modals({ isContactOpen = false, onCloseContact } = {}) {
       )}
 
       {/* 3. General Contact / Inquiry Modal */}
-      {isContactOpen && (
-        <div className="modal-backdrop" onClick={() => onCloseContact?.()}>
+      {activeContactOpen && (
+        <div className="modal-backdrop" onClick={handleCloseContact}>
           <div
             className="modal-content-card"
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="modal-close-btn" onClick={() => onCloseContact?.()}>
+            <button className="modal-close-btn" onClick={handleCloseContact}>
               <X size={20} />
             </button>
 

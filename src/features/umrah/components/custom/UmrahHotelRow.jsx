@@ -71,6 +71,8 @@ export function UmrahHotelRow({
     id: h.id,
     name: h.name,
     category: h.category,
+    // Real per-night rate in SAR from API (min_rate field)
+    minRateSar: Number(h.priceNumeric || h.min_rate || 0),
   }));
 
   // Fetch hotel room types from API when hotelId is known
@@ -90,50 +92,120 @@ export function UmrahHotelRow({
 
   // When location changes, update location & reset hotel selection so placeholder shows
   const handleLocationChange = (newLoc) => {
-    onUpdate(hotel.id, 'location', newLoc);
-    onUpdate(hotel.id, 'hotelName', '');
-    onUpdate(hotel.id, 'hotelId', null);
-    onUpdate(hotel.id, 'roomType', '');
-    onUpdate(hotel.id, 'bedsText', '');
-    setRoomCounts({ Double: 0, Triple: 0, Quad: 0, Quint: 0, Sharing: 0 });
+    const resetCounts = { Double: 0, Triple: 0, Quad: 0, Quint: 0, Sharing: 0 };
+    setRoomCounts(resetCounts);
     setAvailableRoomTypes(DEFAULT_ROOM_TYPES);
+    onUpdate(hotel.id, {
+      location: newLoc,
+      hotelName: '',
+      hotelId: null,
+      roomType: '',
+      bedsText: '',
+      roomCounts: resetCounts,
+    });
   };
 
-  // When hotel is selected from dropdown, fetch room types from API
+  // Fetch hotel details & real room rates from GET /hotel/{id} API
+  const fetchHotelRates = (hotelId, name) => {
+    if (!hotelId) return;
+    loadRoomTypesForHotel(hotelId);
+
+    hotelService.getHotelDetail(hotelId).then((hotelDetail) => {
+      if (!hotelDetail) return;
+      const rates = {};
+      const rawRates = Array.isArray(hotelDetail.room_rates)
+        ? hotelDetail.room_rates
+        : (Array.isArray(hotelDetail?.data?.[0]?.room_rates) ? hotelDetail.data[0].room_rates : []);
+
+      rawRates.forEach((r) => {
+        const rType = r.room_type || r.type || r.name;
+        const rawPrice = Number(r.price || r.selling_price || r.rate || 0);
+        // Normalize if entered in PKR in database (e.g. 100,000)
+        const price = rawPrice > 10000 ? Math.round(rawPrice / 78) : rawPrice;
+        if (rType && price > 0) rates[rType] = price;
+      });
+
+      // Ensure sensible fallbacks for other room types if base exists
+      const baseMin = Number(hotelDetail.price || hotelDetail.min_rate || 0);
+      const cleanMin = baseMin > 10000 ? Math.round(baseMin / 78) : baseMin;
+      if (!rates['Double'] && cleanMin > 0) rates['Double'] = cleanMin;
+      if (!rates['Triple'] && rates['Double']) rates['Triple'] = rates['Double'];
+      if (!rates['Quad'] && rates['Triple']) rates['Quad'] = rates['Triple'];
+      if (!rates['Quint'] && rates['Quad']) rates['Quint'] = rates['Quad'];
+      if (!rates['Sharing']) {
+        rates['Sharing'] = rates['Quint'] || rates['Quad'] || rates['Triple'] || rates['Double'] || cleanMin;
+      }
+
+      // Update room types options if room_rates contains room types
+      if (rawRates.length > 0) {
+        const types = rawRates.map((r) => r.room_type).filter(Boolean);
+        if (types.length > 0) {
+          if (!types.includes('Sharing')) types.push('Sharing');
+          const uniqueTypes = Array.from(new Set(types));
+          setAvailableRoomTypes(uniqueTypes);
+          onUpdate(hotel.id, 'availableRoomTypes', uniqueTypes);
+        }
+      }
+
+      onUpdate(hotel.id, {
+        roomRates: rates,
+        minRateSar: cleanMin > 0 ? cleanMin : hotel.minRateSar,
+      });
+      console.log(`[HotelRates] ${name || hotelDetail.name} (ID: ${hotelId}) — room rates loaded from API (SAR):`, rates);
+    }).catch((err) => {
+      console.warn(`[HotelRates] Failed loading details for hotel ${hotelId}:`, err);
+    });
+  };
+
+  // Fetch room rates on mount or update if hotelId is present but roomRates not yet loaded
+  useEffect(() => {
+    if (hotel.hotelId && (!hotel.roomRates || Object.keys(hotel.roomRates).length === 0)) {
+      fetchHotelRates(hotel.hotelId, hotel.hotelName);
+    }
+  }, [hotel.hotelId]);
+
+  // When hotel is selected from dropdown, fetch room types + room rates from GET /hotel/{id}
   const handleHotelSelect = (selectedVal) => {
-    onUpdate(hotel.id, 'hotelName', selectedVal);
     const matched = hotelOptions.find((o) => o.value === selectedVal);
-    if (matched?.id) {
-      onUpdate(hotel.id, 'hotelId', matched.id);
-      loadRoomTypesForHotel(matched.id);
+    const hotelId = matched?.id || null;
+    const minRate = matched?.minRateSar || 0;
+
+    onUpdate(hotel.id, {
+      hotelName: selectedVal,
+      hotelId: hotelId,
+      minRateSar: minRate,
+      roomRates: {}, // reset until API returns
+    });
+
+    if (hotelId) {
+      fetchHotelRates(hotelId, selectedVal);
     }
   };
 
   // Update room count (multi-selection like No of Pax: allows 2 or more Double, Triple, etc.)
   const handleUpdateRoomCount = (rType, delta) => {
-    setRoomCounts((prev) => {
-      const current = prev[rType] ?? 0;
-      const next = Math.max(0, current + delta);
-      const nextCounts = { ...prev, [rType]: next };
+    const current = roomCounts[rType] ?? 0;
+    const next = Math.max(0, current + delta);
+    const nextCounts = { ...roomCounts, [rType]: next };
 
-      // Format trigger label (e.g., "2 Double, 1 Triple")
-      const labelParts = [];
-      const bedParts = [];
-      Object.entries(nextCounts).forEach(([type, count]) => {
-        if (count > 0) {
-          labelParts.push(`${count} ${type}`);
-          bedParts.push(`(${count} ${type} Bed)`);
-        }
-      });
+    // Format trigger label (e.g., "2 Double, 1 Triple")
+    const labelParts = [];
+    const bedParts = [];
+    Object.entries(nextCounts).forEach(([type, count]) => {
+      if (count > 0) {
+        labelParts.push(`${count} ${type}`);
+        bedParts.push(`(${count} ${type} Bed)`);
+      }
+    });
 
-      const label = labelParts.join(', ') || 'Select type';
-      const beds = bedParts.join(', ') || '';
+    const label = labelParts.join(', ') || 'Select type';
+    const beds = bedParts.join(', ') || '';
 
-      onUpdate(hotel.id, 'roomType', label);
-      onUpdate(hotel.id, 'bedsText', beds);
-      onUpdate(hotel.id, 'roomCounts', nextCounts);
-
-      return nextCounts;
+    setRoomCounts(nextCounts);
+    onUpdate(hotel.id, {
+      roomType: label,
+      bedsText: beds,
+      roomCounts: nextCounts,
     });
   };
 
