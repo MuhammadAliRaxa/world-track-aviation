@@ -4093,7 +4093,8 @@
     justify-content: center !important;
   }
 
-  .section-header-row {
+  .section-header-row,
+  .umrah-header-row {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 16px !important;
