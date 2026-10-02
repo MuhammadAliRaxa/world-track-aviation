@@ -165,6 +165,12 @@ export function HolidayCard({ tour, onSelectTour }) {
             View Details
           </button>
         </div>
+
+        {/* Bottom Multi-color Gradient Accent Bar */}
+        <div
+          className="holiday-accent-gradient-bar"
+          style={tour.accentGradient ? { background: tour.accentGradient } : undefined}
+        />
       </div>
     </div>
   );
