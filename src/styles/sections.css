@@ -739,7 +739,7 @@
   inset: 0;
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(6px);
-  z-index: 200;
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4138,7 +4138,7 @@
     gap: 4px 8px !important;
   }
 
-  .navbar-floating-container {
+  .navbar-floating-container:not(.navbar-scrolled) {
     top: 66px !important;
     padding: 0 14px !important;
   }
@@ -4264,7 +4264,7 @@
     padding: 6px 12px !important;
   }
 
-  .navbar-floating-container {
+  .navbar-floating-container:not(.navbar-scrolled) {
     top: 68px !important;
     padding: 0 10px !important;
   }

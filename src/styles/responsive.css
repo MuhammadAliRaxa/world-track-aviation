@@ -36,7 +36,7 @@
   }
 
   /* Hero header & navbar: move navbar right under top banner */
-  .hero-header-top-group .navbar-floating-container {
+  .hero-header-top-group .navbar-floating-container:not(.navbar-scrolled) {
     position: relative !important;
     top: 0 !important;
     margin-top: 6px !important;
@@ -571,7 +571,7 @@
 @media (max-width: 540px) {
 
   /* Hero header & navbar adjustments */
-  .hero-header-top-group .navbar-floating-container {
+  .hero-header-top-group .navbar-floating-container:not(.navbar-scrolled) {
     position: relative !important;
     top: 0 !important;
     margin-top: 8px !important;
@@ -947,7 +947,7 @@
   }
 
   /* Hero header & navbar compact */
-  .hero-header-top-group .navbar-floating-container {
+  .hero-header-top-group .navbar-floating-container:not(.navbar-scrolled) {
     position: relative !important;
     top: 0 !important;
     margin-top: 6px !important;

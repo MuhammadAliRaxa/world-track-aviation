@@ -132,7 +132,7 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 40;
+  z-index: 1100;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -169,12 +169,13 @@
   top: 0;
   left: 0;
   right: 0;
+  z-index: 1200;
   padding-top: 10px;
   padding-bottom: 10px;
-  background: rgba(10, 25, 60, 0.72);
+  background: rgba(10, 25, 60, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
   animation: navbarDropIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -182,14 +183,14 @@
 .navbar-inline-container {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1200;
   display: flex;
   justify-content: center;
   padding: 10px 32px;
-  background: rgba(10, 25, 60, 0.72);
+  background: rgba(10, 25, 60, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
 }
 
 .header-glass-pill {
@@ -377,7 +378,7 @@
   border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  z-index: 1000;
+  z-index: 1300;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;

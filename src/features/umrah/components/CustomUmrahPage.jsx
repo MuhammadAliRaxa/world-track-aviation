@@ -88,6 +88,13 @@ export function CustomUmrahPage({
   const [calculatedResult, setCalculatedResult] = useState(null);
   const [includeTransport, setIncludeTransport] = useState(true);
 
+  // Target duration in days and live hotel stay coverage
+  const durationMatch = (String(duration).match(/(\d+)/) || [])[1];
+  const targetDays = durationMatch ? parseInt(durationMatch, 10) : 0;
+  const totalHotelNights = hotels.reduce((sum, h) => sum + (Math.max(0, Number(h.nights)) || 0), 0);
+  const isDurationMatched = targetDays > 0 && totalHotelNights >= targetDays - 1 && totalHotelNights <= targetDays;
+  const isDurationExceeded = targetDays > 0 && totalHotelNights > targetDays;
+
   // API Lookups State for Hotel Details
   const [hotelLookups, setHotelLookups] = useState({
     cities: ['Makkah', 'Madinah'],
@@ -360,8 +367,8 @@ export function CustomUmrahPage({
 
   // Update Hotel Handler (supports both (id, 'field', value) and (id, { field1: val1, ... }))
   const handleUpdateHotel = (id, fieldOrObject, value) => {
-    setHotels((prev) =>
-      prev.map((h) => {
+    setHotels((prev) => {
+      const nextHotels = prev.map((h) => {
         if (h.id !== id) return h;
         const updates =
           typeof fieldOrObject === 'object' && fieldOrObject !== null
@@ -373,11 +380,17 @@ export function CustomUmrahPage({
         const checkInVal = updates.checkIn !== undefined ? updates.checkIn : h.checkIn;
         const checkOutVal = updates.checkOut !== undefined ? updates.checkOut : h.checkOut;
         if (updates.checkIn !== undefined || updates.checkOut !== undefined) {
-          const d1 = new Date(checkInVal);
-          const d2 = new Date(checkOutVal);
-          const diffDays = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
-          if (!isNaN(diffDays) && diffDays > 0) {
-            updated.nights = diffDays;
+          if (checkInVal && checkOutVal) {
+            const d1 = new Date(checkInVal);
+            const d2 = new Date(checkOutVal);
+            const diffDays = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+            if (!isNaN(diffDays) && diffDays > 0) {
+              updated.nights = diffDays;
+            } else {
+              updated.nights = 0;
+            }
+          } else {
+            updated.nights = 0;
           }
         }
 
@@ -392,8 +405,38 @@ export function CustomUmrahPage({
         }
 
         return updated;
-      })
-    );
+      });
+
+      // Smart itinerary pre-fill:
+      // If Hotel 1 (Makkah) checkOut date is updated, and Hotel 2 (Madinah) checkIn is empty,
+      // seamlessly link Hotel 2 checkIn to Hotel 1 checkOut and calculate remaining duration
+      if (nextHotels.length >= 2 && nextHotels[0].id === id) {
+        const h1 = nextHotels[0];
+        const h2 = nextHotels[1];
+        const updates =
+          typeof fieldOrObject === 'object' && fieldOrObject !== null
+            ? fieldOrObject
+            : { [fieldOrObject]: value };
+
+        if (updates.checkOut && h1.nights > 0 && (!h2.checkIn || h2.checkIn === h1.checkOut)) {
+          h2.checkIn = updates.checkOut;
+          if (targetDays > 0) {
+            const remaining = targetDays - h1.nights;
+            if (remaining > 0 && (!h2.checkOut || Number(h2.nights) <= 0)) {
+              const dOut = new Date(updates.checkOut);
+              dOut.setDate(dOut.getDate() + remaining);
+              const yyyy = dOut.getFullYear();
+              const mm = String(dOut.getMonth() + 1).padStart(2, '0');
+              const dd = String(dOut.getDate()).padStart(2, '0');
+              h2.checkOut = `${yyyy}-${mm}-${dd}`;
+              h2.nights = remaining;
+            }
+          }
+        }
+      }
+
+      return nextHotels;
+    });
 
     const updates =
       typeof fieldOrObject === 'object' && fieldOrObject !== null
@@ -480,7 +523,7 @@ export function CustomUmrahPage({
     let totalNights = 0;
 
     hotels.forEach((h) => {
-      const nights = Math.max(1, Number(h.nights) || 3);
+      const nights = Number(h.nights) > 0 ? Number(h.nights) : Math.max(1, Number(h.nights) || 3);
       totalNights += nights;
 
       const roomCounts  = h.roomCounts || {};
@@ -894,6 +937,23 @@ export function CustomUmrahPage({
           missingLabels.push(`Room capacity for ${cityLabel} (need ${diff} more bed${diff > 1 ? 's' : ''})`);
         }
       });
+
+      // 3b. Strictly validate that total hotel nights cover the selected duration
+      if (targetDays > 0) {
+        const totalNights = hotels.reduce((sum, h) => sum + (Math.max(0, Number(h.nights)) || 0), 0);
+        if (totalNights === 0) {
+          errors.hotelNightsDuration = `Please select check-in and check-out dates to cover the ${duration} package.`;
+          missingLabels.push(`Hotel Dates (${duration})`);
+        } else if (totalNights < targetDays - 1) {
+          const needed = targetDays - totalNights;
+          errors.hotelNightsDuration = `Hotel stays (${totalNights} nights) do not cover the selected ${duration} package. Please add ${needed} more night${needed > 1 ? 's' : ''}.`;
+          missingLabels.push(`Cover full ${duration} duration (${needed} more night${needed > 1 ? 's' : ''} needed)`);
+        } else if (totalNights > targetDays) {
+          const excess = totalNights - targetDays;
+          errors.hotelNightsDuration = `Hotel stays (${totalNights} nights) exceed the selected ${duration} package duration by ${excess} night${excess > 1 ? 's' : ''}.`;
+          missingLabels.push(`Adjust hotel dates to match ${duration}`);
+        }
+      }
     }
 
     // 4. Transport (if Visa with Private Transport)
@@ -949,7 +1009,7 @@ export function CustomUmrahPage({
     };
   };
 
-  // Auto-clear validation error if room adjustments fix capacity
+  // Auto-clear validation errors when resolved
   useEffect(() => {
     hotels.forEach((h) => {
       if (h.hotelName) {
@@ -959,7 +1019,14 @@ export function CustomUmrahPage({
         }
       }
     });
-  }, [hotels, adultCount]);
+
+    if (targetDays > 0 && fieldErrors.hotelNightsDuration) {
+      const totalNights = hotels.reduce((sum, h) => sum + (Math.max(0, Number(h.nights)) || 0), 0);
+      if (totalNights >= targetDays - 1 && totalNights <= targetDays) {
+        clearFieldError('hotelNightsDuration');
+      }
+    }
+  }, [hotels, adultCount, duration, targetDays, fieldErrors.hotelNightsDuration]);
 
   // Auto-clear overall validation banner when all field errors are resolved
   useEffect(() => {
@@ -1128,6 +1195,50 @@ export function CustomUmrahPage({
 
             {/* ── HOTELS SECTION ── */}
             <div className="cuf-hotels-section">
+              {targetDays > 0 && (
+                <div
+                  className={`cuf-duration-tracker ${
+                    isDurationMatched
+                      ? 'cuf-duration-tracker--success'
+                      : isDurationExceeded
+                      ? 'cuf-duration-tracker--danger'
+                      : 'cuf-duration-tracker--warning'
+                  }`}
+                >
+                  <div className="cuf-duration-tracker-left">
+                    <span className="cuf-duration-tracker-icon">
+                      {isDurationMatched ? '✓' : '🗓️'}
+                    </span>
+                    <div>
+                      <div className="cuf-duration-tracker-title">
+                        Package Duration: <strong>{duration}</strong> ({targetDays} Days)
+                      </div>
+                      <div className="cuf-duration-tracker-desc">
+                        {isDurationMatched ? (
+                          <span>Full stay covered across your hotels ({totalHotelNights} nights).</span>
+                        ) : isDurationExceeded ? (
+                          <span>Hotel stays ({totalHotelNights} nights) exceed the package duration by {totalHotelNights - targetDays} night{totalHotelNights - targetDays > 1 ? 's' : ''}.</span>
+                        ) : totalHotelNights === 0 ? (
+                          <span>Select check-in and check-out dates for your hotels to complete the {duration} itinerary.</span>
+                        ) : (
+                          <span>Covered {totalHotelNights} of {targetDays} days ({targetDays - totalHotelNights} more night{targetDays - totalHotelNights > 1 ? 's' : ''} needed).</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="cuf-duration-tracker-pill">
+                    {totalHotelNights} / {targetDays} Days
+                  </div>
+                </div>
+              )}
+
+              {fieldErrors.hotelNightsDuration && (
+                <div className="cuf-duration-error-banner">
+                  <span>⚠️</span>
+                  <span>{fieldErrors.hotelNightsDuration}</span>
+                </div>
+              )}
+
               {hotels.map((hotel, index) => (
                 <UmrahHotelRow
                   key={hotel.id}

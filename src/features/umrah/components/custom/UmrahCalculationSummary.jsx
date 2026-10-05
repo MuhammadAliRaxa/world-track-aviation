@@ -1,14 +1,15 @@
 'use client';
 
 import React from 'react';
-import { MessageCircle, ShieldCheck } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
+import { COMPANY_CONFIG } from '../../../../config/company';
 
 export function UmrahCalculationSummary({ calculatedResult, onOpenContact, whatsAppMessage = '' }) {
   if (!calculatedResult) return null;
 
   const defaultWaMessage = `Hi World Track Aviation, I would like to book a Custom Umrah Package. Total Travelers: ${calculatedResult.pax || '1 Adult'}, Duration: ${calculatedResult.duration || `${calculatedResult.nightsCount} Nights`}, Estimated Total: PKR ${calculatedResult.grandTotal.toLocaleString()}. Please provide confirmation.`;
   const textToSend = whatsAppMessage || defaultWaMessage;
-  const waUrl = `https://wa.me/923350122252?text=${encodeURIComponent(textToSend)}`;
+  const waUrl = COMPANY_CONFIG.getWhatsAppUrl(textToSend);
 
   return (
     <div className="umrah-calc-summary-card">
