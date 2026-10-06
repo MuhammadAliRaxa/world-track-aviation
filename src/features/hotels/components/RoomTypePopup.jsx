@@ -16,13 +16,60 @@ export function RoomTypePopup({
   counts = {},
   onUpdateCount,
   roomTypes = [],
+  allRoomTypes = null,
+  availableRoomTypes = null,
   adultCount = 1,
   hotelName = '',
   isLoading = false,
 }) {
   if (!isOpen) return null;
 
-  const ROOM_TYPES = Array.isArray(roomTypes) ? roomTypes : [];
+  const DEFAULT_ALL_TYPES = ['Double', 'Triple', 'Quad', 'Quint', 'Sharing'];
+
+  // All room types to display (defaults to standard Umrah types + any additional API types)
+  const displayTypes = React.useMemo(() => {
+    if (Array.isArray(allRoomTypes) && allRoomTypes.length > 0) {
+      return allRoomTypes;
+    }
+    const set = new Set(DEFAULT_ALL_TYPES);
+    if (Array.isArray(availableRoomTypes)) {
+      availableRoomTypes.forEach((t) => {
+        if (t) set.add(t);
+      });
+    }
+    if (Array.isArray(roomTypes) && roomTypes.length > 0) {
+      roomTypes.forEach((t) => {
+        if (t) set.add(t);
+      });
+    }
+    return Array.from(set);
+  }, [allRoomTypes, availableRoomTypes, roomTypes]);
+
+  // Check if a specific room type is active from the API
+  const isTypeActive = (roomType) => {
+    // If availableRoomTypes is explicitly passed (e.g. from Custom Umrah)
+    if (availableRoomTypes !== null && availableRoomTypes !== undefined) {
+      if (!Array.isArray(availableRoomTypes) || availableRoomTypes.length === 0) {
+        return false;
+      }
+      const clean = (s) => String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const target = clean(roomType);
+      return availableRoomTypes.some((item) => {
+        const a = clean(item);
+        return a === target || a.includes(target) || target.includes(a);
+      });
+    }
+    // Backward compatibility: if only roomTypes array was passed
+    if (Array.isArray(roomTypes) && roomTypes.length > 0) {
+      const clean = (s) => String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const target = clean(roomType);
+      return roomTypes.some((item) => {
+        const a = clean(item);
+        return a === target || a.includes(target) || target.includes(a);
+      });
+    }
+    return true;
+  };
 
   // Capacity mapping helper
   const getCapacity = (type) => {
@@ -40,8 +87,9 @@ export function RoomTypePopup({
     return 2;
   };
 
-  const totalBeds = ROOM_TYPES.reduce((sum, r) => {
-    const c = Number(counts[r] || 0);
+  const totalBeds = displayTypes.reduce((sum, r) => {
+    const isActive = isTypeActive(r);
+    const c = isActive ? Number(counts[r] || 0) : 0;
     return sum + c * getCapacity(r);
   }, 0);
 
@@ -53,7 +101,7 @@ export function RoomTypePopup({
         position: 'absolute',
         top: 'calc(100% + 6px)',
         right: 0,
-        minWidth: '280px',
+        minWidth: '290px',
         backgroundColor: '#ffffff',
         borderRadius: '16px',
         padding: '18px 20px',
@@ -66,9 +114,9 @@ export function RoomTypePopup({
         <div style={{ padding: '16px 8px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
           Loading hotel room types...
         </div>
-      ) : ROOM_TYPES.length === 0 ? (
+      ) : !hotelName ? (
         <div style={{ padding: '16px 8px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
-          {hotelName ? 'No room types available for this hotel.' : 'Please select a hotel first to view room types.'}
+          Please select a hotel first to view room types.
         </div>
       ) : (
         <>
@@ -107,121 +155,152 @@ export function RoomTypePopup({
                 : `✓ Accommodates all ${adultCount} adults (${totalBeds} beds).`}
             </div>
           </div>
-      {ROOM_TYPES.map((room) => {
-        const count = counts[room] ?? 0;
-        const isAtMin = count <= 0;
 
-        return (
-          <div
-            key={room}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 4px',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '15px',
-                fontWeight: 500,
-                color: '#0f172a',
-              }}
-            >
-              {room}
-            </span>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Minus Button (Solid blue circle with white icon, matching design) */}
-              <button
-                type="button"
-                onClick={() => onUpdateCount?.(room, -1)}
-                disabled={isAtMin}
-                aria-label={`Decrease ${room}`}
+          {displayTypes.map((room) => {
+            const isActive = isTypeActive(room);
+            const count = isActive ? (counts[room] ?? 0) : 0;
+            const isAtMin = count <= 0;
+
+            return (
+              <div
+                key={room}
                 style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  backgroundColor: '#0073ff',
-                  color: '#ffffff',
-                  opacity: isAtMin ? 0.4 : 1,
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: isAtMin ? 'not-allowed' : 'pointer',
-                  padding: 0,
-                  outline: 'none',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isAtMin) {
-                    e.currentTarget.style.backgroundColor = '#005fe0';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isAtMin) {
-                    e.currentTarget.style.backgroundColor = '#0073ff';
-                  }
+                  justifyContent: 'space-between',
+                  padding: '10px 4px',
+                  borderBottom: '1px solid #f8fafc',
                 }}
               >
-                <Minus size={12} strokeWidth={3} />
-              </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      fontSize: '15px',
+                      fontWeight: 500,
+                      color: isActive ? '#0f172a' : '#64748b',
+                    }}
+                  >
+                    {room}
+                  </span>
+                  {!isActive && (
+                    <span
+                      style={{
+                        backgroundColor: '#fef2f2',
+                        color: '#dc2626',
+                        border: '1px solid #fecaca',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        padding: '1.5px 7px',
+                        borderRadius: '6px',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      Sold
+                    </span>
+                  )}
+                </div>
 
-              {/* Number in Middle */}
-              <span
-                style={{
-                  minWidth: '20px',
-                  textAlign: 'center',
-                  fontSize: '15px',
-                  fontWeight: 600,
-                  color: '#0f172a',
-                  userSelect: 'none',
-                }}
-              >
-                {count}
-              </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Minus Button */}
+                  <button
+                    type="button"
+                    onClick={() => isActive && onUpdateCount?.(room, -1)}
+                    disabled={!isActive || isAtMin}
+                    aria-label={`Decrease ${room}`}
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      border: 'none',
+                      backgroundColor: isActive ? '#0073ff' : '#e2e8f0',
+                      color: isActive ? '#ffffff' : '#94a3b8',
+                      opacity: (!isActive || isAtMin) ? 0.35 : 1,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: (!isActive || isAtMin) ? 'not-allowed' : 'pointer',
+                      padding: 0,
+                      outline: 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (isActive && !isAtMin) {
+                        e.currentTarget.style.backgroundColor = '#005fe0';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (isActive && !isAtMin) {
+                        e.currentTarget.style.backgroundColor = '#0073ff';
+                      }
+                    }}
+                  >
+                    <Minus size={12} strokeWidth={3} />
+                  </button>
 
-              {/* Plus Button (Solid blue circle with white icon) */}
-              <button
-                type="button"
-                onClick={() => onUpdateCount?.(room, 1)}
-                aria-label={`Increase ${room}`}
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  backgroundColor: '#0073ff',
-                  color: '#ffffff',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  padding: 0,
-                  outline: 'none',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#005fe0';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#0073ff';
-                }}
-              >
-                <Plus size={12} strokeWidth={3} />
-              </button>
-            </div>
-          </div>
-        );
-      })}
-      </>
+                  {/* Number in Middle */}
+                  <span
+                    style={{
+                      minWidth: '20px',
+                      textAlign: 'center',
+                      fontSize: '15px',
+                      fontWeight: 600,
+                      color: isActive ? '#0f172a' : '#94a3b8',
+                      userSelect: 'none',
+                    }}
+                  >
+                    {count}
+                  </span>
+
+                  {/* Plus Button */}
+                  <button
+                    type="button"
+                    onClick={() => isActive && onUpdateCount?.(room, 1)}
+                    disabled={!isActive}
+                    aria-label={`Increase ${room}`}
+                    title={!isActive ? 'This room type is sold out for this hotel' : `Add ${room}`}
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      border: 'none',
+                      backgroundColor: isActive ? '#0073ff' : '#e2e8f0',
+                      color: isActive ? '#ffffff' : '#94a3b8',
+                      opacity: !isActive ? 0.35 : 1,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: !isActive ? 'not-allowed' : 'pointer',
+                      padding: 0,
+                      outline: 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (isActive) {
+                        e.currentTarget.style.backgroundColor = '#005fe0';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (isActive) {
+                        e.currentTarget.style.backgroundColor = '#0073ff';
+                      }
+                    }}
+                  >
+                    <Plus size={12} strokeWidth={3} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </>
       )}
 
       {/* Done Button */}

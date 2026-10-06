@@ -238,6 +238,17 @@ export function UmrahHotelRow({
 
   // Update room count for a specific API room type
   const handleUpdateRoomCount = (rType, delta) => {
+    // Only allow adding if room type is available from the hotel API
+    if (delta > 0 && availableRoomTypes && availableRoomTypes.length > 0) {
+      const clean = (s) => String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const target = clean(rType);
+      const isAvail = availableRoomTypes.some((a) => {
+        const item = clean(a);
+        return item === target || item.includes(target) || target.includes(item);
+      });
+      if (!isAvail) return;
+    }
+
     const current = roomCounts[rType] ?? 0;
     const next = Math.max(0, current + delta);
     const nextCounts = { ...roomCounts, [rType]: next };
@@ -394,7 +405,7 @@ export function UmrahHotelRow({
                   handleUpdateRoomCount(rType, delta);
                   onClearError?.(`hotel_${hotel.id}_rooms`);
                 }}
-                roomTypes={availableRoomTypes}
+                availableRoomTypes={availableRoomTypes}
                 adultCount={adultCount}
                 hotelName={hotel.hotelName}
                 isLoading={isLoadingRoomTypes}

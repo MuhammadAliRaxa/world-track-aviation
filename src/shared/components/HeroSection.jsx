@@ -46,6 +46,7 @@ function HeroDropdownField({
   label,
   value,
   displayValue,
+  placeholder = '',
   options = [],
   isOpen,
   onToggle,
@@ -53,6 +54,10 @@ function HeroDropdownField({
   isWide = false,
   alignRight = false,
 }) {
+  const hasValue = Boolean(value);
+  const shownText = hasValue ? (displayValue || value) : placeholder;
+  const isPlaceholder = !hasValue && Boolean(placeholder);
+
   return (
     <div
       className={`hero-pill-field ${isWide ? 'hero-pill-field-wide' : ''} ${isOpen ? 'is-active' : ''}`}
@@ -73,7 +78,9 @@ function HeroDropdownField({
     >
       <div className="pill-field-content">
         <span className="pill-field-label">{label}</span>
-        <span className="pill-field-value">{displayValue || value}</span>
+        <span className={`pill-field-value ${isPlaceholder ? 'pill-field-placeholder' : ''}`}>
+          {shownText}
+        </span>
       </div>
 
       <ChevronDown
@@ -158,21 +165,21 @@ export function HeroSection({
 
   const [lookupCities, setLookupCities] = useState(() => initialLookups?.cities || []);
   const [lookupRoomTypes, setLookupRoomTypes] = useState(() => initialLookups?.room_types || []);
-  const [hotelDestination, setHotelDestination] = useState(
-    () => initialLookups?.cities?.[0]?.name || 'Madina'
-  );
-  const [hotelCheckIn, setHotelCheckIn] = useState(() => getTodayIso());
-  const [hotelCheckOut, setHotelCheckOut] = useState(() => getFutureIso(3));
-  const [hotelRoomType, setHotelRoomType] = useState('All Room Types');
-  const [hotelAdults, setHotelAdults] = useState(2);
+  const [hotelDestination, setHotelDestination] = useState('');
+  const [hotelCheckIn, setHotelCheckIn] = useState('');
+  const [hotelCheckOut, setHotelCheckOut] = useState('');
+  const [hotelRoomType, setHotelRoomType] = useState('');
+  const [hotelAdults, setHotelAdults] = useState(0);
   const [hotelChildren, setHotelChildren] = useState(0);
-  const [hotelRooms, setHotelRooms] = useState(1);
+  const [hotelRooms, setHotelRooms] = useState(0);
 
-  const guestsDisplayLabel = `${hotelAdults} adults (${hotelRooms}Room)`;
+  const guestsDisplayLabel = hotelAdults > 0
+    ? `${hotelAdults} adult${hotelAdults > 1 ? 's' : ''} (${hotelRooms || 1} Room${(hotelRooms || 1) > 1 ? 's' : ''})`
+    : '';
 
   const handleHotelCheckInChange = (val) => {
     setHotelCheckIn(val);
-    if (!hotelCheckOut || hotelCheckOut <= val) {
+    if (val && (!hotelCheckOut || hotelCheckOut <= val)) {
       const d = new Date(val);
       d.setDate(d.getDate() + 1);
       const year = d.getFullYear();
@@ -183,7 +190,11 @@ export function HeroSection({
   };
 
   const handleHotelCheckOutChange = (val) => {
-    if (!val || val <= hotelCheckIn) {
+    if (!val) {
+      setHotelCheckOut('');
+      return;
+    }
+    if (hotelCheckIn && val <= hotelCheckIn) {
       const d = new Date(hotelCheckIn);
       d.setDate(d.getDate() + 1);
       const year = d.getFullYear();
@@ -209,15 +220,6 @@ export function HeroSection({
         const roomTypes = lookups?.room_types || [];
         if (Array.isArray(cities) && cities.length > 0) {
           setLookupCities(cities);
-          setHotelDestination((current) => {
-            if (!current || current === 'All Destinations' || current === 'Singapore') {
-              return cities[0]?.name || 'Madina';
-            }
-            const exists = cities.some(
-              (c) => (c.name || c.value || '').toLowerCase() === current.toLowerCase()
-            );
-            return exists ? current : cities[0]?.name || 'Madina';
-          });
         }
         if (Array.isArray(roomTypes) && roomTypes.length > 0) {
           setLookupRoomTypes(roomTypes);
@@ -239,11 +241,9 @@ export function HeroSection({
   const [lookupVisaTypes, setLookupVisaTypes] = useState(
     () => initialVisaLookups?.visa_types || []
   );
-  const [visaDestination, setVisaDestination] = useState(
-    () => initialVisaLookups?.countries?.[0]?.value || 'All Destinations'
-  );
-  const [visaCheckIn, setVisaCheckIn] = useState(() => getFutureIso(7));
-  const [visaType, setVisaType] = useState('All Visa Types');
+  const [visaDestination, setVisaDestination] = useState('');
+  const [visaCheckIn, setVisaCheckIn] = useState('');
+  const [visaType, setVisaType] = useState('');
 
   // Fetch visa lookups directly from GET /visa/lookups (if not supplied via SSR)
   useEffect(() => {
@@ -259,15 +259,6 @@ export function HeroSection({
         const visaTypes = lookups?.visa_types || [];
         if (Array.isArray(countries) && countries.length > 0) {
           setLookupVisaCountries(countries);
-          setVisaDestination((current) => {
-            if (!current || current === 'All Destinations') {
-              return countries[0]?.value || 'All Destinations';
-            }
-            const exists = countries.some(
-              (c) => (c.value || c.name || '').toLowerCase() === current.toLowerCase()
-            );
-            return exists ? current : countries[0]?.value || 'All Destinations';
-          });
         }
         if (Array.isArray(visaTypes) && visaTypes.length > 0) {
           setLookupVisaTypes(visaTypes);
@@ -288,9 +279,9 @@ export function HeroSection({
   const [lookupDepartureDates, setLookupDepartureDates] = useState(
     () => initialGroupUmrahLookups?.departure_dates || []
   );
-  const [selectedRoute, setSelectedRoute] = useState('All Routes');
-  const [selectedDepartureDate, setSelectedDepartureDate] = useState('All Departure Dates');
-  const [umrahDuration, setUmrahDuration] = useState('All Durations');
+  const [selectedRoute, setSelectedRoute] = useState('');
+  const [selectedDepartureDate, setSelectedDepartureDate] = useState('');
+  const [umrahDuration, setUmrahDuration] = useState('');
 
   // Fetch group Umrah lookups directly from GET /group-umrah-packages/lookups (if not supplied via SSR)
   useEffect(() => {
@@ -335,7 +326,7 @@ export function HeroSection({
 
   // Options configuration — Real API data only
   const hotelDestOptions = useMemo(() => {
-    const list = [{ value: 'All Destinations', label: 'All Destinations' }];
+    const list = [{ value: '', label: 'Select Destination' }];
     if (Array.isArray(lookupCities) && lookupCities.length > 0) {
       lookupCities.forEach((c) => {
         const name = typeof c === 'string' ? c : (c.name || c.value || '');
@@ -351,7 +342,7 @@ export function HeroSection({
   }, [lookupCities]);
 
   const hotelRoomTypeOptions = useMemo(() => {
-    const list = [{ value: 'All Room Types', label: 'All Room Types' }];
+    const list = [{ value: '', label: 'Select Room Type' }];
     if (Array.isArray(lookupRoomTypes) && lookupRoomTypes.length > 0) {
       lookupRoomTypes.forEach((rt) => {
         list.push({ value: String(rt.id), label: rt.room_type });
@@ -361,13 +352,13 @@ export function HeroSection({
   }, [lookupRoomTypes]);
 
   const selectedRoomTypeLabel = useMemo(() => {
-    if (!hotelRoomType || hotelRoomType === 'All Room Types') return 'All Room Types';
+    if (!hotelRoomType || hotelRoomType === 'All Room Types') return '';
     const found = lookupRoomTypes.find((r) => String(r.id) === String(hotelRoomType));
     return found?.room_type || hotelRoomType;
   }, [hotelRoomType, lookupRoomTypes]);
 
   const visaDestOptions = useMemo(() => {
-    const list = [{ value: 'All Destinations', label: 'All Destinations' }];
+    const list = [{ value: '', label: 'Select Country' }];
     if (Array.isArray(lookupVisaCountries) && lookupVisaCountries.length > 0) {
       lookupVisaCountries.forEach((c) => {
         const val = typeof c === 'string' ? c : (c.value || c.name || c.country || '');
@@ -384,7 +375,7 @@ export function HeroSection({
   }, [lookupVisaCountries]);
 
   const visaTypeOptions = useMemo(() => {
-    const list = [{ value: 'All Visa Types', label: 'All Visa Types' }];
+    const list = [{ value: '', label: 'Select Visa Type' }];
     if (Array.isArray(lookupVisaTypes) && lookupVisaTypes.length > 0) {
       lookupVisaTypes.forEach((t) => {
         const val = typeof t === 'string' ? t : (t.value || t.name || t.visa_type || '');
@@ -401,7 +392,7 @@ export function HeroSection({
   }, [lookupVisaTypes]);
 
   const groupUmrahRouteOptions = useMemo(() => {
-    const list = [{ value: 'All Routes', label: 'All Routes' }];
+    const list = [{ value: '', label: 'Select Route' }];
     if (Array.isArray(lookupRoutes) && lookupRoutes.length > 0) {
       lookupRoutes.forEach((r) => {
         list.push({ value: String(r.id), label: r.name });
@@ -411,13 +402,13 @@ export function HeroSection({
   }, [lookupRoutes]);
 
   const selectedRouteLabel = useMemo(() => {
-    if (!selectedRoute || selectedRoute === 'All Routes') return 'All Routes';
+    if (!selectedRoute || selectedRoute === 'All Routes') return '';
     const found = lookupRoutes.find((r) => String(r.id) === String(selectedRoute));
     return found?.name || selectedRoute;
   }, [selectedRoute, lookupRoutes]);
 
   const groupUmrahDepartureDateOptions = useMemo(() => {
-    const list = [{ value: 'All Departure Dates', label: 'All Departure Dates' }];
+    const list = [{ value: '', label: 'Select Departure Date' }];
     if (Array.isArray(lookupDepartureDates) && lookupDepartureDates.length > 0) {
       lookupDepartureDates.forEach((d) => {
         list.push({
@@ -431,14 +422,14 @@ export function HeroSection({
 
   const selectedDepartureDateLabel = useMemo(() => {
     if (!selectedDepartureDate || selectedDepartureDate === 'All Departure Dates') {
-      return 'All Departure Dates';
+      return '';
     }
     const found = lookupDepartureDates.find((d) => d.value === selectedDepartureDate);
     return found?.label || selectedDepartureDate;
   }, [selectedDepartureDate, lookupDepartureDates]);
 
   const groupUmrahDurationOptions = useMemo(() => {
-    const list = [{ value: 'All Durations', label: 'All Durations' }];
+    const list = [{ value: '', label: 'Select Duration' }];
     if (Array.isArray(lookupDurations) && lookupDurations.length > 0) {
       lookupDurations.forEach((d) => {
         const val = typeof d === 'object' && d !== null ? (d.value ?? d.duration ?? d.id) : d;
@@ -459,7 +450,7 @@ export function HeroSection({
   }, [lookupDurations]);
 
   const selectedDurationLabel = useMemo(() => {
-    if (!umrahDuration || umrahDuration === 'All Durations') return 'All Durations';
+    if (!umrahDuration || umrahDuration === 'All Durations') return '';
     const found = groupUmrahDurationOptions.find((d) => String(d.value) === String(umrahDuration));
     return found?.label || `${umrahDuration} Days`;
   }, [umrahDuration, groupUmrahDurationOptions]);
@@ -470,7 +461,7 @@ export function HeroSection({
 
     if (activeTab === 'hotels') {
       setIsSearchingHotel(true);
-      const city = hotelDestination.split(',')[0].trim();
+      const city = hotelDestination ? hotelDestination.split(',')[0].trim() : '';
       const normalizedCity = city.toLowerCase() === 'madinah' ? 'Madina' : city;
 
       // POST /hotel/minRate
@@ -498,9 +489,9 @@ export function HeroSection({
         onSearchSubmit?.({
           tab: 'hotels',
           params: {
-            destination: hotelDestination === 'All Destinations' ? '' : hotelDestination,
-            city: normalizedCity === 'All Destinations' ? '' : normalizedCity,
-            roomType: hotelRoomType === 'All Room Types' ? '' : selectedRoomTypeLabel,
+            destination: hotelDestination || '',
+            city: normalizedCity || '',
+            roomType: selectedRoomTypeLabel || '',
             checkIn: hotelCheckIn,
             checkOut: hotelCheckOut,
             adults: hotelAdults,
@@ -514,11 +505,14 @@ export function HeroSection({
         onSearchSubmit?.({
           tab: 'hotels',
           params: {
-            destination: hotelDestination === 'All Destinations' ? '' : hotelDestination,
-            city: normalizedCity === 'All Destinations' ? '' : normalizedCity,
-            roomType: hotelRoomType === 'All Room Types' ? '' : selectedRoomTypeLabel,
+            destination: hotelDestination || '',
+            city: normalizedCity || '',
+            roomType: selectedRoomTypeLabel || '',
             checkIn: hotelCheckIn,
             checkOut: hotelCheckOut,
+            adults: hotelAdults,
+            children: hotelChildren,
+            rooms: hotelRooms,
             results: [],
           },
         });
@@ -547,9 +541,9 @@ export function HeroSection({
         onSearchSubmit?.({
           tab: 'visa',
           params: {
-            destinationCountry: visaDestination === 'All Destinations' ? '' : visaDestination,
-            country: visaDestination === 'All Destinations' ? '' : visaDestination,
-            visaType: visaType === 'All Visa Types' ? '' : visaType,
+            destinationCountry: visaDestination || '',
+            country: visaDestination || '',
+            visaType: visaType || '',
             checkIn: visaCheckIn,
             results: normalized,
           },
@@ -559,9 +553,9 @@ export function HeroSection({
         onSearchSubmit?.({
           tab: 'visa',
           params: {
-            destinationCountry: visaDestination === 'All Destinations' ? '' : visaDestination,
-            country: visaDestination === 'All Destinations' ? '' : visaDestination,
-            visaType: visaType === 'All Visa Types' ? '' : visaType,
+            destinationCountry: visaDestination || '',
+            country: visaDestination || '',
+            visaType: visaType || '',
             checkIn: visaCheckIn,
             results: [],
           },
@@ -594,13 +588,13 @@ export function HeroSection({
         onSearchSubmit?.({
           tab: 'umrah',
           params: {
-            route: selectedRoute === 'All Routes' ? '' : selectedRouteLabel,
-            routeId: selectedRoute === 'All Routes' ? '' : selectedRoute,
-            departureDate: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDate,
-            departureDateLabel: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDateLabel,
-            departDate: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDateLabel,
-            noOfDays: umrahDuration === 'All Durations' ? '' : umrahDuration,
-            durationLabel: umrahDuration === 'All Durations' ? '' : selectedDurationLabel,
+            route: selectedRoute ? selectedRouteLabel : '',
+            routeId: selectedRoute || '',
+            departureDate: selectedDepartureDate || '',
+            departureDateLabel: selectedDepartureDate ? selectedDepartureDateLabel : '',
+            departDate: selectedDepartureDate ? selectedDepartureDateLabel : '',
+            noOfDays: umrahDuration || '',
+            durationLabel: umrahDuration ? selectedDurationLabel : '',
             results: normalized,
           },
         });
@@ -609,13 +603,13 @@ export function HeroSection({
         onSearchSubmit?.({
           tab: 'umrah',
           params: {
-            route: selectedRoute === 'All Routes' ? '' : selectedRouteLabel,
-            routeId: selectedRoute === 'All Routes' ? '' : selectedRoute,
-            departureDate: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDate,
-            departureDateLabel: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDateLabel,
-            departDate: selectedDepartureDate === 'All Departure Dates' ? '' : selectedDepartureDateLabel,
-            noOfDays: umrahDuration === 'All Durations' ? '' : umrahDuration,
-            durationLabel: umrahDuration === 'All Durations' ? '' : selectedDurationLabel,
+            route: selectedRoute ? selectedRouteLabel : '',
+            routeId: selectedRoute || '',
+            departureDate: selectedDepartureDate || '',
+            departureDateLabel: selectedDepartureDate ? selectedDepartureDateLabel : '',
+            departDate: selectedDepartureDate ? selectedDepartureDateLabel : '',
+            noOfDays: umrahDuration || '',
+            durationLabel: umrahDuration ? selectedDurationLabel : '',
             results: [],
           },
         });
@@ -704,6 +698,7 @@ export function HeroSection({
               <HeroDropdownField
                 label="DESTINATION"
                 value={hotelDestination}
+                placeholder="Select Destination"
                 options={hotelDestOptions}
                 isWide={true}
                 isOpen={openDropdown === 'hotel-dest'}
@@ -729,7 +724,9 @@ export function HeroSection({
               >
                 <div className="pill-field-content">
                   <span className="pill-field-label">CHECK-IN</span>
-                  <span className="pill-field-value">{formatDisplayDate(hotelCheckIn)}</span>
+                  <span className={`pill-field-value ${!hotelCheckIn ? 'pill-field-placeholder' : ''}`}>
+                    {hotelCheckIn ? formatDisplayDate(hotelCheckIn) : 'Select Date'}
+                  </span>
                 </div>
                 <input
                   type="date"
@@ -756,7 +753,9 @@ export function HeroSection({
               >
                 <div className="pill-field-content">
                   <span className="pill-field-label">CHECK-OUT</span>
-                  <span className="pill-field-value">{formatDisplayDate(hotelCheckOut)}</span>
+                  <span className={`pill-field-value ${!hotelCheckOut ? 'pill-field-placeholder' : ''}`}>
+                    {hotelCheckOut ? formatDisplayDate(hotelCheckOut) : 'Select Date'}
+                  </span>
                 </div>
                 <input
                   type="date"
@@ -784,7 +783,9 @@ export function HeroSection({
               >
                 <div className="pill-field-content">
                   <span className="pill-field-label">GUESTS</span>
-                  <span className="pill-field-value">{guestsDisplayLabel}</span>
+                  <span className={`pill-field-value ${!guestsDisplayLabel ? 'pill-field-placeholder' : ''}`}>
+                    {guestsDisplayLabel || 'Select Guests'}
+                  </span>
                 </div>
                 <ChevronDown
                   size={15}
@@ -806,8 +807,8 @@ export function HeroSection({
                         <button
                           type="button"
                           className="guest-count-btn"
-                          disabled={hotelAdults <= 1}
-                          onClick={() => setHotelAdults((a) => Math.max(1, a - 1))}
+                          disabled={hotelAdults <= 0}
+                          onClick={() => setHotelAdults((a) => Math.max(0, a - 1))}
                         >
                           -
                         </button>
@@ -815,7 +816,13 @@ export function HeroSection({
                         <button
                           type="button"
                           className="guest-count-btn"
-                          onClick={() => setHotelAdults((a) => a + 1)}
+                          onClick={() => {
+                            setHotelAdults((a) => {
+                              const next = a + 1;
+                              if (hotelRooms === 0) setHotelRooms(1);
+                              return next;
+                            });
+                          }}
                         >
                           +
                         </button>
@@ -856,8 +863,8 @@ export function HeroSection({
                         <button
                           type="button"
                           className="guest-count-btn"
-                          disabled={hotelRooms <= 1}
-                          onClick={() => setHotelRooms((r) => Math.max(1, r - 1))}
+                          disabled={hotelRooms <= 0}
+                          onClick={() => setHotelRooms((r) => Math.max(0, r - 1))}
                         >
                           -
                         </button>
@@ -907,6 +914,7 @@ export function HeroSection({
               <HeroDropdownField
                 label="DESTINATION COUNTRY"
                 value={visaDestination}
+                placeholder="Select Country"
                 options={visaDestOptions}
                 isWide={true}
                 isOpen={openDropdown === 'visa-dest'}
@@ -932,7 +940,9 @@ export function HeroSection({
               >
                 <div className="pill-field-content">
                   <span className="pill-field-label">ENTRY DATE</span>
-                  <span className="pill-field-value">{formatDisplayDate(visaCheckIn)}</span>
+                  <span className={`pill-field-value ${!visaCheckIn ? 'pill-field-placeholder' : ''}`}>
+                    {visaCheckIn ? formatDisplayDate(visaCheckIn) : 'Select Date'}
+                  </span>
                 </div>
                 <input
                   type="date"
@@ -950,6 +960,7 @@ export function HeroSection({
               <HeroDropdownField
                 label="VISA TYPE"
                 value={visaType}
+                placeholder="Select Visa Type"
                 options={visaTypeOptions}
                 alignRight={true}
                 isOpen={openDropdown === 'visa-type'}
@@ -984,6 +995,7 @@ export function HeroSection({
                 label="ROUTES"
                 value={selectedRoute}
                 displayValue={selectedRouteLabel}
+                placeholder="Select Route"
                 options={groupUmrahRouteOptions}
                 isWide={true}
                 isOpen={openDropdown === 'umrah-routes'}
@@ -1001,6 +1013,7 @@ export function HeroSection({
                 label="DEPARTURE DATE"
                 value={selectedDepartureDate}
                 displayValue={selectedDepartureDateLabel}
+                placeholder="Select Departure Date"
                 options={groupUmrahDepartureDateOptions}
                 isOpen={openDropdown === 'umrah-departure-date'}
                 onToggle={() =>
@@ -1019,6 +1032,7 @@ export function HeroSection({
                 label="DURATION"
                 value={umrahDuration}
                 displayValue={selectedDurationLabel}
+                placeholder="Select Duration"
                 options={groupUmrahDurationOptions}
                 alignRight={true}
                 isOpen={openDropdown === 'umrah-duration'}

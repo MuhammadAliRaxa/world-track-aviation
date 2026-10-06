@@ -447,6 +447,11 @@
   letter-spacing: -0.01em;
 }
 
+.pill-field-value.pill-field-placeholder {
+  color: #64748b;
+  font-weight: 500;
+}
+
 .pill-field-chevron {
   color: #0f172a;
   flex-shrink: 0;

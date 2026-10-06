@@ -68,13 +68,6 @@ export function UmrahCalculationSummary({ calculatedResult, onOpenContact, whats
           <MessageCircle size={16} />
           Book via WhatsApp
         </a>
-        <button
-          type="button"
-          onClick={onOpenContact}
-          className="umrah-calc-btn-reserve"
-        >
-          Reserve Package via Agent
-        </button>
       </div>
     </div>
   );

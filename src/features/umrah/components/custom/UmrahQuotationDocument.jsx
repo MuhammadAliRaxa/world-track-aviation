@@ -233,9 +233,8 @@ function buildQuotationHtml(data) {
 
   if (nightCards.length === 0) {
     nightCards = [
-      { city: 'Makkah', nights: 4, checkIn: '2026-10-16', checkOut: '2026-10-19' },
-      { city: 'Medinah', nights: 8, checkIn: '2026-10-16', checkOut: '2026-10-19' },
-      { city: 'Makkah', nights: 4, checkIn: '2026-10-16', checkOut: '2026-10-19' },
+      { city: 'Makkah', nights: 7, checkIn: '2026-10-16', checkOut: '2026-10-23' },
+      { city: 'Medinah', nights: 7, checkIn: '2026-10-23', checkOut: '2026-10-30' },
     ];
   }
 
@@ -260,9 +259,8 @@ function buildQuotationHtml(data) {
 
   if (accommodationRows.length === 0) {
     accommodationRows = [
-      { city: 'MAKKAH', hotel: 'Abraj Al kiswa', subDetail: '1000 m - Shuttle Service', checkIn: '25 Oct 2026', checkOut: '25 Oct 2026', nights: 4, rooms: 1 },
-      { city: 'MAKKAH', hotel: 'Al Safa Al baraka', subDetail: '600-700 m', checkIn: '25 Oct 2026', checkOut: '25 Oct 2026', nights: 8, rooms: 1 },
-      { city: 'MAKKAH', hotel: 'Abraj Al kiswa', subDetail: '1000 m - Shuttle Service', checkIn: '25 Oct 2026', checkOut: '25 Oct 2026', nights: 4, rooms: 1 },
+      { city: 'MAKKAH', hotel: 'Abraj Al kiswa', subDetail: '1000 m - Shuttle Service', checkIn: '25 Oct 2026', checkOut: '01 Nov 2026', nights: 7, rooms: 1 },
+      { city: 'MEDINAH', hotel: 'Al Safa Al baraka', subDetail: '600-700 m', checkIn: '01 Nov 2026', checkOut: '08 Nov 2026', nights: 7, rooms: 1 },
     ];
   }
 
@@ -603,7 +601,8 @@ function buildQuotationHtml(data) {
     .p2-body{padding:30px 30px 24px}
     .p2-pill{display:inline-block;font-size:11px;font-weight:800;padding:4px 16px;border-radius:20px;color:#ffffff;margin-bottom:12px}
     .p2-pill--orange{background:#f59e0b}
-    .p2-pill--blue{background:#0073e6}
+    .p2-pill--yellow{background:#f59e0b}
+    .p2-pill--blue{background:#f59e0b}
     .terms-box{border:1px solid #eef2f6;border-radius:12px;padding:18px 22px;margin-bottom:24px;background:#fafafa}
     .term-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:11px}
     .term-row:last-child{margin-bottom:0}
@@ -622,7 +621,7 @@ function buildQuotationHtml(data) {
     .bank-key{color:#64748b;font-weight:600;min-width:110px;flex-shrink:0}
     .bank-val{color:#0f172a;font-weight:800}
     .qr-row{display:flex;gap:14px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f6}
-    .scan-btn{display:inline-flex;align-items:center;gap:6px;background:#0073e6;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:11.5px;font-weight:700}
+    .scan-btn{display:inline-flex;align-items:center;gap:6px;background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:11.5px;font-weight:700}
     .scan-sub{font-size:9.5px;color:#64748b;margin-top:4px;line-height:1.35}
     .thankyou{text-align:center;padding:14px 0 0}
     .ty-script{font-family:'Dancing Script',cursive;font-size:46px;color:#f59e0b;line-height:1}
@@ -824,7 +823,7 @@ function buildQuotationHtml(data) {
 
         <!-- Contact Us -->
         <div>
-          <div class="p2-pill p2-pill--blue">Contact Us</div>
+          <div class="p2-pill p2-pill--yellow">Contact Us</div>
           <div class="contact-list">
             <div class="contact-card">
               <div class="c-icon">&#128222;</div>
@@ -854,7 +853,7 @@ function buildQuotationHtml(data) {
 
         <!-- Bank Details -->
         <div>
-          <div class="p2-pill p2-pill--blue">Bank details</div>
+          <div class="p2-pill p2-pill--yellow">Bank details</div>
           <div class="bank-box">
             <div class="bank-row"><span class="bank-key">Bank Name</span><span class="bank-val">United Bank Limited</span></div>
             <div class="bank-row"><span class="bank-key">Account Title</span><span class="bank-val">World Track Aviation<br>(Private) Limited</span></div>

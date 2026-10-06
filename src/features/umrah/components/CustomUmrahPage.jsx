@@ -88,17 +88,18 @@ export function CustomUmrahPage({
   const [calculatedResult, setCalculatedResult] = useState(null);
   const [includeTransport, setIncludeTransport] = useState(true);
 
-  // Target duration in days and live hotel stay coverage
+  // Target duration in days and live hotel stay coverage (Nights = Days - 1)
   const durationMatch = (String(duration).match(/(\d+)/) || [])[1];
   const targetDays = durationMatch ? parseInt(durationMatch, 10) : 0;
+  const targetNights = targetDays > 1 ? targetDays - 1 : targetDays;
   const totalHotelNights = hotels.reduce((sum, h) => sum + (Math.max(0, Number(h.nights)) || 0), 0);
-  const isDurationMatched = targetDays > 0 && totalHotelNights >= targetDays - 1 && totalHotelNights <= targetDays;
-  const isDurationExceeded = targetDays > 0 && totalHotelNights > targetDays;
+  const isDurationMatched = targetNights > 0 && totalHotelNights === targetNights;
+  const isDurationExceeded = targetNights > 0 && totalHotelNights > targetNights;
 
   // API Lookups State for Hotel Details
   const [hotelLookups, setHotelLookups] = useState({
     cities: ['Makkah', 'Madinah'],
-    roomTypes: ['Double', 'Triple', 'Quad', 'Sharing'],
+    roomTypes: ['Double', 'Triple', 'Quad'],
     hotels: [],
     loading: true,
   });
@@ -294,7 +295,7 @@ export function CustomUmrahPage({
       const matchedLocal = allTickets.find((t) => {
         const dateMatch = (t.outboundDate || t.departure_date) === departure;
         const nameClean = clean(t.airlineName);
-        const secClean  = clean(t.sector || t.route);
+        const secClean = clean(t.sector || t.route);
         const nameMatch = nameClean.includes(airlineClean) || airlineClean.includes(nameClean);
         const sectorMatch = !sectorClean || secClean.includes(sectorClean) || sectorClean.includes(secClean);
         return dateMatch && nameMatch && sectorMatch && t.pricePKR > 0;
@@ -318,7 +319,7 @@ export function CustomUmrahPage({
       if (cancelled) return;
       const matched = tickets.find((t) => {
         const nameClean = clean(t.airlineName);
-        const secClean  = clean(t.sector || t.route);
+        const secClean = clean(t.sector || t.route);
         const nameMatch = nameClean.includes(airlineClean) || airlineClean.includes(nameClean);
         const sectorMatch = !sectorClean || secClean.includes(sectorClean) || sectorClean.includes(secClean);
         return nameMatch && sectorMatch && t.pricePKR > 0;
@@ -421,7 +422,8 @@ export function CustomUmrahPage({
         if (updates.checkOut && h1.nights > 0 && (!h2.checkIn || h2.checkIn === h1.checkOut)) {
           h2.checkIn = updates.checkOut;
           if (targetDays > 0) {
-            const remaining = targetDays - h1.nights;
+            const targetNights = targetDays > 1 ? targetDays - 1 : targetDays;
+            const remaining = targetNights - h1.nights;
             if (remaining > 0 && (!h2.checkOut || Number(h2.nights) <= 0)) {
               const dOut = new Date(updates.checkOut);
               dOut.setDate(dOut.getDate() + remaining);
@@ -526,9 +528,9 @@ export function CustomUmrahPage({
       const nights = Number(h.nights) > 0 ? Number(h.nights) : Math.max(1, Number(h.nights) || 3);
       totalNights += nights;
 
-      const roomCounts  = h.roomCounts || {};
-      const roomRates   = h.roomRates  || {};   // per-room-type SAR rates from /hotel/room/rate
-      const minRateSar  = Number(h.minRateSar)  || 0; // hotel min_rate in SAR from listing API
+      const roomCounts = h.roomCounts || {};
+      const roomRates = h.roomRates || {};   // per-room-type SAR rates from /hotel/room/rate
+      const minRateSar = Number(h.minRateSar) || 0; // hotel min_rate in SAR from listing API
 
       // Tier-based fallback multiplier (only used when no API rate is available)
       const nameLower = (h.hotelName || '').toLowerCase();
@@ -546,15 +548,15 @@ export function CustomUmrahPage({
 
       // Hardcoded fallback base rates in SAR (used only when API returns nothing)
       const fallbackRatesSar = {
-        Double : Math.round(488 * tierMultiplier), // ≈ PKR 38,000 / 78 ROE
-        Triple : Math.round(564 * tierMultiplier),
-        Quad   : Math.round(641 * tierMultiplier),
-        Quint  : Math.round(718 * tierMultiplier),
+        Double: Math.round(488 * tierMultiplier), // ≈ PKR 38,000 / 78 ROE
+        Triple: Math.round(564 * tierMultiplier),
+        Quad: Math.round(641 * tierMultiplier),
+        Quint: Math.round(718 * tierMultiplier),
         Sharing: Math.round(410 * tierMultiplier),
       };
 
       let hotelDailyRoomsCost = 0;
-      let hasConfiguredRooms  = false;
+      let hasConfiguredRooms = false;
 
       Object.entries(roomCounts).forEach(([rType, count]) => {
         const countNum = Number(count) || 0;
@@ -672,23 +674,23 @@ export function CustomUmrahPage({
 
     console.log('%cInputs', 'color:#475569;font-weight:700;font-size:12px;');
     console.table({
-      'Client Name'  : fullName || 'Not entered',
-      'Pax String'   : pax,
-      'Total Pax'    : paxNum,
-      'Duration'     : duration || `${totalNights} nights`,
-      'Visa Type'    : visaType || 'Not selected',
+      'Client Name': fullName || 'Not entered',
+      'Pax String': pax,
+      'Total Pax': paxNum,
+      'Duration': duration || `${totalNights} nights`,
+      'Visa Type': visaType || 'Not selected',
       'ROE (SAR→PKR)': roe,
     });
 
     console.group('%c🏨 Hotels', 'color:#0d47a1;font-weight:700;');
     hotels.forEach((h, i) => {
-      const nights     = Math.max(1, Number(h.nights) || 3);
+      const nights = Math.max(1, Number(h.nights) || 3);
       const roomCounts = h.roomCounts || {};
-      const roomRates  = h.roomRates  || {};
+      const roomRates = h.roomRates || {};
       const minRateSar = Number(h.minRateSar) || 0;
       const fallbackRatesSar = { Double: 488, Triple: 564, Quad: 641, Quint: 718, Sharing: 410 };
 
-      const roomRows   = {};
+      const roomRows = {};
       let hotelSubTotal = 0;
 
       Object.entries(roomCounts).forEach(([rType, count]) => {
@@ -708,13 +710,13 @@ export function CustomUmrahPage({
           const lineAmt = nights * countNum * ratePkr;
           hotelSubTotal += lineAmt;
           roomRows[`${rType} ×${countNum}`] = {
-            'Rate (SAR)'       : rateSar,
-            'ROE'              : roe,
-            'Rate/night (PKR)' : ratePkr.toLocaleString(),
-            'Nights'           : nights,
-            'Rooms'            : countNum,
-            'Sub-total (PKR)'  : lineAmt.toLocaleString(),
-            'Source'           : rateSource,
+            'Rate (SAR)': rateSar,
+            'ROE': roe,
+            'Rate/night (PKR)': ratePkr.toLocaleString(),
+            'Nights': nights,
+            'Rooms': countNum,
+            'Sub-total (PKR)': lineAmt.toLocaleString(),
+            'Source': rateSource,
           };
         }
       });
@@ -725,13 +727,13 @@ export function CustomUmrahPage({
         const ratePkr = Math.round(rateSar * roe);
         hotelSubTotal = nights * ratePkr;
         roomRows['Double ×1 (default)'] = {
-          'Rate (SAR)'       : rateSar,
-          'ROE'              : roe,
-          'Rate/night (PKR)' : ratePkr.toLocaleString(),
-          'Nights'           : nights,
-          'Rooms'            : 1,
-          'Sub-total (PKR)'  : hotelSubTotal.toLocaleString(),
-          'Source'           : minRateSar > 0 ? '🟡 API min_rate' : '🔴 Hardcoded fallback',
+          'Rate (SAR)': rateSar,
+          'ROE': roe,
+          'Rate/night (PKR)': ratePkr.toLocaleString(),
+          'Nights': nights,
+          'Rooms': 1,
+          'Sub-total (PKR)': hotelSubTotal.toLocaleString(),
+          'Source': minRateSar > 0 ? '🟡 API min_rate' : '🔴 Hardcoded fallback',
         };
       }
 
@@ -746,17 +748,17 @@ export function CustomUmrahPage({
 
     console.group('%c🛂 Visa', 'color:#166534;font-weight:700;');
     console.table({
-      'Visa Type'              : activeVisaType || 'Not selected',
-      'Adult/Child Rate (SAR)' : isSharing ? visaApiData.sharingRateSar : (isPrivate ? visaApiData.privateRateSar : 0),
-      'Infant Rate (SAR)'      : visaApiData.infantRateSar,
-      'ROE'                    : roe,
-      'Adult/Child Fee (PKR)'  : adultChildVisaRate.toLocaleString(),
-      'Infant Fee (PKR)'       : infantVisaRate.toLocaleString(),
-      'Adults + Children'      : adultsCount + childrenCount,
-      'Infants'                : infantsCount,
-      'Adult/Child Visa (PKR)' : adultChildVisaTotal.toLocaleString(),
-      'Infant Visa (PKR)'      : infantVisaTotal.toLocaleString(),
-      'Total Visa (PKR)'       : visaTotal.toLocaleString(),
+      'Visa Type': activeVisaType || 'Not selected',
+      'Adult/Child Rate (SAR)': isSharing ? visaApiData.sharingRateSar : (isPrivate ? visaApiData.privateRateSar : 0),
+      'Infant Rate (SAR)': visaApiData.infantRateSar,
+      'ROE': roe,
+      'Adult/Child Fee (PKR)': adultChildVisaRate.toLocaleString(),
+      'Infant Fee (PKR)': infantVisaRate.toLocaleString(),
+      'Adults + Children': adultsCount + childrenCount,
+      'Infants': infantsCount,
+      'Adult/Child Visa (PKR)': adultChildVisaTotal.toLocaleString(),
+      'Infant Visa (PKR)': infantVisaTotal.toLocaleString(),
+      'Total Visa (PKR)': visaTotal.toLocaleString(),
     });
     console.log(`%c  Visa Total: PKR ${visaTotal.toLocaleString()}`, 'font-weight:800;color:#166534;font-size:12px;');
     console.groupEnd();
@@ -764,17 +766,17 @@ export function CustomUmrahPage({
     console.group('%c🚌 Transport', 'color:#7c3aed;font-weight:700;');
     if (visaType === 'Visa with Private Transport') {
       const transportRows = transports.map((t) => {
-        const matchedRoute   = (transportLookups?.routes || []).find((r) => r.route === t.sector);
+        const matchedRoute = (transportLookups?.routes || []).find((r) => r.route === t.sector);
         const matchedVehicle = matchedRoute?.vehicles?.find((v) => v.vehicleType === t.vehicleType);
-        const sarPrice       = matchedVehicle?.price ? Number(matchedVehicle.price) : 430;
-        const pkrCost        = Math.round(sarPrice * roe);
+        const sarPrice = matchedVehicle?.price ? Number(matchedVehicle.price) : 430;
+        const pkrCost = Math.round(sarPrice * roe);
         return {
-          Route            : t.sector || 'Not set',
-          Vehicle          : t.vehicleType || 'Not set',
-          'SAR Price'      : sarPrice,
-          ROE              : roe,
-          'PKR Cost'       : pkrCost.toLocaleString(),
-          'Source'         : matchedVehicle?.price ? 'API' : 'Fallback (430 SAR)',
+          Route: t.sector || 'Not set',
+          Vehicle: t.vehicleType || 'Not set',
+          'SAR Price': sarPrice,
+          ROE: roe,
+          'PKR Cost': pkrCost.toLocaleString(),
+          'Source': matchedVehicle?.price ? 'API' : 'Fallback (430 SAR)',
         };
       });
       console.table(transportRows);
@@ -793,13 +795,13 @@ export function CustomUmrahPage({
       const TICKET_FALLBACK_PKR = 135000;
       const ratePerPax = ticketPricePerPax > 0 ? ticketPricePerPax : TICKET_FALLBACK_PKR;
       console.table({
-        'Airline'            : airline,
-        'Departure'          : departure,
-        'Sector'             : sector || 'Not set',
-        'Rate per Pax (PKR)' : ratePerPax.toLocaleString(),
-        'Source'             : ticketPricePerPax > 0 ? '✅ API /group-tickets/list' : '🔴 Hardcoded fallback (135,000)',
-        'Total Pax'          : paxNum,
-        'Ticket Total (PKR)' : ticketTotal.toLocaleString(),
+        'Airline': airline,
+        'Departure': departure,
+        'Sector': sector || 'Not set',
+        'Rate per Pax (PKR)': ratePerPax.toLocaleString(),
+        'Source': ticketPricePerPax > 0 ? '✅ API /group-tickets/list' : '🔴 Hardcoded fallback (135,000)',
+        'Total Pax': paxNum,
+        'Ticket Total (PKR)': ticketTotal.toLocaleString(),
       });
     }
     console.log(`%c  Ticket Total: PKR ${ticketTotal.toLocaleString()}`, 'font-weight:800;color:#b45309;font-size:12px;');
@@ -811,11 +813,11 @@ export function CustomUmrahPage({
       'background:#1565c0;color:#fff;font-size:14px;font-weight:900;padding:4px 10px;border-radius:4px;'
     );
     console.table({
-      '🏨 Hotels'    : `PKR ${calculatedHotelTotal.toLocaleString()}`,
-      '🛂 Visa'      : `PKR ${visaTotal.toLocaleString()}`,
-      '🚌 Transport' : `PKR ${transportTotal.toLocaleString()}`,
-      '✈️ Tickets'   : `PKR ${ticketTotal.toLocaleString()}`,
-      '💰 TOTAL'     : `PKR ${grandTotal.toLocaleString()}`,
+      '🏨 Hotels': `PKR ${calculatedHotelTotal.toLocaleString()}`,
+      '🛂 Visa': `PKR ${visaTotal.toLocaleString()}`,
+      '🚌 Transport': `PKR ${transportTotal.toLocaleString()}`,
+      '✈️ Tickets': `PKR ${ticketTotal.toLocaleString()}`,
+      '💰 TOTAL': `PKR ${grandTotal.toLocaleString()}`,
     });
     console.groupEnd();
     // ── End Console Rate Breakdown ──────────────────────────────────────────
@@ -847,9 +849,9 @@ export function CustomUmrahPage({
       transports: isSharing
         ? []
         : transports.map((t) => ({
-            sector: t.sector || 'Sector',
-            vehicleType: t.vehicleType || 'Vehicle',
-          })),
+          sector: t.sector || 'Sector',
+          vehicleType: t.vehicleType || 'Vehicle',
+        })),
       ticketSummary: !isCustomDays && departure && airline ? `${airline} (${departure})` : 'Not Included',
     };
   };
@@ -938,20 +940,21 @@ export function CustomUmrahPage({
         }
       });
 
-      // 3b. Strictly validate that total hotel nights cover the selected duration
+      // 3b. Strictly validate that total hotel nights cover the selected duration (nights = days - 1)
       if (targetDays > 0) {
+        const targetNights = targetDays > 1 ? targetDays - 1 : targetDays;
         const totalNights = hotels.reduce((sum, h) => sum + (Math.max(0, Number(h.nights)) || 0), 0);
         if (totalNights === 0) {
-          errors.hotelNightsDuration = `Please select check-in and check-out dates to cover the ${duration} package.`;
-          missingLabels.push(`Hotel Dates (${duration})`);
-        } else if (totalNights < targetDays - 1) {
-          const needed = targetDays - totalNights;
-          errors.hotelNightsDuration = `Hotel stays (${totalNights} nights) do not cover the selected ${duration} package. Please add ${needed} more night${needed > 1 ? 's' : ''}.`;
-          missingLabels.push(`Cover full ${duration} duration (${needed} more night${needed > 1 ? 's' : ''} needed)`);
-        } else if (totalNights > targetDays) {
-          const excess = totalNights - targetDays;
-          errors.hotelNightsDuration = `Hotel stays (${totalNights} nights) exceed the selected ${duration} package duration by ${excess} night${excess > 1 ? 's' : ''}.`;
-          missingLabels.push(`Adjust hotel dates to match ${duration}`);
+          errors.hotelNightsDuration = `Please select check-in and check-out dates to cover ${targetNights} nights for ${duration}.`;
+          missingLabels.push(`Hotel Dates (${targetNights} Nights)`);
+        } else if (totalNights < targetNights) {
+          const needed = targetNights - totalNights;
+          errors.hotelNightsDuration = `Hotel stays (${totalNights} nights) do not cover the selected ${duration} package (${targetNights} nights). Please add ${needed} more night${needed > 1 ? 's' : ''}.`;
+          missingLabels.push(`Cover full ${targetNights} nights for ${duration} (${needed} more night${needed > 1 ? 's' : ''} needed)`);
+        } else if (totalNights > targetNights) {
+          const excess = totalNights - targetNights;
+          errors.hotelNightsDuration = `Hotel stays (${totalNights} nights) exceed the selected ${duration} package (${targetNights} nights) by ${excess} night${excess > 1 ? 's' : ''}.`;
+          missingLabels.push(`Adjust hotel dates to match ${targetNights} nights for ${duration}`);
         }
       }
     }
@@ -1021,8 +1024,9 @@ export function CustomUmrahPage({
     });
 
     if (targetDays > 0 && fieldErrors.hotelNightsDuration) {
+      const targetNights = targetDays > 1 ? targetDays - 1 : targetDays;
       const totalNights = hotels.reduce((sum, h) => sum + (Math.max(0, Number(h.nights)) || 0), 0);
-      if (totalNights >= targetDays - 1 && totalNights <= targetDays) {
+      if (totalNights === targetNights) {
         clearFieldError('hotelNightsDuration');
       }
     }
@@ -1197,13 +1201,12 @@ export function CustomUmrahPage({
             <div className="cuf-hotels-section">
               {targetDays > 0 && (
                 <div
-                  className={`cuf-duration-tracker ${
-                    isDurationMatched
+                  className={`cuf-duration-tracker ${isDurationMatched
                       ? 'cuf-duration-tracker--success'
                       : isDurationExceeded
-                      ? 'cuf-duration-tracker--danger'
-                      : 'cuf-duration-tracker--warning'
-                  }`}
+                        ? 'cuf-duration-tracker--danger'
+                        : 'cuf-duration-tracker--warning'
+                    }`}
                 >
                   <div className="cuf-duration-tracker-left">
                     <span className="cuf-duration-tracker-icon">
@@ -1211,23 +1214,23 @@ export function CustomUmrahPage({
                     </span>
                     <div>
                       <div className="cuf-duration-tracker-title">
-                        Package Duration: <strong>{duration}</strong> ({targetDays} Days)
+                        Package Duration: <strong>{duration}</strong> ({targetNights} Nights)
                       </div>
                       <div className="cuf-duration-tracker-desc">
                         {isDurationMatched ? (
                           <span>Full stay covered across your hotels ({totalHotelNights} nights).</span>
                         ) : isDurationExceeded ? (
-                          <span>Hotel stays ({totalHotelNights} nights) exceed the package duration by {totalHotelNights - targetDays} night{totalHotelNights - targetDays > 1 ? 's' : ''}.</span>
+                          <span>Hotel stays ({totalHotelNights} nights) exceed the package duration by {totalHotelNights - targetNights} night{totalHotelNights - targetNights > 1 ? 's' : ''}.</span>
                         ) : totalHotelNights === 0 ? (
-                          <span>Select check-in and check-out dates for your hotels to complete the {duration} itinerary.</span>
+                          <span>Select check-in and check-out dates for your hotels to complete the {duration} ({targetNights} nights) itinerary.</span>
                         ) : (
-                          <span>Covered {totalHotelNights} of {targetDays} days ({targetDays - totalHotelNights} more night{targetDays - totalHotelNights > 1 ? 's' : ''} needed).</span>
+                          <span>Covered {totalHotelNights} of {targetNights} nights ({targetNights - totalHotelNights} more night{targetNights - totalHotelNights > 1 ? 's' : ''} needed).</span>
                         )}
                       </div>
                     </div>
                   </div>
                   <div className="cuf-duration-tracker-pill">
-                    {totalHotelNights} / {targetDays} Days
+                    {totalHotelNights} / {targetNights} Nights
                   </div>
                 </div>
               )}

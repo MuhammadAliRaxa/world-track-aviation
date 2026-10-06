@@ -144,10 +144,10 @@ export function PrivateTransportPage({
             {/* Featured Fleet Banner Image */}
             <div className="private-transport-fleet-banner">
               <img
-                src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80"
+                src="/assets/umrah-private-transport-fleet.jpg"
                 alt="Umrah Private Transport Fleet"
                 className="private-transport-fleet-img"
-                loading="lazy"
+                loading="eager"
               />
             </div>
 
