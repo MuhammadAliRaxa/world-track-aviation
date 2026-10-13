@@ -35,7 +35,7 @@ export default async function ContactUsPage() {
     '@type': 'TravelAgency',
     name: 'World Track Aviation',
     url: 'https://worldtracktravel.com/contact-us/',
-    telephone: contactInfo?.phone || '+92 329 272 1721',
+    telephone: '+92-51-2120721',
     email: contactInfo?.email || 'worldtrackaviation@gmail.com',
     address: {
       '@type': 'PostalAddress',
