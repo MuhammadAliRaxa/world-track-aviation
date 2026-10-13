@@ -103,16 +103,16 @@ export function AboutSection({ isAboutPage = false }) {
     {
       id: 'travelers',
       icon: <PlaneDepartureIcon size={22} color="#0284c7" />,
-      value: '150K+',
-      title: 'Travelers Served',
-      subtitle: 'Across 42+ countries worldwide',
+      value: '21,000+',
+      title: 'Umrah Travelers Served',
+      subtitle: 'Pilgrims guided with care',
     },
     {
       id: 'legacy',
       icon: <MedalLegacyIcon size={22} color="#0284c7" />,
-      value: '14+ Years',
-      title: 'Industry Legacy',
-      subtitle: 'Established & trusted since 2012',
+      value: '4+ Years',
+      title: 'in the Industry',
+      subtitle: 'Established & trusted since 2022',
     },
     {
       id: 'visa-success',
@@ -124,9 +124,9 @@ export function AboutSection({ isAboutPage = false }) {
     {
       id: 'airlines',
       icon: <PlaneFlightIcon size={22} color="#0284c7" />,
-      value: '700+',
+      value: '15+',
       title: 'Airline Partners',
-      subtitle: 'Direct GDS wholesale connectivity',
+      subtitle: 'Direct wholesale connectivity',
     },
   ];
 
@@ -135,18 +135,16 @@ export function AboutSection({ isAboutPage = false }) {
       <div className="section-container">
         {/* Centered Eyebrow & Main Title Header */}
         <div className="about-header-centered">
-          <div className="about-eyebrow-text">ABOUT WORLD TRACK</div>
+          <div className="about-eyebrow-text">ABOUT WORLD TRACK AVIATION</div>
 
           <h2 className="about-main-title">
             Crafting Meaningful Journeys &amp;
             <br />
-            Sacred Memories Since 2012
+            Sacred Memories Since 2022
           </h2>
 
           <p className="about-lead-subtitle">
-            World Track Travel &amp; Tourism (Pvt.) Ltd. is Pakistan&apos;s trusted IATA-accredited travel management and
-            pilgrimage services organization, connecting thousands of families, corporate leaders, and pilgrims to the
-            world with absolute integrity.
+            World Track Aviation is an IATA-accredited travel company based in Islamabad, working with families, corporate travelers, and Umrah pilgrims across Pakistan on transparent, well-planned trips.
           </p>
         </div>
 
@@ -155,15 +153,11 @@ export function AboutSection({ isAboutPage = false }) {
           {/* Left Column: Narrative & Mission/Vision Cards */}
           <div className="about-story-content">
             <h3 className="about-story-lead">
-              Founded with a vision to eliminate travel ambiguity, World Track has transformed from a boutique ticketing
-              house into a comprehensive global travel ecosystem.
+              We started as a small ticketing office with one goal: take the guesswork out of booking travel.
             </h3>
 
             <p className="about-story-body">
-              Whether you are embarking on a sacred pilgrimage to the Holy Haramain in Makkah and Madinah, organizing an
-              executive corporate delegation, or booking a rejuvenating family getaway to Baku, Dubai, or the Far East
-              — we ensure that every itinerary is engineered with precision, transparent pricing, and 24/7 human
-              concierge care.
+              Today the team handles everything from Umrah trips to Makkah and Madinah, corporate delegations, and family holidays to places like Baku, Dubai, and across the Far East. Every booking comes with clear pricing upfront and support you can actually reach, whether you&apos;re mid-flight or still deciding where to go.
             </p>
 
             {/* Mission & Vision 2-Column Cards */}
@@ -176,8 +170,7 @@ export function AboutSection({ isAboutPage = false }) {
                 <div className="about-mv-text">
                   <h4 className="about-mv-title">Our Mission</h4>
                   <p className="about-mv-desc">
-                    To deliver seamless, transparent, and spiritually elevating travel experiences through cutting-edge
-                    booking technology and personalized hospitality.
+                    To deliver honest, well-organized travel experiences using modern booking tools without losing the personal side of service.
                   </p>
                 </div>
               </div>
@@ -190,8 +183,7 @@ export function AboutSection({ isAboutPage = false }) {
                 <div className="about-mv-text">
                   <h4 className="about-mv-title">Our Vision</h4>
                   <p className="about-mv-desc">
-                    To be the premier travel and pilgrimage management brand in the region, recognized for unwavering
-                    trust, ethical fare transparency, and customer loyalty.
+                    To become Pakistan&apos;s most trusted name in travel and Umrah management, known for straightforward pricing and clients who come back.
                   </p>
                 </div>
               </div>
@@ -203,11 +195,11 @@ export function AboutSection({ isAboutPage = false }) {
               <div className="cert-items-group">
                 <div className="cert-badge-item">
                   <IataCheckBadge size={16} />
-                  <span>IATA Member #27-2-8941</span>
+                  <span>IATA Member #27351170</span>
                 </div>
                 <div className="cert-badge-item">
                   <BuildingGovIcon size={16} color="#0f172a" />
-                  <span>Govt. Ministry Lic #4821</span>
+                  <span>Govt. Ministry Lic No. ID-2637</span>
                 </div>
                 <div className="cert-badge-item">
                   <ShieldCheckDark size={16} color="#0f172a" />

@@ -75,8 +75,8 @@ export function AboutPage() {
       {/* 1. AppBar — navbar floats over the hero */}
       <AppBar heroContent={heroSection} />
 
-      {/* 2. Partner Airlines Marquee (Matching Home Page) */}
-      <AirlineMarquee trustText="15+ Airlines. One Search. Trusted Travel Agency in Islamabad." />
+      {/* 2. Partner Airlines Marquee */}
+      <AirlineMarquee trustText="Fly Jinnah, AirSial, PIA, airblue, sastaticket.pk — and 15+ airline partners" />
 
       {/* 3. About World Track: Crafting Meaningful Journeys & Sacred Memories Since 2022 */}
       <AboutSection isAboutPage={true} />
