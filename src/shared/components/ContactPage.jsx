@@ -23,7 +23,7 @@ export function ContactPage({ contactInfo }) {
   const [submitted, setSubmitted] = useState(false);
 
   const {
-    phone: apiPhone = '+92 329 272 1721',
+    phone: apiPhone = '+92 329 2721721',
     whatsapp = '+92 335 0122252',
     email: apiEmail = 'worldtrackaviation@gmail.com',
     address = 'Office No. 4, Islamabad Center, Block 39, Fazal-ul-Haq Road, Blue Area, Islamabad',
