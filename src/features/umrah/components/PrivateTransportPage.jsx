@@ -74,8 +74,29 @@ export function PrivateTransportPage({
     { route: 'Madinah Hotel to Jeddah Airport via Badar', sedan: '430 SAR', staria: '480 SAR', hiace: '580 SAR', coaster: '680 SAR', bus: '780 SAR' },
   ];
 
-  // Map listing/initialListing to transferRates format
+  // Map listing/initialListing
   const activeListing = listing || initialListing;
+
+  // Dynamic Vehicle Types from API
+  const vehicleTypes = React.useMemo(() => {
+    if (Array.isArray(activeListing?.vehicle_types) && activeListing.vehicle_types.length > 0) {
+      return activeListing.vehicle_types.map((vt) => ({
+        id: vt.id,
+        name: vt.vehicle_type || vt.name,
+        capacity: vt.vehicle_capacity || vt.capacity,
+      }));
+    }
+    return [
+      { id: 1, name: 'SEDAN', capacity: 4 },
+      { id: 2, name: 'STARIA', capacity: 7 },
+      { id: 3, name: 'HIACE', capacity: 10 },
+      { id: 4, name: 'COASTER', capacity: 22 },
+      { id: 5, name: 'BUS', capacity: 45 },
+      { id: 6, name: 'GMC', capacity: 5 },
+    ];
+  }, [activeListing]);
+
+  // Map listing/initialListing to transferRates format dynamically
   const transferRates = React.useMemo(() => {
     const list = Array.isArray(activeListing?.data)
       ? activeListing.data
@@ -83,22 +104,44 @@ export function PrivateTransportPage({
 
     if (list.length > 0) {
       return list.map((r) => {
-        const row = { route: r.route || 'Route', sedan: '-', staria: '-', hiace: '-', coaster: '-', bus: '-' };
+        const prices = {};
         if (r.vehicles && Array.isArray(r.vehicles)) {
           r.vehicles.forEach((v) => {
-            const name = (v.vehicle_type || '').toLowerCase();
             const formattedPrice = v.price_formatted || (v.price ? `SAR ${v.price}` : '-');
-            if (name.includes('sedan') || name.includes('camry')) row.sedan = formattedPrice;
-            else if (name.includes('staria') || name.includes('h1') || name.includes('yukon')) row.staria = formattedPrice;
-            else if (name.includes('hiace')) row.hiace = formattedPrice;
-            else if (name.includes('coaster')) row.coaster = formattedPrice;
-            else if (name.includes('bus')) row.bus = formattedPrice;
+            if (v.vehicle_type_id) {
+              prices[v.vehicle_type_id] = formattedPrice;
+            }
+            if (v.vehicle_type) {
+              prices[v.vehicle_type.toUpperCase().trim()] = formattedPrice;
+            }
           });
         }
-        return row;
+        return {
+          id: r.id,
+          route: r.route || 'Route',
+          prices,
+        };
       });
     }
-    return defaultRates;
+
+    return defaultRates.map((d, idx) => ({
+      id: idx + 1,
+      route: d.route,
+      prices: {
+        1: d.sedan,
+        SEDAN: d.sedan,
+        2: d.staria,
+        STARIA: d.staria,
+        3: d.hiace,
+        HIACE: d.hiace,
+        4: d.coaster,
+        COASTER: d.coaster,
+        5: d.bus,
+        BUS: d.bus,
+        6: '810 SAR',
+        GMC: '810 SAR',
+      },
+    }));
   }, [activeListing]);
 
   return (
@@ -172,11 +215,11 @@ export function PrivateTransportPage({
                     <thead>
                       <tr>
                         <th style={{ textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ROUTE / SERVICE</th>
-                        <th>Sedan</th>
-                        <th>Staria</th>
-                        <th>Hiace</th>
-                        <th>Coaster</th>
-                        <th>Bus</th>
+                        {vehicleTypes.map((vt) => (
+                          <th key={vt.id || vt.name} style={{ textTransform: 'capitalize' }}>
+                            {vt.name.toLowerCase()}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
@@ -185,11 +228,14 @@ export function PrivateTransportPage({
                           <td style={{ textAlign: 'left', fontWeight: 600, color: '#0f172a', fontSize: '12px' }}>
                             {row.route}
                           </td>
-                          <td style={{ fontWeight: 500 }}>{row.sedan}</td>
-                          <td style={{ fontWeight: 500 }}>{row.staria}</td>
-                          <td style={{ fontWeight: 500 }}>{row.hiace}</td>
-                          <td style={{ fontWeight: 500 }}>{row.coaster}</td>
-                          <td style={{ fontWeight: 500 }}>{row.bus}</td>
+                          {vehicleTypes.map((vt) => {
+                            const price = row.prices?.[vt.id] || row.prices?.[vt.name.toUpperCase().trim()] || '-';
+                            return (
+                              <td key={vt.id || vt.name} style={{ fontWeight: 500 }}>
+                                {price}
+                              </td>
+                            );
+                          })}
                         </tr>
                       ))}
                     </tbody>
@@ -207,26 +253,19 @@ export function PrivateTransportPage({
                       </h3>
                     </div>
                     <div className="transport-vehicle-chips-grid">
-                      <div className="transport-vehicle-chip">
-                        <span className="transport-chip-type">Sedan</span>
-                        <span className="transport-chip-price">{row.sedan} <span className="transport-chip-currency">SAR</span></span>
-                      </div>
-                      <div className="transport-vehicle-chip">
-                        <span className="transport-chip-type">Staria</span>
-                        <span className="transport-chip-price">{row.staria} <span className="transport-chip-currency">SAR</span></span>
-                      </div>
-                      <div className="transport-vehicle-chip">
-                        <span className="transport-chip-type">Hiace</span>
-                        <span className="transport-chip-price">{row.hiace} <span className="transport-chip-currency">SAR</span></span>
-                      </div>
-                      <div className="transport-vehicle-chip">
-                        <span className="transport-chip-type">Coaster</span>
-                        <span className="transport-chip-price">{row.coaster} <span className="transport-chip-currency">SAR</span></span>
-                      </div>
-                      <div className="transport-vehicle-chip">
-                        <span className="transport-chip-type">Bus</span>
-                        <span className="transport-chip-price">{row.bus} <span className="transport-chip-currency">SAR</span></span>
-                      </div>
+                      {vehicleTypes.map((vt) => {
+                        const price = row.prices?.[vt.id] || row.prices?.[vt.name.toUpperCase().trim()] || '-';
+                        return (
+                          <div key={vt.id || vt.name} className="transport-vehicle-chip">
+                            <span className="transport-chip-type" style={{ textTransform: 'capitalize' }}>
+                              {vt.name.toLowerCase()}
+                            </span>
+                            <span className="transport-chip-price">
+                              {price}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -356,13 +395,14 @@ export function PrivateTransportPage({
                       onChange={(e) => setVehicleClass(e.target.value)}
                       className="transport-form-select"
                     >
-                      <option value="Hyundai H1 (7 Seater)">Hyundai H1 (7 Seater)</option>
-                      <option value="Toyota Camry (4 Seater Sedan)">Toyota Camry (4 Seater Sedan)</option>
-                      <option value="Hyundai Staria (7 Seater)">Hyundai Staria (7 Seater)</option>
-                      <option value="GMC Yukon VIP (7 Seater)">GMC Yukon VIP (7 Seater)</option>
-                      <option value="Toyota Hiace (12 Seater)">Toyota Hiace (12 Seater)</option>
-                      <option value="Coaster VIP (20 Seater)">Coaster VIP (20 Seater)</option>
-                      <option value="Luxury Bus (45 Seater)">Luxury Bus (45 Seater)</option>
+                      {vehicleTypes.map((vt) => {
+                        const val = `${vt.name} (${vt.capacity || 4} Seater)`;
+                        return (
+                          <option key={vt.id || vt.name} value={val}>
+                            {val}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
 

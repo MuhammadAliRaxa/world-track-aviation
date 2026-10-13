@@ -176,10 +176,11 @@ export async function apiClient<T>(
   options: ApiClientOptions = {},
 ): Promise<T> {
   const isMutation = isMutationEndpoint(endpoint, options.method);
+  const shouldSkipCache = options.skipCache || options.cache === 'no-store';
   const cacheKey = buildCacheKey(endpoint, options);
 
   // 1. If not a mutation and not skipping cache, check in-memory cache
-  if (!isMutation && !options.skipCache) {
+  if (!isMutation && !shouldSkipCache) {
     const cached = memoryCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return cached.data as T;
@@ -195,7 +196,7 @@ export async function apiClient<T>(
   const promise = (async () => {
     try {
       const result = await executeFetch<T>(endpoint, options);
-      if (!isMutation) {
+      if (!isMutation && !shouldSkipCache) {
         memoryCache.set(cacheKey, {
           data: result,
           timestamp: Date.now(),
@@ -229,7 +230,7 @@ export async function apiClient<T>(
     }
   })();
 
-  if (!isMutation && !options.skipCache) {
+  if (!isMutation && !shouldSkipCache) {
     inFlightRequests.set(cacheKey, promise);
   }
 
