@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   AlertCircle,
   SlidersHorizontal,
@@ -10,9 +10,10 @@ import {
 } from 'lucide-react';
 import { AppBar } from '../../../shared/components/AppBar';
 import { Footer } from '../../../shared/components/Footer';
+import { Pagination } from '../../../shared/components/Pagination';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
 import { COMPANY_CONFIG } from '../../../config/company';
-import { flightService } from '../../../services';
+import { flightService, getAirlineLogo } from '../../../services';
 
 /* ── helpers ─────────────────────────────────────────────────── */
 function formatPrice(n) {
@@ -97,14 +98,15 @@ const PRICE_RANGE_OPTIONS = [
 
 /* ── sub-components ──────────────────────────────────────────── */
 const AirlineBadge = React.memo(function AirlineBadge({ code, name, logo }) {
-  if (logo) {
+  const displayLogo = logo || getAirlineLogo(logo, code, name);
+  if (displayLogo) {
     return (
       <div
         className="gt-airline-badge"
         style={{ padding: '4px', background: '#fff', overflow: 'hidden' }}
       >
         <img
-          src={logo}
+          src={displayLogo}
           alt={name || code || 'Airline'}
           style={{ width: '100%', height: '100%', objectFit: 'contain' }}
         />
@@ -279,7 +281,8 @@ export function GroupTicketsPage({
 
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isPageChanging, setIsPageChanging] = useState(false);
+  const resultsHeadRef = useRef(null);
 
   // Ensure lookups exist
   useEffect(() => {
@@ -307,14 +310,18 @@ export function GroupTicketsPage({
         }
         if (Array.isArray(lookups.airlines) && !airlinesList.length) {
           setAirlinesList(
-            lookups.airlines.map((a) => ({
-              id: Number(a.id || 0),
-              name: a.name || 'Airline',
-              code:
-                a.code || (a.name ? a.name.slice(0, 2).toUpperCase() : 'AL'),
-              logo: a.logo || null,
-              count: a.tickets_count ?? a.count ?? 1,
-            })),
+            lookups.airlines.map((a) => {
+              const code =
+                a.code || (a.name ? a.name.slice(0, 2).toUpperCase() : 'AL');
+              const name = a.name || 'Airline';
+              return {
+                id: Number(a.id || 0),
+                name,
+                code,
+                logo: getAirlineLogo(a.logo, code, name),
+                count: a.tickets_count ?? a.count ?? 1,
+              };
+            }),
           );
         }
         if (Array.isArray(lookups.routes) && !sectorsList.length) {
@@ -373,6 +380,34 @@ export function GroupTicketsPage({
   // Flag to avoid refetching on first mount when SSR data is available
   const isFirstMount = useRef(true);
 
+  const buildCurrentFilters = useCallback(
+    (page = 1) => {
+      const filters = {};
+      if (debouncedSearch.trim()) filters.name = debouncedSearch.trim();
+      if (debouncedDurations.length > 0) filters.duration = debouncedDurations;
+      if (debouncedDates.length > 0) filters.departure_date = debouncedDates;
+      if (debouncedAirlines.length > 0) filters.airlines = debouncedAirlines;
+      if (debouncedRoutes.length > 0) filters.routes = debouncedRoutes;
+      if (debouncedPriceRange) {
+        filters.price_range = debouncedPriceRange;
+      } else if (debouncedPriceSlider < 500000) {
+        filters.price_range = `under_${debouncedPriceSlider}`;
+      }
+      filters.nextPage = page;
+      filters.perPage = 12;
+      return filters;
+    },
+    [
+      debouncedSearch,
+      debouncedDurations,
+      debouncedDates,
+      debouncedAirlines,
+      debouncedRoutes,
+      debouncedPriceRange,
+      debouncedPriceSlider,
+    ],
+  );
+
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
@@ -382,19 +417,7 @@ export function GroupTicketsPage({
     let active = true;
     setIsLoading(true);
 
-    const filters = {};
-    if (debouncedSearch.trim()) filters.name = debouncedSearch.trim();
-    if (debouncedDurations.length > 0) filters.duration = debouncedDurations;
-    if (debouncedDates.length > 0) filters.departure_date = debouncedDates;
-    if (debouncedAirlines.length > 0) filters.airlines = debouncedAirlines;
-    if (debouncedRoutes.length > 0) filters.routes = debouncedRoutes;
-    if (debouncedPriceRange) {
-      filters.price_range = debouncedPriceRange;
-    } else if (debouncedPriceSlider < 500000) {
-      filters.price_range = `under_${debouncedPriceSlider}`;
-    }
-    filters.nextPage = 1;
-    filters.perPage = 12;
+    const filters = buildCurrentFilters(1);
 
     flightService
       .getGroupTicketsPaginated(filters)
@@ -412,43 +435,37 @@ export function GroupTicketsPage({
     return () => {
       active = false;
     };
-  }, [
-    debouncedSearch,
-    debouncedDurations,
-    debouncedDates,
-    debouncedAirlines,
-    debouncedRoutes,
-    debouncedPriceRange,
-    debouncedPriceSlider,
-  ]);
+  }, [buildCurrentFilters]);
 
-  // Load More: keep prior filters, update nextPage
-  const handleLoadMore = async () => {
-    if (!pagination?.nextPage || isLoadingMore) return;
-    setIsLoadingMore(true);
+  // Page navigation: calls API for the selected page
+  const handlePageChange = async (targetPage) => {
+    const curr = Number(pagination?.current_page || 1);
+    const total = Number(pagination?.total_pages || 1);
+    if (
+      targetPage === curr ||
+      targetPage < 1 ||
+      targetPage > total ||
+      isLoading ||
+      isPageChanging
+    ) {
+      return;
+    }
+
+    setIsPageChanging(true);
 
     try {
-      const filters = {};
-      if (debouncedSearch.trim()) filters.name = debouncedSearch.trim();
-      if (debouncedDurations.length > 0) filters.duration = debouncedDurations;
-      if (debouncedDates.length > 0) filters.departure_date = debouncedDates;
-      if (debouncedAirlines.length > 0) filters.airlines = debouncedAirlines;
-      if (debouncedRoutes.length > 0) filters.routes = debouncedRoutes;
-      if (debouncedPriceRange) {
-        filters.price_range = debouncedPriceRange;
-      } else if (debouncedPriceSlider < 500000) {
-        filters.price_range = `under_${debouncedPriceSlider}`;
-      }
-      filters.nextPage = pagination.nextPage;
-      filters.perPage = 12;
-
+      const filters = buildCurrentFilters(targetPage);
       const res = await flightService.getGroupTicketsPaginated(filters);
-      setFlights((prev) => [...prev, ...res.tickets]);
+      setFlights(res.tickets);
       setPagination(res.pagination);
+
+      if (resultsHeadRef.current) {
+        resultsHeadRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } catch (err) {
-      console.error('[GroupTicketsPage] load more error:', err);
+      console.error('[GroupTicketsPage] page change error:', err);
     } finally {
-      setIsLoadingMore(false);
+      setIsPageChanging(false);
     }
   };
 
@@ -460,7 +477,12 @@ export function GroupTicketsPage({
       '_blank',
     );
 
-  const totalCount = pagination?.total_records ?? flights.length;
+  const currentPage = Number(pagination?.current_page || 1);
+  const totalPages = Number(pagination?.total_pages || 1);
+  const perPage = Number(pagination?.per_page || 12);
+  const totalCount = Number(pagination?.total_records ?? flights.length);
+  const startIndex = totalCount > 0 ? (currentPage - 1) * perPage + 1 : 0;
+  const endIndex = Math.min(currentPage * perPage, totalCount);
 
   return (
     <div className="app-layout-root">
@@ -577,6 +599,60 @@ export function GroupTicketsPage({
                 </div>
               )}
 
+              {/* SECTORS & ROUTES */}
+              {sectorsList.length > 0 && (
+                <div className="gt-sb-section">
+                  <div className="gt-sb-section-head">
+                    <span className="gt-sb-section-title">
+                      SECTORS &amp; ROUTES
+                    </span>
+                    <div className="gt-sb-actions">
+                      <button
+                        type="button"
+                        className="gt-sb-act-all"
+                        onClick={() =>
+                          setSelRoutes(sectorsList.map((s) => s.id))
+                        }
+                      >
+                        All
+                      </button>
+                      <span className="gt-sb-sep">|</span>
+                      <button
+                        type="button"
+                        className="gt-sb-act-clear"
+                        onClick={() => setSelRoutes([])}
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                  <div className="gt-sb-list">
+                    {sectorsList.map((sr) => (
+                      <label
+                        key={sr.id || sr.key}
+                        className="gt-sb-row gt-sb-route-row"
+                      >
+                        <input
+                          type="checkbox"
+                          className="gt-checkbox"
+                          checked={selRoutes.includes(sr.id)}
+                          onChange={() =>
+                            toggle(selRoutes, setSelRoutes, sr.id)
+                          }
+                        />
+                        <span
+                          className="gt-sb-route-name"
+                          title={sr.fullLabel || sr.label}
+                        >
+                          {sr.label}
+                        </span>
+                        <span className="gt-sb-count-pill">{sr.count}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* DEPARTURE DATES */}
               {datesList.length > 0 && (
                 <div className="gt-sb-section">
@@ -667,86 +743,35 @@ export function GroupTicketsPage({
                     </div>
                   </div>
                   <div className="gt-sb-list">
-                    {airlinesList.map((al) => (
-                      <label
-                        key={al.id || al.code}
-                        className="gt-sb-row gt-sb-airline-row"
-                      >
-                        <input
-                          type="checkbox"
-                          className="gt-checkbox"
-                          checked={selAirlines.includes(al.id)}
-                          onChange={() =>
-                            toggle(selAirlines, setSelAirlines, al.id)
-                          }
-                        />
-                        {al.logo ? (
-                          <span className="gt-sb-airline-pill">
-                            <img src={al.logo} alt={al.name} loading="lazy" />
-                          </span>
-                        ) : (
-                          <span className="gt-sb-airline-pill">{al.code}</span>
-                        )}
-                        <span className="gt-sb-airline-name" title={al.name}>
-                          {al.name}
-                        </span>
-                        <span className="gt-sb-count-pill">{al.count}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* SECTORS & ROUTES */}
-              {sectorsList.length > 0 && (
-                <div className="gt-sb-section">
-                  <div className="gt-sb-section-head">
-                    <span className="gt-sb-section-title">
-                      SECTORS &amp; ROUTES
-                    </span>
-                    <div className="gt-sb-actions">
-                      <button
-                        type="button"
-                        className="gt-sb-act-all"
-                        onClick={() =>
-                          setSelRoutes(sectorsList.map((s) => s.id))
-                        }
-                      >
-                        All
-                      </button>
-                      <span className="gt-sb-sep">|</span>
-                      <button
-                        type="button"
-                        className="gt-sb-act-clear"
-                        onClick={() => setSelRoutes([])}
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-                  <div className="gt-sb-list">
-                    {sectorsList.map((sr) => (
-                      <label
-                        key={sr.id || sr.key}
-                        className="gt-sb-row gt-sb-route-row"
-                      >
-                        <input
-                          type="checkbox"
-                          className="gt-checkbox"
-                          checked={selRoutes.includes(sr.id)}
-                          onChange={() =>
-                            toggle(selRoutes, setSelRoutes, sr.id)
-                          }
-                        />
-                        <span
-                          className="gt-sb-route-name"
-                          title={sr.fullLabel || sr.label}
+                    {airlinesList.map((al) => {
+                      const logoUrl = al.logo || getAirlineLogo(al.logo, al.code, al.name);
+                      return (
+                        <label
+                          key={al.id || al.code}
+                          className="gt-sb-row gt-sb-airline-row"
                         >
-                          {sr.label}
-                        </span>
-                        <span className="gt-sb-count-pill">{sr.count}</span>
-                      </label>
-                    ))}
+                          <input
+                            type="checkbox"
+                            className="gt-checkbox"
+                            checked={selAirlines.includes(al.id)}
+                            onChange={() =>
+                              toggle(selAirlines, setSelAirlines, al.id)
+                            }
+                          />
+                          {logoUrl ? (
+                            <span className="gt-sb-airline-pill">
+                              <img src={logoUrl} alt={al.name} loading="lazy" />
+                            </span>
+                          ) : (
+                            <span className="gt-sb-airline-pill">{al.code}</span>
+                          )}
+                          <span className="gt-sb-airline-name" title={al.name}>
+                            {al.name}
+                          </span>
+                          <span className="gt-sb-count-pill">{al.count}</span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -862,11 +887,20 @@ export function GroupTicketsPage({
 
             {/* ──────────── RESULTS ──────────── */}
             <main className="gt-results">
-              <div className="gt-results-head">
+              <div className="gt-results-head" ref={resultsHeadRef}>
                 <div>
                   <h2 className="gt-results-h2">Group Tickets</h2>
                   <p className="gt-results-sub">
-                    Showing {flights.length} of {totalCount} tickets
+                    {totalCount > 0 ? (
+                      <>
+                        Showing {startIndex} – {endIndex} of {totalCount} tickets
+                        {totalPages > 1
+                          ? ` · Page ${currentPage} of ${totalPages}`
+                          : ''}
+                      </>
+                    ) : (
+                      'No tickets found'
+                    )}
                   </p>
                 </div>
                 {hasFilters && (
@@ -901,34 +935,34 @@ export function GroupTicketsPage({
                 </div>
               ) : flights.length > 0 ? (
                 <>
-                  <div className="gt-list">
+                  <div
+                    className="gt-list"
+                    style={
+                      isPageChanging
+                        ? {
+                            opacity: 0.5,
+                            pointerEvents: 'none',
+                            transition: 'opacity 0.2s ease',
+                          }
+                        : undefined
+                    }
+                  >
                     {flights.map((f) => (
                       <FlightCard key={f.id} flight={f} />
                     ))}
                   </div>
 
-                  {pagination?.has_more && (
-                    <div className="gt-load-more-container">
-                      <button
-                        type="button"
-                        className="gt-load-more-btn"
-                        onClick={handleLoadMore}
-                        disabled={isLoadingMore}
-                      >
-                        {isLoadingMore ? (
-                          <>
-                            <Loader2
-                              size={16}
-                              style={{ animation: 'spin 1s linear infinite' }}
-                            />
-                            Loading more...
-                          </>
-                        ) : (
-                          `Load More (${totalCount - flights.length} remaining)`
-                        )}
-                      </button>
-                    </div>
-                  )}
+                  {/* ── Pagination ── */}
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                    perPage={perPage}
+                    isLoading={isPageChanging}
+                    onPageChange={handlePageChange}
+                    itemName="tickets"
+                    id="gt-pagination"
+                  />
                 </>
               ) : (
                 <div className="gt-empty">

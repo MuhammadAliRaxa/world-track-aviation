@@ -1,5 +1,5 @@
 export { apiClient, apiGet, apiPost } from './api.client';
-export { flightService } from './flight.service';
+export { flightService, getAirlineLogo } from './flight.service';
 export { hotelService } from './hotel.service';
 export { visaService } from './visa.service';
 export { tourService } from './tour.service';

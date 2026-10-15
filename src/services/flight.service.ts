@@ -65,6 +65,104 @@ export function parseDateTs(dateStr: string): number {
   return isNaN(dt.getTime()) ? 0 : dt.getTime();
 }
 
+export function getAirlineLogo(
+  apiLogo?: string | null,
+  code?: string | null,
+  name?: string | null,
+): string | null {
+  if (apiLogo && typeof apiLogo === 'string' && apiLogo.trim() !== '') {
+    const trimmed = apiLogo.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('/storage') || trimmed.startsWith('/uploads') || trimmed.startsWith('/media')) {
+      return `https://admin.worldtracktravel.com${trimmed}`;
+    }
+    if (trimmed.startsWith('/')) {
+      return trimmed;
+    }
+    return `https://admin.worldtracktravel.com/${trimmed}`;
+  }
+
+  const upperCode = (code || '').toUpperCase().trim();
+  const upperName = (name || '').toUpperCase().trim();
+
+  // Saudia / Saudi Arabian Airlines (SV)
+  if (upperCode === 'SV' || upperName.includes('SAUDI') || upperName.includes('SAUDIA')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-08.svg';
+  }
+  // Pakistan International Airlines (PK / PIA)
+  if (upperCode === 'PK' || upperName.includes('PIA') || upperName.includes('PAKISTAN')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-12.svg';
+  }
+  // AirSial (PF)
+  if (upperCode === 'PF' || upperName.includes('AIRSIAL') || upperName.includes('AIR SIAL')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-16.svg';
+  }
+  // Emirates (EK)
+  if (upperCode === 'EK' || upperName.includes('EMIRATES')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-05.svg';
+  }
+  // Flyadeal (F3 / XY / etc.)
+  if (upperCode === 'F3' || upperName.includes('FLYADEAL')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-11.svg';
+  }
+  // Fly Jinnah (9P)
+  if (upperCode === '9P' || upperName.includes('JINNAH')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-15.svg';
+  }
+  // SereneAir (ER)
+  if (upperCode === 'ER' || upperName.includes('SERENE')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-18.svg';
+  }
+  // Oman Air (WY)
+  if (upperCode === 'WY' || upperName.includes('OMAN')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-17.svg';
+  }
+  // Turkish Airlines (TK)
+  if (upperCode === 'TK' || upperName.includes('TURKISH')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-13.svg';
+  }
+  // Qatar Airways (QR)
+  if (upperCode === 'QR' || upperName.includes('QATAR')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-06.svg';
+  }
+  // Kuwait Airways (KU)
+  if (upperCode === 'KU' || upperName.includes('KUWAIT')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-07.svg';
+  }
+  // Gulf Air (GF)
+  if (upperCode === 'GF' || upperName.includes('GULF')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-09.svg';
+  }
+  // Etihad Airways (EY)
+  if (upperCode === 'EY' || upperName.includes('ETIHAD')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-10.svg';
+  }
+  // Jazeera Airways (J9)
+  if (upperCode === 'J9' || upperName.includes('JAZEERA')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-14.svg';
+  }
+  // flydubai (FZ)
+  if (upperCode === 'FZ' || upperName.includes('FLYDUBAI')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-01.svg';
+  }
+  // Air Arabia (G9)
+  if (upperCode === 'G9' || upperName.includes('ARABIA')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-02.svg';
+  }
+  // Thai Airways (TG)
+  if (upperCode === 'TG' || upperName.includes('THAI')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-03.svg';
+  }
+  // Malaysia Airlines (MH)
+  if (upperCode === 'MH' || upperName.includes('MALAYSIA')) {
+    return '/assets/Airlines/Airlines SVG WEBSITE-04.svg';
+  }
+
+  return null;
+}
+
 export function normalizeGroupTicket(item: any): GroupFlight {
   if (!item || typeof item !== 'object') {
     return {
@@ -135,9 +233,12 @@ export function normalizeGroupTicket(item: any): GroupFlight {
     }
   }
 
-  const airlineLogo =
+  const rawAirlineLogo =
     airlineObj?.logo ||
+    airlineObj?.logo_url ||
+    airlineObj?.image ||
     (typeof item.airlineLogo === 'string' ? item.airlineLogo : null);
+  const airlineLogo = getAirlineLogo(rawAirlineLogo, airlineCode, airlineName);
 
   const outboundDate =
     item.departure?.date || item.outboundDate || item.departure_date || '';
@@ -346,13 +447,17 @@ export const flightService = {
   async getAirlines(): Promise<AirlineItem[]> {
     const lookups = await this.getGroupTicketLookups();
     if (!lookups || !Array.isArray(lookups.airlines)) return [];
-    return lookups.airlines.map((a: any) => ({
-      id: Number(a.id || 0),
-      code: a.code || (a.name ? a.name.slice(0, 2).toUpperCase() : 'AL'),
-      name: a.name || 'Airline',
-      logo: a.logo || null,
-      count: a.tickets_count ?? a.count ?? 1,
-    }));
+    return lookups.airlines.map((a: any) => {
+      const code = a.code || (a.name ? a.name.slice(0, 2).toUpperCase() : 'AL');
+      const name = a.name || 'Airline';
+      return {
+        id: Number(a.id || 0),
+        code,
+        name,
+        logo: getAirlineLogo(a.logo, code, name),
+        count: a.tickets_count ?? a.count ?? 1,
+      };
+    });
   },
 
   async getSectors(): Promise<SectorRouteItem[]> {

@@ -4667,6 +4667,121 @@
   cursor: not-allowed;
 }
 
+/* ── Group Tickets Pagination ────────────────────────────────── */
+.gt-pagination-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 0 16px;
+  margin-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.gt-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.gt-page-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.gt-page-nav-btn:hover:not(:disabled) {
+  border-color: #0080f6;
+  color: #0080f6;
+  background: #f0f7ff;
+  transform: translateY(-1px);
+}
+
+.gt-page-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  background: #f8fafc;
+}
+
+.gt-page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gt-page-num-btn {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.gt-page-num-btn:hover:not(:disabled):not(.gt-page-num-active) {
+  border-color: #0080f6;
+  color: #0080f6;
+  background: #f0f7ff;
+}
+
+.gt-page-num-btn.gt-page-num-active {
+  background: #0080f6;
+  border-color: #0080f6;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 128, 246, 0.28);
+}
+
+.gt-page-ellipsis {
+  padding: 0 4px;
+  color: #94a3b8;
+  font-size: 14px;
+  user-select: none;
+}
+
+.gt-pagination-info {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .gt-page-nav-btn {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+  .gt-page-num-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+}
+
 /* ── Overlay (mobile) ─── */
 .gt-overlay {
   position: fixed;

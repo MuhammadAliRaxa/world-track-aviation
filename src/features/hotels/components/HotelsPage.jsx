@@ -27,6 +27,7 @@ import { Modals } from '../../../shared/components/Modals';
 import { WhatsAppIcon } from '../../../shared';
 import { COMPANY_CONFIG } from '../../../config/company';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
+import { Pagination } from '../../../shared/components/Pagination';
 import { HotelCard } from './HotelCard';
 import { HotelsMapButton } from './HotelsMapButton';
 import { hotelService } from '../../../services';
@@ -93,7 +94,8 @@ export function HotelsPage({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isPageChanging, setIsPageChanging] = useState(false);
+  const resultsHeadRef = useRef(null);
 
   // ── FAQ State ──
   const [openFaqId, setOpenFaqId] = useState(
@@ -229,23 +231,43 @@ export function HotelsPage({
     return () => { active = false; };
   }, [debouncedSearch, selectedCity, selectedPrice, debouncedCategories, debouncedFacilities, debouncedRoomTypes]);
 
-  // ── Load More handler ──
-  const handleLoadMore = async () => {
-    if (!pagination?.nextPage || isLoadingMore) return;
-    setIsLoadingMore(true);
+  // ── Page Change handler ──
+  const handlePageChange = async (targetPage) => {
+    const curr = Number(pagination?.current_page || 1);
+    const total = Number(pagination?.total_pages || 1);
+    if (
+      targetPage === curr ||
+      targetPage < 1 ||
+      targetPage > total ||
+      isLoading ||
+      isPageChanging
+    ) {
+      return;
+    }
+
+    setIsPageChanging(true);
 
     try {
-      const res = await hotelService.getHotelsPaginated(buildApiFilters(pagination.nextPage));
-      setHotels((prev) => [...prev, ...normalizeHotels(res.hotels)]);
+      const res = await hotelService.getHotelsPaginated(buildApiFilters(targetPage));
+      setHotels(normalizeHotels(res.hotels));
       setPagination(res.pagination);
+
+      if (resultsHeadRef.current) {
+        resultsHeadRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } catch (err) {
-      console.error('[HotelsPage] load more error:', err);
+      console.error('[HotelsPage] page change error:', err);
     } finally {
-      setIsLoadingMore(false);
+      setIsPageChanging(false);
     }
   };
 
-  const totalCount = pagination?.total_records ?? hotels.length;
+  const totalCount = Number(pagination?.total_records ?? hotels.length);
+  const currentPage = Number(pagination?.current_page || 1);
+  const totalPages = Number(pagination?.total_pages || 1);
+  const perPage = Number(pagination?.per_page || 12);
+  const startIndex = totalCount > 0 ? (currentPage - 1) * perPage + 1 : 0;
+  const endIndex = Math.min(currentPage * perPage, totalCount);
 
   return (
     <div className="app-layout-root">
@@ -554,46 +576,55 @@ export function HotelsPage({
             {/* ──────────── RIGHT MAIN CONTENT ──────────── */}
             <main className="hp-main-col">
               {/* Header Box */}
-              <div className="hp-header-card">
+              <div className="hp-header-card" ref={resultsHeadRef}>
                 <div className="hp-header-title-row">
                   <h2 className="hp-header-title">All Luxury Hotels &amp; Resorts</h2>
                   <HotelsMapButton />
                 </div>
                 <p className="hp-header-sub">
-                  {isLoading
-                    ? 'Updating...'
-                    : `Showing ${hotels.length} of ${totalCount} verified stays`}
+                  {isLoading ? (
+                    'Updating...'
+                  ) : totalCount > 0 ? (
+                    <>
+                      Showing {startIndex} – {endIndex} of {totalCount} verified stays
+                      {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
+                    </>
+                  ) : (
+                    `Showing ${hotels.length} of ${totalCount} verified stays`
+                  )}
                 </p>
               </div>
 
               {/* 3-Column Cards Grid */}
               {hotels.length > 0 ? (
                 <>
-                  <div className="hp-cards-grid">
+                  <div
+                    className="hp-cards-grid"
+                    style={
+                      isPageChanging
+                        ? {
+                            opacity: 0.5,
+                            pointerEvents: 'none',
+                            transition: 'opacity 0.2s ease',
+                          }
+                        : undefined
+                    }
+                  >
                     {hotels.map((hotel) => (
                       <HotelCard key={hotel.id} hotel={hotel} />
                     ))}
                   </div>
 
-                  {pagination?.has_more && (
-                    <div className="gt-load-more-container">
-                      <button
-                        type="button"
-                        className="gt-load-more-btn"
-                        onClick={handleLoadMore}
-                        disabled={isLoadingMore}
-                      >
-                        {isLoadingMore ? (
-                          <>
-                            <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                            Loading more...
-                          </>
-                        ) : (
-                          `Load More (${totalCount - hotels.length} remaining)`
-                        )}
-                      </button>
-                    </div>
-                  )}
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                    perPage={perPage}
+                    isLoading={isPageChanging}
+                    onPageChange={handlePageChange}
+                    itemName="verified stays"
+                    id="hp-pagination"
+                  />
                 </>
               ) : (
                 <div className="hp-empty-state">

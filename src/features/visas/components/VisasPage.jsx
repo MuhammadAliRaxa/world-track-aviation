@@ -17,6 +17,7 @@ import { Modals } from '../../../shared/components/Modals';
 import { WhatsAppIcon } from '../../../shared';
 import { COMPANY_CONFIG } from '../../../config/company';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
+import { Pagination } from '../../../shared/components/Pagination';
 import { VisaCard } from './VisaCard';
 import { visaService } from '../../../services';
 import {
@@ -60,7 +61,8 @@ export function VisasPage({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isPageChanging, setIsPageChanging] = useState(false);
+  const resultsHeadRef = useRef(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -146,23 +148,43 @@ export function VisasPage({
     return () => { active = false; };
   }, [debouncedSearch, debouncedCountry, debouncedPrice]);
 
-  // Load More handler
-  const handleLoadMore = async () => {
-    if (!pagination?.nextPage || isLoadingMore) return;
-    setIsLoadingMore(true);
+  // Page Change handler
+  const handlePageChange = async (targetPage) => {
+    const curr = Number(pagination?.current_page || 1);
+    const total = Number(pagination?.total_pages || 1);
+    if (
+      targetPage === curr ||
+      targetPage < 1 ||
+      targetPage > total ||
+      isLoading ||
+      isPageChanging
+    ) {
+      return;
+    }
+
+    setIsPageChanging(true);
 
     try {
-      const res = await visaService.getVisasPaginated(buildApiFilters(pagination.nextPage));
-      setVisas((prev) => [...prev, ...res.visas]);
+      const res = await visaService.getVisasPaginated(buildApiFilters(targetPage));
+      setVisas(res.visas);
       setPagination(res.pagination);
+
+      if (resultsHeadRef.current) {
+        resultsHeadRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } catch (err) {
-      console.error('[VisasPage] load more error:', err);
+      console.error('[VisasPage] page change error:', err);
     } finally {
-      setIsLoadingMore(false);
+      setIsPageChanging(false);
     }
   };
 
-  const totalCount = pagination?.total_records ?? visas.length;
+  const totalCount = Number(pagination?.total_records ?? visas.length);
+  const currentPage = Number(pagination?.current_page || 1);
+  const totalPages = Number(pagination?.total_pages || 1);
+  const perPage = Number(pagination?.per_page || 12);
+  const startIndex = totalCount > 0 ? (currentPage - 1) * perPage + 1 : 0;
+  const endIndex = Math.min(currentPage * perPage, totalCount);
 
   return (
     <div className="app-layout-root">
@@ -355,12 +377,19 @@ export function VisasPage({
             {/* ──────────── RIGHT MAIN CONTENT ──────────── */}
             <main className="vp-main-col">
               {/* Header Box */}
-              <div className="vp-header-card">
+              <div className="vp-header-card" ref={resultsHeadRef}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <div>
                     <h2 className="vp-header-title">Global Visit Visa Services</h2>
                     <p className="vp-header-sub">
-                      Showing {visas.length} of {totalCount} available visas
+                      {totalCount > 0 ? (
+                        <>
+                          Showing {startIndex} – {endIndex} of {totalCount} available visas
+                          {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
+                        </>
+                      ) : (
+                        `Showing ${visas.length} of ${totalCount} available visas`
+                      )}
                     </p>
                   </div>
                   {hasFilters && (
@@ -379,7 +408,18 @@ export function VisasPage({
                 </div>
               ) : visas.length > 0 ? (
                 <>
-                  <div className="vp-cards-grid">
+                  <div
+                    className="vp-cards-grid"
+                    style={
+                      isPageChanging
+                        ? {
+                            opacity: 0.5,
+                            pointerEvents: 'none',
+                            transition: 'opacity 0.2s ease',
+                          }
+                        : undefined
+                    }
+                  >
                     {visas.map((visa) => (
                       <VisaCard
                         key={visa.id}
@@ -388,25 +428,16 @@ export function VisasPage({
                     ))}
                   </div>
 
-                  {pagination?.has_more && (
-                    <div className="gt-load-more-container">
-                      <button
-                        type="button"
-                        className="gt-load-more-btn"
-                        onClick={handleLoadMore}
-                        disabled={isLoadingMore}
-                      >
-                        {isLoadingMore ? (
-                          <>
-                            <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                            Loading more...
-                          </>
-                        ) : (
-                          `Load More (${totalCount - visas.length} remaining)`
-                        )}
-                      </button>
-                    </div>
-                  )}
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                    perPage={perPage}
+                    isLoading={isPageChanging}
+                    onPageChange={handlePageChange}
+                    itemName="available visas"
+                    id="vp-pagination"
+                  />
                 </>
               ) : (
                 <div className="vp-empty-state">

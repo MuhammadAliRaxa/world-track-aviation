@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Search, SlidersHorizontal } from 'lucide-react';
 import { blogService, normalizeBlogDetail } from '../../../services/blog.service';
 import { BlogCard } from './BlogCard';
 import { AppBar, Footer, Modals } from '../../../shared';
+import { Pagination } from '../../../shared/components/Pagination';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
 import rawBlogsHero from '../../../assets/blogs_hero.webp';
 
@@ -43,7 +44,8 @@ export function BlogsPage({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const debouncedCategory = useDebounce(selectedCategory, 800);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isPageChanging, setIsPageChanging] = useState(false);
+  const resultsHeadRef = useRef(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
 
   useEffect(() => {
@@ -113,23 +115,43 @@ export function BlogsPage({
     };
   }, [debouncedSearch, debouncedCategory]);
 
-  const handleLoadMore = async () => {
-    if (!pagination?.nextPage || isLoadingMore) return;
-    setIsLoadingMore(true);
+  const handlePageChange = async (targetPage) => {
+    const curr = Number(pagination?.current_page || 1);
+    const total = Number(pagination?.total_pages || 1);
+    if (
+      targetPage === curr ||
+      targetPage < 1 ||
+      targetPage > total ||
+      isLoading ||
+      isPageChanging
+    ) {
+      return;
+    }
+
+    setIsPageChanging(true);
 
     try {
-      const res = await blogService.getBlogsPaginated(buildApiFilters(pagination.nextPage));
+      const res = await blogService.getBlogsPaginated(buildApiFilters(targetPage));
       const normalized = res.blogs.map((b) => (b.sections ? b : normalizeBlogDetail(b))).filter(Boolean);
-      setBlogs((prev) => [...prev, ...normalized]);
+      setBlogs(normalized);
       setPagination(res.pagination);
+
+      if (resultsHeadRef.current) {
+        resultsHeadRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } catch {
       // ignore
     } finally {
-      setIsLoadingMore(false);
+      setIsPageChanging(false);
     }
   };
 
-  const hasMore = Boolean(pagination?.nextPage || pagination?.has_more);
+  const totalCount = Number(pagination?.total_records ?? blogs.length);
+  const currentPage = Number(pagination?.current_page || 1);
+  const totalPages = Number(pagination?.total_pages || 1);
+  const perPage = Number(pagination?.per_page || 12);
+  const startIndex = totalCount > 0 ? (currentPage - 1) * perPage + 1 : 0;
+  const endIndex = Math.min(currentPage * perPage, totalCount);
 
   return (
     <div className="blogs-page-root">
@@ -243,10 +265,17 @@ export function BlogsPage({
         {/* Right Column: Blog Grid */}
         <main className="blogs-content">
           {/* Top Header Card */}
-          <div className="blogs-top-banner">
+          <div className="blogs-top-banner" ref={resultsHeadRef}>
             <h2 className="blogs-top-title">Our Latest blogs</h2>
             <p className="blogs-top-sub">
-              Showing {blogs.length} {pagination?.total_records ? `of ${pagination.total_records}` : ''}
+              {totalCount > 0 ? (
+                <>
+                  Showing {startIndex} – {endIndex} of {totalCount} articles
+                  {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
+                </>
+              ) : (
+                `Showing ${blogs.length} articles`
+              )}
             </p>
           </div>
 
@@ -262,7 +291,18 @@ export function BlogsPage({
           ) : (
             <>
               {/* 3-Column Blog Cards Grid */}
-              <div className="blogs-cards-grid">
+              <div
+                className="blogs-cards-grid"
+                style={
+                  isPageChanging
+                    ? {
+                        opacity: 0.5,
+                        pointerEvents: 'none',
+                        transition: 'opacity 0.2s ease',
+                      }
+                    : undefined
+                }
+              >
                 {blogs.map((article) => (
                   <BlogCard
                     key={article.id}
@@ -272,21 +312,16 @@ export function BlogsPage({
                 ))}
               </div>
 
-              {/* Load More Button */}
-              {hasMore && (
-                <div style={{ textAlign: 'center', marginTop: '32px' }}>
-                  <button
-                    type="button"
-                    className="gt-load-more-btn"
-                    onClick={handleLoadMore}
-                    disabled={isLoadingMore}
-                    id="blogs-load-more-btn"
-                  >
-                    <span>{isLoadingMore ? 'Loading more...' : 'Load More Articles'}</span>
-                    <ChevronDown size={15} />
-                  </button>
-                </div>
-              )}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalCount={totalCount}
+                perPage={perPage}
+                isLoading={isPageChanging}
+                onPageChange={handlePageChange}
+                itemName="articles"
+                id="blogs-pagination"
+              />
             </>
           )}
         </main>

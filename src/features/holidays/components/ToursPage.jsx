@@ -21,6 +21,7 @@ import { AppBar } from '../../../shared/components/AppBar';
 import { Footer } from '../../../shared/components/Footer';
 import { PassportIcon, WhatsAppIcon } from '../../../shared';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
+import { Pagination } from '../../../shared/components/Pagination';
 import { tourService } from '../../../services';
 import { PRICE_RANGES } from '../data/holidaysData';
 import { HolidayCard } from './HolidayCard';
@@ -49,7 +50,8 @@ export function ToursPage({
   const [destinations, setDestinations] = useState(initialDestinations);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isPageChanging, setIsPageChanging] = useState(false);
+  const resultsHeadRef = useRef(null);
 
   // Fetch destinations from lookups if not provided via SSR
   useEffect(() => {
@@ -102,7 +104,7 @@ export function ToursPage({
     let active = true;
     setIsLoading(true);
 
-    const buildFilters = () => {
+    const buildFilters = (page = 1) => {
       const filters = {};
 
       if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
@@ -127,13 +129,13 @@ export function ToursPage({
         filters.rating = debouncedStars[0];
       }
 
-      filters.nextPage = 1;
+      filters.nextPage = page;
       filters.perPage = 12;
       return filters;
     };
 
     tourService
-      .getToursPaginated(buildFilters())
+      .getToursPaginated(buildFilters(1))
       .then((res) => {
         if (!active) return;
         setTours(res.tours);
@@ -148,10 +150,21 @@ export function ToursPage({
     return () => { active = false; };
   }, [debouncedSearch, debouncedDest, debouncedPrice, debouncedStars]);
 
-  // Load More: keep prior filters, update nextPage
-  const handleLoadMore = async () => {
-    if (!pagination?.nextPage || isLoadingMore) return;
-    setIsLoadingMore(true);
+  // Page Change handler: calls API for the selected page
+  const handlePageChange = async (targetPage) => {
+    const curr = Number(pagination?.current_page || 1);
+    const total = Number(pagination?.total_pages || 1);
+    if (
+      targetPage === curr ||
+      targetPage < 1 ||
+      targetPage > total ||
+      isLoading ||
+      isPageChanging
+    ) {
+      return;
+    }
+
+    setIsPageChanging(true);
 
     try {
       const filters = {};
@@ -170,18 +183,29 @@ export function ToursPage({
         else filters.price_range = debouncedPrice;
       }
       if (debouncedStars.length > 0) filters.rating = debouncedStars[0];
-      filters.nextPage = pagination.nextPage;
+      filters.nextPage = targetPage;
       filters.perPage = 12;
 
       const res = await tourService.getToursPaginated(filters);
-      setTours((prev) => [...prev, ...res.tours]);
+      setTours(res.tours);
       setPagination(res.pagination);
+
+      if (resultsHeadRef.current) {
+        resultsHeadRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } catch (err) {
-      console.error('[ToursPage] load more error:', err);
+      console.error('[ToursPage] page change error:', err);
     } finally {
-      setIsLoadingMore(false);
+      setIsPageChanging(false);
     }
   };
+
+  const totalCount = Number(pagination?.total_records ?? tours.length);
+  const currentPage = Number(pagination?.current_page || 1);
+  const totalPages = Number(pagination?.total_pages || 1);
+  const perPage = Number(pagination?.per_page || 12);
+  const startIndex = totalCount > 0 ? (currentPage - 1) * perPage + 1 : 0;
+  const endIndex = Math.min(currentPage * perPage, totalCount);
 
   const destCounts = useMemo(() => {
     const map = {};
@@ -193,8 +217,6 @@ export function ToursPage({
 
   const handleWhatsApp = () =>
     window.open(COMPANY_CONFIG.getWhatsAppUrl('Hi, I need a custom group tour quote. Please assist.'), '_blank');
-
-  const totalCount = pagination?.total_records ?? tours.length;
 
   return (
     <div className="app-layout-root">
@@ -410,11 +432,18 @@ export function ToursPage({
 
             {/* ──────────── RESULTS ──────────── */}
             <main className="tr-results">
-              <div className="tr-results-head">
+              <div className="tr-results-head" ref={resultsHeadRef}>
                 <div>
                   <h2 className="tr-results-h2">Curated Holiday Tours &amp; Getaways</h2>
                   <p className="tr-results-sub">
-                    Showing {tours.length} of {totalCount} tours
+                    {totalCount > 0 ? (
+                      <>
+                        Showing {startIndex} – {endIndex} of {totalCount} tours
+                        {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
+                      </>
+                    ) : (
+                      `Showing ${tours.length} of ${totalCount} tours`
+                    )}
                   </p>
                 </div>
                 {hasFilters && (
@@ -431,31 +460,33 @@ export function ToursPage({
                 </div>
               ) : tours.length > 0 ? (
                 <>
-                  <div className="tr-grid">
+                  <div
+                    className="tr-grid"
+                    style={
+                      isPageChanging
+                        ? {
+                            opacity: 0.5,
+                            pointerEvents: 'none',
+                            transition: 'opacity 0.2s ease',
+                          }
+                        : undefined
+                    }
+                  >
                     {tours.map(t => (
                       <HolidayCard key={t.id} tour={t} />
                     ))}
                   </div>
 
-                  {pagination?.has_more && (
-                    <div className="gt-load-more-container">
-                      <button
-                        type="button"
-                        className="gt-load-more-btn"
-                        onClick={handleLoadMore}
-                        disabled={isLoadingMore}
-                      >
-                        {isLoadingMore ? (
-                          <>
-                            <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                            Loading more...
-                          </>
-                        ) : (
-                          `Load More (${totalCount - tours.length} remaining)`
-                        )}
-                      </button>
-                    </div>
-                  )}
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                    perPage={perPage}
+                    isLoading={isPageChanging}
+                    onPageChange={handlePageChange}
+                    itemName="tours"
+                    id="tr-pagination"
+                  />
                 </>
               ) : (
                 <div className="tr-empty">
