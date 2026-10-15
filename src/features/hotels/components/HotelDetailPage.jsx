@@ -330,11 +330,13 @@ export function HotelDetailPage({ initialHotel = null }) {
               }}
             >
               <span>
-                {hotel.stars
-                  ? `${hotel.stars}-STAR`
-                  : (hotel.category
-                      ? String(hotel.category).toUpperCase().replace(/\s*STAR/i, '-STAR')
-                      : '5-STAR')}
+                {(() => {
+                  const rawCat = String(hotel.category || hotel.hotel_category || '').trim();
+                  if (/economy/i.test(rawCat) || /economy/i.test(hotel.tag || '')) return rawCat.toUpperCase() || 'ECONOMY';
+                  if (hotel.stars && Number(hotel.stars) > 0) return `${hotel.stars}-STAR`;
+                  if (rawCat) return rawCat.toUpperCase().replace(/\s*STAR/i, '-STAR');
+                  return hotel.tag ? String(hotel.tag).toUpperCase() : '5-STAR';
+                })()}
               </span>
             </div>
 

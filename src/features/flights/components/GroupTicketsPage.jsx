@@ -21,6 +21,72 @@ function formatPrice(n) {
   return 'Call for Price';
 }
 
+function formatDateDMY(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return '';
+  const trimmed = dateStr.trim();
+  if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const m = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    const year = m[1];
+    const monthIdx = parseInt(m[2], 10) - 1;
+    const day = m[3].padStart(2, '0');
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    if (monthIdx >= 0 && monthIdx < 12) {
+      return `${day} ${monthNames[monthIdx]} ${year}`;
+    }
+  }
+  const dt = new Date(trimmed.includes('T') ? trimmed : `${trimmed}T00:00:00`);
+  if (!isNaN(dt.getTime())) {
+    const day = String(dt.getDate()).padStart(2, '0');
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return `${day} ${monthNames[dt.getMonth()]} ${dt.getFullYear()}`;
+  }
+  return trimmed;
+}
+
+function parseDateTs(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return 0;
+  const m = dateStr.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    return Date.UTC(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+  }
+  const dt = new Date(dateStr);
+  return isNaN(dt.getTime()) ? 0 : dt.getTime();
+}
+
+function normalizeDatesList(rawList) {
+  if (!Array.isArray(rawList)) return [];
+  return rawList
+    .map((item) => {
+      if (!item) return null;
+      if (typeof item === 'string') {
+        const val = item.trim();
+        return {
+          value: val,
+          label: formatDateDMY(val),
+          count: null,
+        };
+      }
+      const val = item.value || item.departure_date || item.name || '';
+      if (!val) return null;
+      return {
+        value: val,
+        label: item.label || formatDateDMY(val),
+        count: item.count ?? item.tickets_count ?? null,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => parseDateTs(a.value) - parseDateTs(b.value));
+}
+
 const PRICE_RANGE_OPTIONS = [
   { value: '', label: 'All Prices' },
   { value: 'under_100000', label: 'Under PKR 100,000' },
@@ -50,7 +116,8 @@ const AirlineBadge = React.memo(function AirlineBadge({ code, name, logo }) {
 
 const FlightCard = React.memo(function FlightCard({ flight }) {
   const handleBook = () => {
-    const msg = `Hi, I want to book a group ticket: ${flight.route || ''} departing ${flight.outboundDate || ''}. Flight ${flight.outboundFlight || ''}. Please share details.`;
+    const formattedOutDate = formatDateDMY(flight.outboundDate || flight.departure_date);
+    const msg = `Hi, I want to book a group ticket: ${flight.route || ''}${formattedOutDate ? ` departing ${formattedOutDate}` : ''}. Flight ${flight.outboundFlight || ''}. Please share details.`;
     window.open(COMPANY_CONFIG.getWhatsAppUrl(msg), '_blank');
   };
 
@@ -58,10 +125,18 @@ const FlightCard = React.memo(function FlightCard({ flight }) {
     typeof flight.route === 'string'
       ? flight.route
       : String(flight.route?.name || flight.name || 'Group Ticket Route');
-  const rawBaggage =
-    typeof flight.baggage === 'string'
+  const rawOutboundBaggage =
+    typeof flight.outboundBaggage === 'string'
+      ? flight.outboundBaggage
+      : typeof flight.baggage === 'string'
       ? flight.baggage
-      : '46 KG (2 Pcs × 23 KG)';
+      : '';
+  const rawInboundBaggage =
+    typeof flight.inboundBaggage === 'string'
+      ? flight.inboundBaggage
+      : typeof flight.baggage === 'string'
+      ? flight.baggage
+      : '';
   const rawOutboundTime =
     typeof flight.outboundTime === 'string'
       ? flight.outboundTime
@@ -72,7 +147,8 @@ const FlightCard = React.memo(function FlightCard({ flight }) {
       : '18:00 - 21:00';
 
   const formattedRoute = rawRoute.replace(/–/g, '-').replace(/\s*-\s*/g, ' - ');
-  const formattedBaggage = rawBaggage.replace(/\+/g, '×');
+  const formattedOutboundBaggage = rawOutboundBaggage.replace(/\+/g, '×').replace(/\s*x\s*/gi, ' × ');
+  const formattedInboundBaggage = rawInboundBaggage.replace(/\+/g, '×').replace(/\s*x\s*/gi, ' × ');
   const outboundTiming = `${flight.outboundFlight || ''} (${rawOutboundTime.replace(/–/g, '-')})`.trim();
   const inboundTiming = `${flight.inboundFlight || ''} (${rawInboundTime.replace(/–/g, '-')})`.trim();
 
@@ -107,10 +183,11 @@ const FlightCard = React.memo(function FlightCard({ flight }) {
             <span className="gt-panel-type-outbound">
               OUTBOUND ·{' '}
               {String(
-                flight.outboundDate || flight.departure_date || 'ON REQUEST',
+                formatDateDMY(flight.outboundDate || flight.departure_date) ||
+                  'ON REQUEST',
               ).toUpperCase()}
             </span>
-            <span className="gt-panel-baggage">{formattedBaggage}</span>
+            <span className="gt-panel-baggage">{formattedOutboundBaggage}</span>
           </div>
           <div className="gt-panel-flight-info">{outboundTiming}</div>
         </div>
@@ -120,9 +197,11 @@ const FlightCard = React.memo(function FlightCard({ flight }) {
           <div className="gt-panel-head">
             <span className="gt-panel-type-inbound">
               INBOUND ·{' '}
-              {String(flight.inboundDate || 'CONFIRMED SEATS').toUpperCase()}
+              {String(
+                formatDateDMY(flight.inboundDate) || 'CONFIRMED SEATS',
+              ).toUpperCase()}
             </span>
-            <span className="gt-panel-baggage">{formattedBaggage}</span>
+            <span className="gt-panel-baggage">{formattedInboundBaggage}</span>
           </div>
           <div className="gt-panel-flight-info">{inboundTiming}</div>
         </div>
@@ -167,10 +246,19 @@ export function GroupTicketsPage({
     },
   );
 
-  const [datesList, setDatesList] = useState(initialDates);
+  const [datesList, setDatesList] = useState(() =>
+    normalizeDatesList(initialDates),
+  );
   const [airlinesList, setAirlinesList] = useState(initialAirlines);
   const [sectorsList, setSectorsList] = useState(initialSectors);
   const [durationsList, setDurationsList] = useState(initialDurations);
+
+  // Sync initialDates if changed externally
+  useEffect(() => {
+    if (initialDates && initialDates.length > 0) {
+      setDatesList(normalizeDatesList(initialDates));
+    }
+  }, [initialDates]);
 
   // Client filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -215,13 +303,7 @@ export function GroupTicketsPage({
           );
         }
         if (Array.isArray(lookups.departure_dates) && !datesList.length) {
-          setDatesList(
-            lookups.departure_dates
-              .map((d) =>
-                typeof d === 'string' ? d : d.departure_date || d.name || '',
-              )
-              .filter(Boolean),
-          );
+          setDatesList(normalizeDatesList(lookups.departure_dates));
         }
         if (Array.isArray(lookups.airlines) && !airlinesList.length) {
           setAirlinesList(
@@ -504,7 +586,15 @@ export function GroupTicketsPage({
                       <button
                         type="button"
                         className="gt-sb-act-all"
-                        onClick={() => setSelDates([...datesList])}
+                        onClick={() =>
+                          setSelDates(
+                            datesList.map((d) =>
+                              typeof d === 'string'
+                                ? d
+                                : d.value || d.departure_date,
+                            ),
+                          )
+                        }
                       >
                         All
                       </button>
@@ -519,17 +609,34 @@ export function GroupTicketsPage({
                     </div>
                   </div>
                   <div className="gt-sb-list">
-                    {datesList.map((d) => (
-                      <label key={d} className="gt-sb-row">
-                        <input
-                          type="checkbox"
-                          className="gt-checkbox"
-                          checked={selDates.includes(d)}
-                          onChange={() => toggle(selDates, setSelDates, d)}
-                        />
-                        <span className="gt-sb-label">{d}</span>
-                      </label>
-                    ))}
+                    {datesList.map((d) => {
+                      const val =
+                        typeof d === 'string'
+                          ? d
+                          : d.value || d.departure_date || '';
+                      const label =
+                        typeof d === 'object' && d.label
+                          ? d.label
+                          : formatDateDMY(val);
+                      const count =
+                        typeof d === 'object'
+                          ? (d.count ?? d.tickets_count)
+                          : null;
+                      return (
+                        <label key={val} className="gt-sb-row">
+                          <input
+                            type="checkbox"
+                            className="gt-checkbox"
+                            checked={selDates.includes(val)}
+                            onChange={() => toggle(selDates, setSelDates, val)}
+                          />
+                          <span className="gt-sb-label">{label}</span>
+                          {count != null && count > 0 && (
+                            <span className="gt-sb-count-pill">{count}</span>
+                          )}
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               )}

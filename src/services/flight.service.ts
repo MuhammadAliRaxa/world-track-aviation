@@ -13,6 +13,7 @@ import {
   GroupFlight,
   AirlineItem,
   SectorRouteItem,
+  DepartureDateItem,
   FlightFilterParams,
 } from '../types/flight.types';
 import { apiPost, apiGet } from './api.client';
@@ -22,6 +23,47 @@ import type {
   ApiGroupTicketFilters,
   ApiPagination,
 } from '../types/api.types';
+
+export function formatDateDMY(dateStr: string): string {
+  if (!dateStr || typeof dateStr !== 'string') return '';
+  const trimmed = dateStr.trim();
+  if (/^\d{1,2}\s+[A-Za-z]{3,}\s+\d{4}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const m = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    const year = m[1];
+    const monthIdx = parseInt(m[2], 10) - 1;
+    const day = m[3].padStart(2, '0');
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    if (monthIdx >= 0 && monthIdx < 12) {
+      return `${day} ${monthNames[monthIdx]} ${year}`;
+    }
+  }
+  const dt = new Date(trimmed.includes('T') ? trimmed : `${trimmed}T00:00:00`);
+  if (!isNaN(dt.getTime())) {
+    const day = String(dt.getDate()).padStart(2, '0');
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return `${day} ${monthNames[dt.getMonth()]} ${dt.getFullYear()}`;
+  }
+  return trimmed;
+}
+
+export function parseDateTs(dateStr: string): number {
+  if (!dateStr || typeof dateStr !== 'string') return 0;
+  const m = dateStr.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    return Date.UTC(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+  }
+  const dt = new Date(dateStr);
+  return isNaN(dt.getTime()) ? 0 : dt.getTime();
+}
 
 export function normalizeGroupTicket(item: any): GroupFlight {
   if (!item || typeof item !== 'object') {
@@ -42,7 +84,9 @@ export function normalizeGroupTicket(item: any): GroupFlight {
       inboundDate: '',
       inboundTime: '',
       inboundFlight: '',
-      baggage: '46 KG (2 Pcs × 23 KG)',
+      outboundBaggage: '',
+      inboundBaggage: '',
+      baggage: '',
       seatsLeft: 10,
       pricePKR: 0,
       highlight: null,
@@ -54,7 +98,7 @@ export function normalizeGroupTicket(item: any): GroupFlight {
     routeObj?.name ||
     (typeof item.route === 'string' ? item.route : '') ||
     item.name ||
-    'ISLAMABAD - JEDDAH - ISLAMABAD';
+    '';
   const routeId = routeObj?.id ? Number(routeObj.id) : undefined;
 
   const airlineObj = typeof item.airline === 'object' && item.airline ? item.airline : null;
@@ -120,11 +164,23 @@ export function normalizeGroupTicket(item: any): GroupFlight {
     ? `${item.arrival.flight_time.slice(0, 5)} - ${item.arrival.land_time ? item.arrival.land_time.slice(0, 5) : ''}`.trim()
     : item.inboundTime || '';
 
-  const baggage =
+  const outboundBaggage =
     item.departure?.luggage ||
-    item.arrival?.luggage ||
+    item.outboundBaggage ||
     item.baggage ||
-    '46 KG (2 Pcs × 23 KG)';
+    '';
+
+  const inboundBaggage =
+    item.arrival?.luggage ||
+    item.inboundBaggage ||
+    item.baggage ||
+    '';
+
+  const baggage =
+    item.arrival?.luggage ||
+    item.departure?.luggage ||
+    item.baggage ||
+    '';
 
   const priceNum =
     typeof item.price === 'string'
@@ -157,6 +213,8 @@ export function normalizeGroupTicket(item: any): GroupFlight {
     inboundDate,
     inboundTime,
     inboundFlight,
+    outboundBaggage,
+    inboundBaggage,
     baggage,
     seatsLeft: item.seats_left ?? item.seatsLeft ?? 10,
     pricePKR: priceNum,
@@ -268,12 +326,21 @@ export const flightService = {
       .filter((n) => !isNaN(n) && n > 0);
   },
 
-  async getDepartureDates(): Promise<string[]> {
+  async getDepartureDates(): Promise<DepartureDateItem[]> {
     const lookups = await this.getGroupTicketLookups();
     if (!lookups || !Array.isArray(lookups.departure_dates)) return [];
     return lookups.departure_dates
-      .map((d: any) => (typeof d === 'string' ? d : d.departure_date || d.name || ''))
-      .filter(Boolean);
+      .map((d: any) => {
+        const val = typeof d === 'string' ? d : d.departure_date || d.name || '';
+        const count = typeof d === 'object' && d !== null ? (d.tickets_count ?? d.count) : undefined;
+        return {
+          value: val,
+          label: formatDateDMY(val),
+          count: typeof count === 'number' ? count : undefined,
+        };
+      })
+      .filter((d) => Boolean(d.value))
+      .sort((a, b) => parseDateTs(a.value) - parseDateTs(b.value));
   },
 
   async getAirlines(): Promise<AirlineItem[]> {

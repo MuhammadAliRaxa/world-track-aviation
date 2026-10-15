@@ -59,7 +59,19 @@ export function HotelCard({ hotel }) {
     return s;
   };
 
-  const starBadge = hotel.stars ? `${hotel.stars}-STAR` : (hotel.tag || '5-STAR');
+  const rawCat = String(hotel.category || hotel.hotel_category || '').trim();
+  const isEconomy = /economy/i.test(rawCat) || /economy/i.test(hotel.tag || '');
+
+  let starBadge = '5-STAR';
+  if (isEconomy) {
+    starBadge = rawCat || 'Economy';
+  } else if (hotel.stars && Number(hotel.stars) > 0) {
+    starBadge = `${hotel.stars}-STAR`;
+  } else if (rawCat) {
+    starBadge = rawCat.replace(/\s*STAR/i, '-STAR');
+  } else if (hotel.tag) {
+    starBadge = hotel.tag;
+  }
 
   return (
     <div

@@ -15,6 +15,8 @@ export interface GroupFlight {
   inboundDate: string;
   inboundTime: string;
   inboundFlight: string;
+  outboundBaggage?: string;
+  inboundBaggage?: string;
   baggage: string;
   seatsLeft: number;
   pricePKR: number;
@@ -35,6 +37,12 @@ export interface SectorRouteItem {
   label: string;
   fullLabel: string;
   count: number;
+}
+
+export interface DepartureDateItem {
+  value: string;
+  label: string;
+  count?: number;
 }
 
 export interface FlightFilterParams {

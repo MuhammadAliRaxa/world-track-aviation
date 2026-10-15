@@ -4223,6 +4223,7 @@
   font-weight: 500;
   color: #334155;
   line-height: 1.3;
+  flex: 1;
 }
 
 .gt-sb-row:hover .gt-sb-label {

@@ -61,7 +61,7 @@ function normalizeMapHotel(hotel, index) {
     name: rawName,
     shortName,
     city,
-    badge: hotel.tag || (hotel.stars ? `${hotel.stars} STARS` : 'VERIFIED'),
+    badge: /economy/i.test(hotel.category || '') ? 'ECONOMY' : (hotel.tag || (hotel.stars ? `${hotel.stars} STARS` : 'VERIFIED')),
     distance: hotel.distance || (isMadinah ? '250m from Markaziah' : '180m from Haram'),
     price: hotel.price || 'Contact for Price',
     unit: hotel.unit || '/ night',

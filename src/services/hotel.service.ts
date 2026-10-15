@@ -59,9 +59,10 @@ export function normalizeHotelDetail(raw: any): Hotel | null {
   // Parse stars from category ("5 Star", "4 Star"), hotel_category, item.stars, or star_rating
   const categoryStr = String(item.category || item.hotel_category || item.star_rating || '');
   const categoryStarMatch = categoryStr.match(/^(\d)/);
-  const stars = typeof item.stars === 'number'
+  const isEconomy = /economy/i.test(categoryStr);
+  const stars = typeof item.stars === 'number' && item.stars > 0
     ? item.stars
-    : (categoryStarMatch ? parseInt(categoryStarMatch[1], 10) : 5);
+    : (categoryStarMatch ? parseInt(categoryStarMatch[1], 10) : (isEconomy ? 0 : 5));
 
   const rawPrice = item.price || item.min_rate;
   const price = rawPrice
@@ -120,7 +121,7 @@ export function normalizeHotelDetail(raw: any): Hotel | null {
     location,
     category,
     address,
-    tag: item.tag || (stars >= 5 ? 'TOP RATED' : 'FEATURED'),
+    tag: item.tag || (isEconomy ? 'Economy' : (stars >= 5 ? 'TOP RATED' : 'FEATURED')),
     rating,
     reviewsCount,
     stars,
