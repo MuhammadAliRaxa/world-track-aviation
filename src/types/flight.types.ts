@@ -45,6 +45,11 @@ export interface DepartureDateItem {
   count?: number;
 }
 
+export interface DurationItem {
+  duration: number;
+  count?: number;
+}
+
 export interface FlightFilterParams {
   searchQuery?: string;
   dates?: string[];

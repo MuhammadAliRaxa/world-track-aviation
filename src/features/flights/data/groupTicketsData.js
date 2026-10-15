@@ -42,3 +42,9 @@ export const SECTORS_ROUTES = [
   { key: 'islamabad-manama-islamabad', label: 'ISLAMABAD - MANAMA - ISLAMA...', fullLabel: 'ISLAMABAD - MANAMA - ISLAMABAD', count: 1 },
 ];
 
+export const DURATIONS_LIST = [
+  { duration: 15, count: 24 },
+  { duration: 21, count: 48 },
+  { duration: 28, count: 6 },
+];
+

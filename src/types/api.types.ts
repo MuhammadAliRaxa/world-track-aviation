@@ -255,12 +255,14 @@ export interface ApiGroupTicketLookupItem {
   code?: string | null;
   logo?: string | null;
   departure_date?: string;
+  duration?: string | number;
+  days?: number;
   tickets_count?: number;
   count?: number;
 }
 
 export interface ApiGroupTicketLookups {
-  durations: number[] | ApiGroupTicketLookupItem[];
+  durations: Array<number | ApiGroupTicketLookupItem | { duration?: string | number; tickets_count?: number; count?: number }>;
   departure_dates: Array<{ departure_date?: string; name?: string; tickets_count?: number; count?: number }>;
   airlines: Array<{ id: number; name: string; code?: string | null; logo?: string | null; tickets_count?: number; count?: number }>;
   routes: Array<{ id: number; name: string; tickets_count?: number; count?: number }>;

@@ -14,6 +14,7 @@ import {
   AirlineItem,
   SectorRouteItem,
   DepartureDateItem,
+  DurationItem,
   FlightFilterParams,
 } from '../types/flight.types';
 import { apiPost, apiGet } from './api.client';
@@ -419,12 +420,29 @@ export const flightService = {
     }
   },
 
-  async getDurations(): Promise<number[]> {
+  async getDurations(): Promise<DurationItem[]> {
     const lookups = await this.getGroupTicketLookups();
-    if (!lookups || !Array.isArray(lookups.durations)) return [15, 21, 28];
+    if (!lookups || !Array.isArray(lookups.durations)) {
+      return [
+        { duration: 15, count: undefined },
+        { duration: 21, count: undefined },
+        { duration: 28, count: undefined },
+      ];
+    }
     return lookups.durations
-      .map((d: any) => (typeof d === 'number' ? d : Number(d.id || d.name || d.duration)))
-      .filter((n) => !isNaN(n) && n > 0);
+      .map((d: any) => {
+        if (typeof d === 'number') {
+          return { duration: d, count: undefined };
+        }
+        const val = Number(d?.duration ?? d?.days ?? d?.name ?? d?.id ?? 0);
+        const count = typeof d === 'object' && d !== null ? (d.tickets_count ?? d.count) : undefined;
+        return {
+          duration: val,
+          count: typeof count === 'number' ? count : (typeof count === 'string' && !isNaN(Number(count)) ? Number(count) : undefined),
+        };
+      })
+      .filter((d) => !isNaN(d.duration) && d.duration > 0)
+      .sort((a, b) => a.duration - b.duration);
   },
 
   async getDepartureDates(): Promise<DepartureDateItem[]> {

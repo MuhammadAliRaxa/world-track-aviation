@@ -1200,7 +1200,9 @@
 .vp-sidebar {
   display: flex;
   flex-direction: column;
-  position: static;
+  position: sticky;
+  top: 80px;
+  z-index: 10;
 }
 
 .vp-sidebar-card {
@@ -1686,7 +1688,9 @@
 .hp-sidebar {
   display: flex;
   flex-direction: column;
-  position: static;
+  position: sticky;
+  top: 80px;
+  z-index: 10;
 }
 
 .hp-sidebar-card {
