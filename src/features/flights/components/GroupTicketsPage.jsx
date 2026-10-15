@@ -88,6 +88,37 @@ function normalizeDatesList(rawList) {
     .sort((a, b) => parseDateTs(a.value) - parseDateTs(b.value));
 }
 
+function normalizeDurationsList(rawList) {
+  if (!Array.isArray(rawList)) return [];
+  return rawList
+    .map((item) => {
+      if (!item && item !== 0) return null;
+      if (typeof item === 'number') {
+        return {
+          duration: item,
+          count: null,
+        };
+      }
+      if (typeof item === 'string') {
+        const n = parseInt(item, 10);
+        if (isNaN(n) || n <= 0) return null;
+        return {
+          duration: n,
+          count: null,
+        };
+      }
+      const num = Number(item.duration ?? item.days ?? item.name ?? item.id);
+      if (isNaN(num) || num <= 0) return null;
+      const count = item.count ?? item.tickets_count ?? null;
+      return {
+        duration: num,
+        count: count !== null && count !== undefined ? Number(count) : null,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.duration - b.duration);
+}
+
 const PRICE_RANGE_OPTIONS = [
   { value: '', label: 'All Prices' },
   { value: 'under_100000', label: 'Under PKR 100,000' },
@@ -253,7 +284,9 @@ export function GroupTicketsPage({
   );
   const [airlinesList, setAirlinesList] = useState(initialAirlines);
   const [sectorsList, setSectorsList] = useState(initialSectors);
-  const [durationsList, setDurationsList] = useState(initialDurations);
+  const [durationsList, setDurationsList] = useState(() =>
+    normalizeDurationsList(initialDurations),
+  );
 
   // Sync initialDates if changed externally
   useEffect(() => {
@@ -261,6 +294,13 @@ export function GroupTicketsPage({
       setDatesList(normalizeDatesList(initialDates));
     }
   }, [initialDates]);
+
+  // Sync initialDurations if changed externally
+  useEffect(() => {
+    if (initialDurations && initialDurations.length > 0) {
+      setDurationsList(normalizeDurationsList(initialDurations));
+    }
+  }, [initialDurations]);
 
   // Client filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -295,15 +335,7 @@ export function GroupTicketsPage({
       flightService.getGroupTicketLookups().then((lookups) => {
         if (!lookups) return;
         if (Array.isArray(lookups.durations) && !durationsList.length) {
-          setDurationsList(
-            lookups.durations
-              .map((d) =>
-                typeof d === 'number'
-                  ? d
-                  : Number(d.id || d.name || d.duration),
-              )
-              .filter((n) => !isNaN(n) && n > 0),
-          );
+          setDurationsList(normalizeDurationsList(lookups.durations));
         }
         if (Array.isArray(lookups.departure_dates) && !datesList.length) {
           setDatesList(normalizeDatesList(lookups.departure_dates));
@@ -567,7 +599,13 @@ export function GroupTicketsPage({
                       <button
                         type="button"
                         className="gt-sb-act-all"
-                        onClick={() => setSelDurations([...durationsList])}
+                        onClick={() =>
+                          setSelDurations(
+                            durationsList.map((d) =>
+                              typeof d === 'number' ? d : d.duration,
+                            ),
+                          )
+                        }
                       >
                         All
                       </button>
@@ -582,19 +620,29 @@ export function GroupTicketsPage({
                     </div>
                   </div>
                   <div className="gt-sb-list">
-                    {durationsList.map((d) => (
-                      <label key={d} className="gt-sb-row">
-                        <input
-                          type="checkbox"
-                          className="gt-checkbox"
-                          checked={selDurations.includes(d)}
-                          onChange={() =>
-                            toggle(selDurations, setSelDurations, d)
-                          }
-                        />
-                        <span className="gt-sb-label">{d} Days</span>
-                      </label>
-                    ))}
+                    {durationsList.map((d) => {
+                      const val = typeof d === 'number' ? d : d.duration;
+                      const count =
+                        typeof d === 'object' && d !== null
+                          ? (d.count ?? d.tickets_count)
+                          : null;
+                      return (
+                        <label key={val} className="gt-sb-row">
+                          <input
+                            type="checkbox"
+                            className="gt-checkbox"
+                            checked={selDurations.includes(val)}
+                            onChange={() =>
+                              toggle(selDurations, setSelDurations, val)
+                            }
+                          />
+                          <span className="gt-sb-label">{val} Days</span>
+                          {count != null && count > 0 && (
+                            <span className="gt-sb-count-pill">{count}</span>
+                          )}
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               )}

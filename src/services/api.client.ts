@@ -276,4 +276,26 @@ export async function apiPost<T>(
   return raw;
 }
 
+/**
+ * Clear in-memory and session storage cache so subsequent requests fetch fresh data.
+ */
+export function clearApiCache(): void {
+  memoryCache.clear();
+  inFlightRequests.clear();
+  if (typeof window !== 'undefined') {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith('wt_cache_')) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach((k) => sessionStorage.removeItem(k));
+    } catch {
+      // Ignore
+    }
+  }
+}
+
 

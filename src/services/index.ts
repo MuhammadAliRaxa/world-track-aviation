@@ -1,4 +1,4 @@
-export { apiClient, apiGet, apiPost } from './api.client';
+export { apiClient, apiGet, apiPost, clearApiCache } from './api.client';
 export { flightService, getAirlineLogo } from './flight.service';
 export { hotelService } from './hotel.service';
 export { visaService } from './visa.service';

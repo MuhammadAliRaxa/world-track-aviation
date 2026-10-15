@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { PassportIcon } from './icons/PassportIcon';
+import { clearApiCache } from '../../services';
 
 export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', onSelectCategory }) {
   const router = useRouter();
@@ -121,6 +122,41 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
     setExpandedMobileMenu(null);
   };
 
+  const handleNavClick = (e, href, category = null) => {
+    // Clear API caches so next fetches query backend API freshly
+    clearApiCache();
+    closeAll();
+
+    const normCurrent = (currentPath || '/').replace(/\/+$/, '') || '/';
+    const normTarget = (href || '/').replace(/\/+$/, '') || '/';
+    const isSamePage = normCurrent === normTarget;
+
+    if (isSamePage) {
+      if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+      }
+
+      if (normCurrent === '/' && category) {
+        onSelectCategory?.(category);
+      }
+
+      if (typeof window !== 'undefined') {
+        const targetUrl = new URL(href, window.location.origin);
+        if (window.location.href === targetUrl.href) {
+          window.location.reload();
+        } else {
+          window.location.href = href;
+        }
+      }
+      return;
+    }
+
+    // If navigating from a button (e.g. mobile drawer items)
+    if (e && e.currentTarget && e.currentTarget.tagName === 'BUTTON') {
+      router.push(href);
+    }
+  };
+
   const _handleNavCategory = (cat) => {
     if (currentPath !== '/') {
       router.push(`/#${cat}`);
@@ -137,12 +173,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
         <Link
           href="/"
           className="header-logo-anchor"
-          onClick={() => {
-            if (currentPath === '/') {
-              onSelectCategory?.('all');
-            }
-            closeAll();
-          }}
+          onClick={(e) => handleNavClick(e, '/', 'all')}
           title="World Track - Home"
         >
           <Logo white />
@@ -154,10 +185,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
           <Link
             href="/"
             className="header-nav-btn"
-            onClick={() => {
-              onSelectCategory?.('all');
-              closeAll();
-            }}
+            onClick={(e) => handleNavClick(e, '/', 'all')}
           >
             <Home size={15} />
             <span>Home</span>
@@ -167,7 +195,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
           <Link
             href="/about-us/"
             className={`header-nav-btn ${currentPath === '/about-us' || currentPath === '/about-us/' ? 'active-nav-btn' : ''}`}
-            onClick={closeAll}
+            onClick={(e) => handleNavClick(e, '/about-us/')}
           >
             <Info size={15} />
             <span>About us</span>
@@ -181,7 +209,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 ? 'active-nav-btn'
                 : ''
             }`}
-            onClick={closeAll}
+            onClick={(e) => handleNavClick(e, '/our-hotels/')}
           >
             <Building2 size={15} />
             <span>Hotels</span>
@@ -195,7 +223,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 ? 'active-nav-btn'
                 : ''
             }`}
-            onClick={closeAll}
+            onClick={(e) => handleNavClick(e, '/visas/')}
           >
             <PassportIcon size={15} />
             <span>Visa</span>
@@ -236,10 +264,10 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
             <div
               className="nav-dropdown-flyout"
             >
-              <Link href="/umrah-packages/" className="flyout-link" onClick={closeAll}>Umrah Packages</Link>
-              <Link href="/customize-umrah-package/" className="flyout-link" onClick={closeAll}>Custom Umrah Package</Link>
-              <Link href="/umrah-group-packages/" className="flyout-link" onClick={closeAll}>Group Umrah Package</Link>
-              <Link href="/private-transport/" className="flyout-link" onClick={closeAll}>Private Transport</Link>
+              <Link href="/umrah-packages/" className="flyout-link" onClick={(e) => handleNavClick(e, '/umrah-packages/')}>Umrah Packages</Link>
+              <Link href="/customize-umrah-package/" className="flyout-link" onClick={(e) => handleNavClick(e, '/customize-umrah-package/')}>Custom Umrah Package</Link>
+              <Link href="/umrah-group-packages/" className="flyout-link" onClick={(e) => handleNavClick(e, '/umrah-group-packages/')}>Group Umrah Package</Link>
+              <Link href="/private-transport/" className="flyout-link" onClick={(e) => handleNavClick(e, '/private-transport/')}>Private Transport</Link>
             </div>
           </div>
 
@@ -247,7 +275,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
           <Link
             href="/tour-packages/"
             className={`header-nav-btn ${currentPath.startsWith('/tour-packages') ? 'active-nav-btn' : ''}`}
-            onClick={closeAll}
+            onClick={(e) => handleNavClick(e, '/tour-packages/')}
           >
             <Globe2 size={15} />
             <span>Tours</span>
@@ -257,7 +285,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
           <Link
             href="/group-tickets/"
             className={`header-nav-btn ${currentPath.startsWith('/group-tickets') ? 'active-nav-btn' : ''}`}
-            onClick={closeAll}
+            onClick={(e) => handleNavClick(e, '/group-tickets/')}
           >
             <Ticket size={15} />
             <span>Group Tickets</span>
@@ -268,7 +296,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
         <Link
           href="/contact-us/"
           className="header-contact-btn"
-          onClick={closeAll}
+          onClick={(e) => handleNavClick(e, '/contact-us/')}
         >
           Contact us
         </Link>
@@ -296,15 +324,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
               <a
                 href="/"
                 className="mobile-drawer-logo-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPath !== '/') {
-                    router.push('/');
-                  } else {
-                    onSelectCategory?.('all');
-                  }
-                  closeAll();
-                }}
+                onClick={(e) => handleNavClick(e, '/', 'all')}
               >
                 <Logo variant="dark" />
               </a>
@@ -325,14 +345,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 <button
                   type="button"
                   className={`mobile-nav-item ${currentPath === '/' && activeCategory === 'all' ? 'active' : ''}`}
-                  onClick={() => {
-                    if (currentPath !== '/') {
-                      router.push('/');
-                    } else {
-                      onSelectCategory?.('all');
-                    }
-                    closeAll();
-                  }}
+                  onClick={(e) => handleNavClick(e, '/', 'all')}
                 >
                   <div className="mobile-nav-item-left">
                     <Home size={18} className="mobile-nav-icon" />
@@ -343,11 +356,8 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 {/* About us */}
                 <button
                   type="button"
-                  className={`mobile-nav-item ${currentPath === '/about-us' || currentPath === '/about' ? 'active' : ''}`}
-                  onClick={() => {
-                    router.push('/about-us');
-                    closeAll();
-                  }}
+                  className={`mobile-nav-item ${currentPath === '/about-us' || currentPath === '/about' || currentPath === '/about-us/' ? 'active' : ''}`}
+                  onClick={(e) => handleNavClick(e, '/about-us/')}
                 >
                   <div className="mobile-nav-item-left">
                     <Info size={18} className="mobile-nav-icon" />
@@ -361,10 +371,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                   className={`mobile-nav-item ${
                     currentPath.startsWith('/our-hotels') || activeCategory === 'hotels' ? 'active' : ''
                   }`}
-                  onClick={() => {
-                    router.push('/our-hotels/');
-                    closeAll();
-                  }}
+                  onClick={(e) => handleNavClick(e, '/our-hotels/')}
                 >
                   <div className="mobile-nav-item-left">
                     <Building2 size={18} className="mobile-nav-icon" />
@@ -378,10 +385,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                   className={`mobile-nav-item ${
                     currentPath.startsWith('/visas') || activeCategory === 'visa' ? 'active' : ''
                   }`}
-                  onClick={() => {
-                    router.push('/visas/');
-                    closeAll();
-                  }}
+                  onClick={(e) => handleNavClick(e, '/visas/')}
                 >
                   <div className="mobile-nav-item-left">
                     <PassportIcon size={18} className="mobile-nav-icon" />
@@ -415,40 +419,28 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                       <button
                         type="button"
                         className={`mobile-sub-nav-item ${currentPath.startsWith('/umrah-packages') ? 'active' : ''}`}
-                        onClick={() => {
-                          router.push('/umrah-packages/');
-                          closeAll();
-                        }}
+                        onClick={(e) => handleNavClick(e, '/umrah-packages/')}
                       >
                         Umrah Packages
                       </button>
                       <button
                         type="button"
                         className={`mobile-sub-nav-item ${currentPath.startsWith('/customize-umrah-package') ? 'active' : ''}`}
-                        onClick={() => {
-                          router.push('/customize-umrah-package/');
-                          closeAll();
-                        }}
+                        onClick={(e) => handleNavClick(e, '/customize-umrah-package/')}
                       >
                         Custom Umrah Package
                       </button>
                       <button
                         type="button"
                         className={`mobile-sub-nav-item ${currentPath.startsWith('/umrah-group-packages') ? 'active' : ''}`}
-                        onClick={() => {
-                          router.push('/umrah-group-packages/');
-                          closeAll();
-                        }}
+                        onClick={(e) => handleNavClick(e, '/umrah-group-packages/')}
                       >
                         Group Umrah Package
                       </button>
                       <button
                         type="button"
                         className={`mobile-sub-nav-item ${currentPath.startsWith('/private-transport') ? 'active' : ''}`}
-                        onClick={() => {
-                          router.push('/private-transport/');
-                          closeAll();
-                        }}
+                        onClick={(e) => handleNavClick(e, '/private-transport/')}
                       >
                         Private Transport
                       </button>
@@ -460,10 +452,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 <button
                   type="button"
                   className={`mobile-nav-item ${currentPath.startsWith('/tour-packages') ? 'active' : ''}`}
-                  onClick={() => {
-                    router.push('/tour-packages/');
-                    closeAll();
-                  }}
+                  onClick={(e) => handleNavClick(e, '/tour-packages/')}
                 >
                   <div className="mobile-nav-item-left">
                     <Globe2 size={18} className="mobile-nav-icon" />
@@ -475,10 +464,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 <button
                   type="button"
                   className={`mobile-nav-item ${currentPath.startsWith('/group-tickets') ? 'active' : ''}`}
-                  onClick={() => {
-                    router.push('/group-tickets/');
-                    closeAll();
-                  }}
+                  onClick={(e) => handleNavClick(e, '/group-tickets/')}
                 >
                   <div className="mobile-nav-item-left">
                     <Ticket size={18} className="mobile-nav-icon" />
@@ -492,10 +478,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                 <button
                   type="button"
                   className="mobile-drawer-contact-btn"
-                  onClick={() => {
-                    router.push('/contact-us');
-                    closeAll();
-                  }}
+                  onClick={(e) => handleNavClick(e, '/contact-us/')}
                 >
                   Contact Us
                 </button>
