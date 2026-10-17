@@ -204,6 +204,7 @@ export interface ApiVisaLookupItem {
 export interface ApiVisaLookups {
   countries: ApiVisaLookupItem[];
   visa_types: ApiVisaLookupItem[];
+  durations: ApiVisaLookupItem[];
 }
 
 export interface ApiVisaFilters {
@@ -212,6 +213,7 @@ export interface ApiVisaFilters {
   destination?: string;
   country?: string;
   visa_type?: string;
+  duration?: string;
   checkin?: string;
   price_range?: string;
   nextPage?: number | null;

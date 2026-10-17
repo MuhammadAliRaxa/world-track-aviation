@@ -47,10 +47,25 @@ export function VisasPage({
   );
 
   // Use API-driven countries if available, fall back to static list
-  const countries =
+  const [countries, setCountries] = useState(
     initialCountries && initialCountries.length > 1
       ? initialCountries
-      : VISA_COUNTRIES_FILTER;
+      : VISA_COUNTRIES_FILTER
+  );
+
+  useEffect(() => {
+    if (initialCountries && initialCountries.length > 1) {
+      setCountries(initialCountries);
+      return;
+    }
+    let isMounted = true;
+    visaService.getVisaCountries().then((list) => {
+      if (isMounted && Array.isArray(list) && list.length > 1) {
+        setCountries(list);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [initialCountries]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 800);

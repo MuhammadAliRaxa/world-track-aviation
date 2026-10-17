@@ -241,13 +241,16 @@ export function HeroSection({
   const [lookupVisaTypes, setLookupVisaTypes] = useState(
     () => initialVisaLookups?.visa_types || []
   );
+  const [lookupVisaDurations, setLookupVisaDurations] = useState(
+    () => initialVisaLookups?.durations || []
+  );
   const [visaDestination, setVisaDestination] = useState('');
   const [visaCheckIn, setVisaCheckIn] = useState('');
   const [visaType, setVisaType] = useState('');
 
   // Fetch visa lookups directly from GET /visa/lookups (if not supplied via SSR)
   useEffect(() => {
-    if (initialVisaLookups && (initialVisaLookups.countries?.length > 0 || initialVisaLookups.visa_types?.length > 0)) {
+    if (initialVisaLookups && (initialVisaLookups.countries?.length > 0 || initialVisaLookups.visa_types?.length > 0 || initialVisaLookups.durations?.length > 0)) {
       return;
     }
     let isMounted = true;
@@ -257,11 +260,15 @@ export function HeroSection({
         if (!isMounted) return;
         const countries = lookups?.countries || [];
         const visaTypes = lookups?.visa_types || [];
+        const durations = lookups?.durations || [];
         if (Array.isArray(countries) && countries.length > 0) {
           setLookupVisaCountries(countries);
         }
         if (Array.isArray(visaTypes) && visaTypes.length > 0) {
           setLookupVisaTypes(visaTypes);
+        }
+        if (Array.isArray(durations) && durations.length > 0) {
+          setLookupVisaDurations(durations);
         }
       })
       .catch((err) => {

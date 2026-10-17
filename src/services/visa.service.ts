@@ -193,11 +193,29 @@ export const visaService = {
   },
 
   /**
-   * Get custom visa countries from inquiry lookups.
-   * GET /inquiry/lookups → data.custom_visa_countries
+   * Get custom visa countries from GET /visa/lookups (falling back to inquiry lookups).
    */
   async getVisaCountries(): Promise<{ key: string; label: string; count: number }[]> {
     try {
+      const lookups = await this.getVisaLookups();
+      const lookupCountries = lookups?.countries;
+      if (Array.isArray(lookupCountries) && lookupCountries.length > 0) {
+        const list: { key: string; label: string; count: number }[] = [
+          { key: 'all', label: 'All Countries', count: 0 },
+        ];
+        lookupCountries.forEach((c) => {
+          const name = c.value || (c as any).name || (c as any).country || '';
+          if (name) {
+            list.push({
+              key: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              label: name,
+              count: typeof c.visas_count === 'number' ? c.visas_count : ((c as any).count || 0),
+            });
+          }
+        });
+        return list;
+      }
+
       const res = await apiGet<any>('/inquiry/lookups', { cache: 'no-store' } as RequestInit);
       const countries = res.data?.custom_visa_countries || [];
 
@@ -244,7 +262,7 @@ export const visaService = {
 
   /**
    * GET /visa/lookups
-   * Returns countries and visa_types for filter UI.
+   * Returns countries, visa_types, and durations for filter UI.
    */
   async getVisaLookups(): Promise<ApiVisaLookups | null> {
     try {
