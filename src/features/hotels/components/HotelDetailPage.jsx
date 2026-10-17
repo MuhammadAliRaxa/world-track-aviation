@@ -350,25 +350,6 @@ export function HotelDetailPage({ initialHotel = null }) {
             <div className="hotel-header-address">
               <MapPin size={14} className="address-pin-icon" />
               <span>{hotel.address || hotel.location || 'Makkah, Saudi Arabia'}</span>
-              <a
-                href={hotelMapUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: '#0284c7',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  marginLeft: '8px',
-                  textDecoration: 'underline',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  cursor: 'pointer'
-                }}
-              >
-                <span>View on Map</span>
-                <ExternalLink size={11} />
-              </a>
             </div>
 
             {/* Info Pills: Distance, Available From */}
@@ -446,10 +427,11 @@ export function HotelDetailPage({ initialHotel = null }) {
             {(hotel.roomTypes && hotel.roomTypes.length > 0
               ? hotel.roomTypes
               : [
-                  { id: 'r1', name: 'Standard Room', capacity: '2 Adults', price: hotel.price || 'Contact for Price', unit: '/ night' }
+                  { id: 'r1', name: 'Standard Room', capacity: '2 Adults', price: hotel.price || 'Rates on Booking', unit: hotel.price && !/rates on booking/i.test(hotel.price) ? '/ night' : '' }
                 ]
             ).map((room) => {
               const isSelected = selectedRoom === room.name;
+              const isRatesBooking = /rates\s+on\s+booking/i.test(room.price) || /contact/i.test(room.price);
               return (
                 <div
                   key={room.id}
@@ -467,8 +449,12 @@ export function HotelDetailPage({ initialHotel = null }) {
                   </div>
 
                   <div className="room-tier-right">
-                    <span className="price-bold">{room.price}</span>
-                    <span className="price-unit">{room.unit}</span>
+                    <span className={`price-bold ${isRatesBooking ? 'rates-on-booking' : ''}`}>
+                      {isRatesBooking ? 'Rates on Booking' : room.price}
+                    </span>
+                    {!isRatesBooking && room.unit && (
+                      <span className="price-unit">{room.unit}</span>
+                    )}
                   </div>
                 </div>
               );
@@ -508,26 +494,19 @@ export function HotelDetailPage({ initialHotel = null }) {
           </div>
 
           {/* Hotel Location & Map Section */}
-          <div className="hotel-section-block map-section">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div className="hotel-section-block map-section" id="hotel-location">
+            <div className="hotel-map-header-row">
               <h3 className="hotel-section-heading" style={{ margin: 0 }}>Hotel Location</h3>
               <a
                 href={hotelMapUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  color: '#0284c7',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  cursor: 'pointer'
-                }}
+                className="btn-view-google-maps"
+                aria-label={`View ${hotel.name} on Google Maps`}
               >
-                <span>Open in Google Maps</span>
-                <ExternalLink size={13} />
+                <MapPin size={14} className="btn-map-icon" />
+                <span>View on Google Maps</span>
+                <ExternalLink size={13} className="btn-map-ext-icon" />
               </a>
             </div>
 
@@ -559,36 +538,6 @@ export function HotelDetailPage({ initialHotel = null }) {
                 />
               )}
 
-              {/* Overlay Button to Open Location in Google Maps */}
-              <a
-                href={hotelMapUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="map-open-overlay-btn"
-                style={{
-                  position: 'absolute',
-                  top: '12px',
-                  right: '12px',
-                  zIndex: 10,
-                  background: '#ffffff',
-                  color: '#0f172a',
-                  padding: '7px 12px',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  border: '1px solid #e2e8f0',
-                  cursor: 'pointer'
-                }}
-              >
-                <ExternalLink size={13} color="#0284c7" />
-                <span>Open in Google Maps</span>
-              </a>
-
               {/* Floating Address Box */}
               <div className="map-floating-box">
                 <h4 className="map-box-hotel-name">{hotel.name}</h4>
@@ -599,16 +548,6 @@ export function HotelDetailPage({ initialHotel = null }) {
                     <span>{hotel.distance} from Masjid</span>
                   </p>
                 )}
-                <a
-                  href={hotelMapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="map-box-link"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <ExternalLink size={12} />
-                  <span>View on Google Maps</span>
-                </a>
               </div>
             </div>
           </div>

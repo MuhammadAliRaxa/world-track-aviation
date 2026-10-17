@@ -133,7 +133,7 @@ export function CustomUmrahPage({
     let isMounted = true;
     Promise.allSettled([
       hotelService.getHotelLookups(),
-      hotelService.getHotels(),
+      hotelService.getHotels({ available_only: true }),
       flightService.getGroupTicketLookups(),
       transportService.getTransportListing(),
       visaService.getCalculatorVisaTypes(),

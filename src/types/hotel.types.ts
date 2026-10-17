@@ -47,4 +47,5 @@ export interface HotelFilterParams {
   stars?: number[];
   amenities?: string[];
   occupancy?: string[];
+  available_only?: boolean;
 }

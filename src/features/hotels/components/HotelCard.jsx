@@ -40,23 +40,35 @@ export function HotelCard({ hotel }) {
     return !isNaN(num) ? num.toLocaleString() : count;
   };
 
+  const rawPriceStr = String(hotel.price || '').trim();
+  const isRatesOnBooking =
+    !rawPriceStr ||
+    /contact/i.test(rawPriceStr) ||
+    /rates\s+on\s+booking/i.test(rawPriceStr) ||
+    rawPriceStr === '0' ||
+    rawPriceStr === 'SAR 0' ||
+    rawPriceStr === 'Rs 0';
+
   const formatPrice = (p) => {
-    if (!p) return 'Rs 98,369';
+    if (!p) return 'Rates on Booking';
     if (typeof p === 'number') {
-      return `Rs ${p.toLocaleString()}`;
+      return `SAR ${p.toLocaleString()}`;
     }
     const s = String(p).trim();
+    if (/contact/i.test(s) || /rates\s+on\s+booking/i.test(s)) {
+      return 'Rates on Booking';
+    }
     if (/^\d+(\.\d+)?$/.test(s)) {
-      return `Rs ${Number(s).toLocaleString()}`;
+      return `SAR ${Number(s).toLocaleString()}`;
     }
     const num = parseInt(s.replace(/[^0-9]/g, ''), 10);
     if (!isNaN(num) && num > 0) {
-      if (s.startsWith('SAR')) {
+      if (s.startsWith('SAR') || !s.includes('Rs')) {
         return `SAR ${num.toLocaleString()}`;
       }
       return `Rs ${num.toLocaleString()}`;
     }
-    return s;
+    return 'Rates on Booking';
   };
 
   const rawCat = String(hotel.category || hotel.hotel_category || '').trim();
@@ -123,11 +135,19 @@ export function HotelCard({ hotel }) {
         {/* Price & Book Action */}
         <div className="hotel-pricing-action-row">
           <div className="price-stack">
-            <span className="price-from-label">FROM</span>
-            <div className="price-value-line">
-              <span className="price-amount">{formatPrice(hotel.price)}</span>
-              <span className="price-unit"> {hotel.unit || '/ night'}</span>
-            </div>
+            {isRatesOnBooking ? (
+              <div className="price-value-line">
+                <span className="price-amount rates-on-booking">Rates on Booking</span>
+              </div>
+            ) : (
+              <>
+                <span className="price-from-label">FROM</span>
+                <div className="price-value-line">
+                  <span className="price-amount">{formatPrice(hotel.price)}</span>
+                  <span className="price-unit"> {hotel.unit || '/ night'}</span>
+                </div>
+              </>
+            )}
           </div>
 
           <button

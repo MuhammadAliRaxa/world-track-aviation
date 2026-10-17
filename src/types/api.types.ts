@@ -168,6 +168,7 @@ export interface ApiHotelFilters {
   room_types?: number[];
   nextPage?: number | null;
   perPage?: number;
+  available_only?: boolean;
 }
 
 // ---------------------------------------------------------------------------

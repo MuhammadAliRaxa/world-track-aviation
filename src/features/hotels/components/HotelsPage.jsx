@@ -165,7 +165,9 @@ export function HotelsPage({
 
   // ── Build API Filters ──
   const buildApiFilters = (page = 1) => {
-    const filters = {};
+    const filters = {
+      available_only: false,
+    };
 
     if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
 

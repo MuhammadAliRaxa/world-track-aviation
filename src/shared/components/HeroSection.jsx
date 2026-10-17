@@ -465,7 +465,9 @@ export function HeroSection({
       const normalizedCity = city.toLowerCase() === 'madinah' ? 'Madina' : city;
 
       // POST /hotel/minRate
-      const filters = {};
+      const filters = {
+        available_only: false,
+      };
       if (normalizedCity && normalizedCity !== 'All Destinations' && normalizedCity !== 'all') {
         filters.city = normalizedCity;
       }

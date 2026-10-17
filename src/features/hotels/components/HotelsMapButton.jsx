@@ -11,7 +11,7 @@ export function HotelsMapButton({ className = '', style = {} }) {
       type="button"
       className={`hotels-map-pill-btn ${className}`}
       style={style}
-      onClick={() => router.push('/hotels/map')}
+      onClick={() => router.push('/hotels-map/')}
       title="View Hotels Map"
     >
       <span className="hm-btn-icon-wrapper">

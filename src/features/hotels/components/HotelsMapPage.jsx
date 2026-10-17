@@ -1,8 +1,9 @@
 'use client';
 
-// Updated: Hotels Map page component with live API integration
-import React, { useState, useEffect, useRef } from 'react';
+// Hotels Map page component with live API integration & real geodesic distance
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import 'leaflet/dist/leaflet.css';
 import {
   Search,
   ChevronLeft,
@@ -23,37 +24,76 @@ import { useDebounce } from '../../../shared/hooks/useDebounce';
 import { HOLY_CENTERS, DUAL_CITIES_BOUNDS } from '../data/hotelsMapData';
 import { hotelService } from '../../../services/hotel.service';
 
+/**
+ * Calculates geodesic distance between two points in meters using Haversine formula
+ */
+function getHaversineDistanceMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c);
+}
+
 function normalizeMapHotel(hotel, index) {
-  const locStr = String(hotel.location || hotel.category || hotel.address || hotel.city || '').toLowerCase();
-  const nameStr = String(hotel.name || '').toLowerCase();
-  const isMadinah =
-    locStr.includes('madina') ||
-    locStr.includes('medina') ||
-    nameStr.includes('madinah') ||
-    nameStr.includes('madina');
-  const city = isMadinah ? 'madinah' : 'makkah';
+  const rawCity = String(hotel.city || hotel.hotel_city || '').toLowerCase().trim();
+  let isMadinah =
+    rawCity === 'madinah' ||
+    rawCity === 'medina' ||
+    rawCity.includes('madin') ||
+    rawCity.includes('medin');
 
-  let lat = parseFloat(hotel.lat);
-  let lng = parseFloat(hotel.lng);
-
-  if (!lat || !lng || isNaN(lat) || isNaN(lng) || (Math.abs(lat) < 0.1 && Math.abs(lng) < 0.1)) {
-    const center = isMadinah ? [24.4672, 39.6111] : [21.422487, 39.826206];
-    const angle = (index || 0) * 2.39996323;
-    const radius = 0.0012 + ((index || 0) % 6) * 0.0009;
-    lat = center[0] + Math.cos(angle) * radius;
-    lng = center[1] + Math.sin(angle) * radius;
-  } else {
-    // If multiple hotels share identical rounded coordinates (e.g. 24.47, 39.61),
-    // apply a subtle radial offset based on index so each pin is distinct and individually clickable
-    const offsetAngle = (index || 0) * 1.57;
-    const offsetDist = ((index || 0) % 3) * 0.00045;
-    lat = lat + Math.cos(offsetAngle) * offsetDist;
-    lng = lng + Math.sin(offsetAngle) * offsetDist;
+  if (!isMadinah && !rawCity) {
+    const locStr = String(hotel.location || hotel.address || hotel.category || '').toLowerCase();
+    const nameStr = String(hotel.name || hotel.hotel_name || '').toLowerCase();
+    isMadinah =
+      locStr.includes('madina') ||
+      locStr.includes('medina') ||
+      nameStr.includes('madinah') ||
+      nameStr.includes('madina');
   }
 
-  const rawName = hotel.name || 'Verified Hotel';
+  const city = isMadinah ? 'madinah' : 'makkah';
+  const sanctuaryCenter = isMadinah ? [24.4672, 39.6111] : [21.422487, 39.826206];
+  const sanctuaryName = isMadinah ? "Prophet's Mosque" : 'Haram';
+
+  let lat = parseFloat(hotel.lat || hotel.latitude);
+  let lng = parseFloat(hotel.lng || hotel.longitude);
+
+  const hasValidCoordinates =
+    !isNaN(lat) &&
+    !isNaN(lng) &&
+    lat !== 0 &&
+    lng !== 0 &&
+    (Math.abs(lat) >= 0.1 || Math.abs(lng) >= 0.1);
+
+  if (!hasValidCoordinates) {
+    // Elegant procedural fallback in golden angle spiral around sanctuary
+    const angle = (index || 0) * 2.39996323;
+    const radius = 0.0015 + ((index || 0) % 7) * 0.0008;
+    lat = sanctuaryCenter[0] + Math.cos(angle) * radius;
+    lng = sanctuaryCenter[1] + Math.sin(angle) * radius;
+  }
+
+  const rawName = hotel.hotel_name || hotel.name || 'Verified Hotel';
   const shortName = rawName.length > 20 ? rawName.substring(0, 18) + '...' : rawName;
   const hotelSlug = hotel.slug || hotel.seo?.url_slug || hotel.id;
+
+  // Real-time geodesic distance calculation from the Holy Sanctuary
+  const computedMeters = getHaversineDistanceMeters(lat, lng, sanctuaryCenter[0], sanctuaryCenter[1]);
+  const hasCustomDistance =
+    hotel.distance &&
+    isNaN(Number(hotel.distance)) &&
+    !/^\d+$/.test(String(hotel.distance).trim());
+
+  const formattedDistance = hasCustomDistance
+    ? hotel.distance
+    : `${computedMeters}m from ${sanctuaryName}`;
 
   return {
     id: hotel.id || String(index + 1),
@@ -61,14 +101,17 @@ function normalizeMapHotel(hotel, index) {
     name: rawName,
     shortName,
     city,
-    badge: /economy/i.test(hotel.category || '') ? 'ECONOMY' : (hotel.tag || (hotel.stars ? `${hotel.stars} STARS` : 'VERIFIED')),
-    distance: hotel.distance || (isMadinah ? '250m from Markaziah' : '180m from Haram'),
-    price: hotel.price || 'Contact for Price',
+    badge: /economy/i.test(hotel.category || '')
+      ? 'ECONOMY'
+      : (hotel.tag || (hotel.stars ? `${hotel.stars} STARS` : 'VERIFIED')),
+    distance: formattedDistance,
+    distanceMeters: computedMeters,
+    price: hotel.price || (hotel.min_rate ? `SAR ${hotel.min_rate}` : 'Rates on Booking'),
     unit: hotel.unit || '/ night',
     image: hotel.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
     coordinates: [lat, lng],
     description: hotel.description || `Experience comfortable lodging at ${rawName}.`,
-    gate: hotel.address || 'Haram Walkway',
+    gate: hotel.address || hotel.hotel_address || 'Haram Walkway',
     stars: hotel.stars || 4,
   };
 }
@@ -89,6 +132,8 @@ export function HotelsMapPage({
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isCardVisible, setIsCardVisible] = useState(false);
+  const [isCompactZoom, setIsCompactZoom] = useState(false);
+
   const [mapHotels, setMapHotels] = useState(() =>
     Array.isArray(initialHotels) && initialHotels.length > 0
       ? initialHotels.map(normalizeMapHotel)
@@ -98,9 +143,14 @@ export function HotelsMapPage({
     !(Array.isArray(initialHotels) && initialHotels.length > 0)
   );
 
-  // Fetch live API Hotels on mount
+  // Fetch live API Hotels on mount ONLY if server did not provide initialHotels
   useEffect(() => {
+    if (Array.isArray(initialHotels) && initialHotels.length > 0) {
+      return;
+    }
+
     let isMounted = true;
+    setLoading(true);
     hotelService
       .getHotels()
       .then((items) => {
@@ -118,15 +168,16 @@ export function HotelsMapPage({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialHotels]);
 
-  // Refs for Leaflet
+  // Leaflet refs
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
   const markersLayerGroupRef = useRef(null);
   const circlesLayerGroupRef = useRef(null);
-  const centerMarkerRef = useRef(null);
+  const leafletRef = useRef(null);
+  const markersMapRef = useRef(new Map());
 
   // Scroll to top on mount
   useEffect(() => {
@@ -150,7 +201,7 @@ export function HotelsMapPage({
     return true;
   });
 
-  // Tile layer URLs
+  // Tile layer configurations (100% free, no API key, no watermarks)
   const getTileConfig = (style) => {
     switch (style) {
       case 'satellite':
@@ -161,136 +212,34 @@ export function HotelsMapPage({
         };
       case 'night':
         return {
-          url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+          attribution: 'Esri, Garmin, &copy; OpenStreetMap contributors',
           maxZoom: 19,
-          subdomains: 'abcd',
         };
       case 'street':
       default:
         return {
-          url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-          fallbackUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+          attribution: 'Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
           maxZoom: 19,
-          subdomains: 'abcd',
         };
     }
   };
 
-  // Initialize Leaflet Map
-  useEffect(() => {
-    let isMounted = true;
-
-    async function initMap() {
-      if (typeof window === 'undefined' || !mapContainerRef.current) return;
-
-      // Dynamically import Leaflet
-      const L = await import('leaflet');
-
-      if (!isMounted || !mapContainerRef.current) return;
-
-      // Prevent re-initialization
-      if (mapInstanceRef.current) {
-        return;
-      }
-
-      const isAll = selectedCity === 'all';
-      const initialCenter = isAll
-        ? [22.9448, 39.7186]
-        : selectedCity === 'madinah'
-        ? HOLY_CENTERS.madinah.coordinates
-        : HOLY_CENTERS.makkah.coordinates;
-
-      const map = L.map(mapContainerRef.current, {
-        center: initialCenter,
-        zoom: isAll ? 7 : 16,
-        minZoom: 5,
-        maxZoom: 19,
-        zoomControl: false,
-        attributionControl: false,
-      });
-
-      if (isAll) {
-        map.fitBounds(DUAL_CITIES_BOUNDS, {
-          padding: [50, 50],
-          maxZoom: 8,
-        });
-      }
-
-      mapInstanceRef.current = map;
-
-      // Base tile layer
-      const tileConfig = getTileConfig('satellite');
-      const tileLayer = L.tileLayer(tileConfig.url, {
-        attribution: tileConfig.attribution,
-        maxZoom: tileConfig.maxZoom,
-        subdomains: tileConfig.subdomains || 'abc',
-      }).addTo(map);
-
-      tileLayerRef.current = tileLayer;
-
-      // Layer groups for markers and circles
-      circlesLayerGroupRef.current = L.layerGroup().addTo(map);
-      markersLayerGroupRef.current = L.layerGroup().addTo(map);
-
-      // Render initial center rings and pins (no default hotel selected)
-      renderCenterAndPins(L, map, 'all', null);
-
-      // Close active card when clicking on empty map area
-      map.on('click', () => {
-        setIsCardVisible(false);
-        setActiveHotel(null);
-      });
-    }
-
-    initMap();
-
-    return () => {
-      isMounted = false;
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
-
-  // Update Tile Layer when mapStyle changes
-  useEffect(() => {
-    if (!mapInstanceRef.current) return;
-
-    import('leaflet').then((L) => {
-      if (!mapInstanceRef.current) return;
-      if (tileLayerRef.current) {
-        mapInstanceRef.current.removeLayer(tileLayerRef.current);
-      }
-
-      const tileConfig = getTileConfig(mapStyle);
-      const newLayer = L.tileLayer(tileConfig.url, {
-        attribution: tileConfig.attribution,
-        maxZoom: tileConfig.maxZoom,
-        subdomains: tileConfig.subdomains || 'abc',
-      }).addTo(mapInstanceRef.current);
-
-      // Move tileLayer to back so markers remain visible
-      newLayer.bringToBack();
-      tileLayerRef.current = newLayer;
-    });
-  }, [mapStyle]);
-
-  // Render Holy Center (Kaaba/Prophet's Mosque) and Hotel Marker Pins
-  const renderCenterAndPins = (L, map, cityKey, currentActiveId) => {
+  // Render Holy Centers and Hotel Marker Pins
+  const renderCenterAndPins = useCallback((L, map, cityKey, currentActiveId) => {
     if (!circlesLayerGroupRef.current || !markersLayerGroupRef.current) return;
 
     circlesLayerGroupRef.current.clearLayers();
     markersLayerGroupRef.current.clearLayers();
+    markersMapRef.current.clear();
 
     const citiesToRender =
       cityKey === 'all'
         ? ['makkah', 'madinah']
         : [cityKey === 'madinah' ? 'madinah' : 'makkah'];
 
-    // 1. Holy Center Concentric Dashed Radar Rings & Halo
+    // 1. Holy Center Concentric Radar Rings & Halos
     citiesToRender.forEach((cKey) => {
       const centerInfo = HOLY_CENTERS[cKey];
       const isMakkah = cKey === 'makkah';
@@ -307,7 +256,7 @@ export function HotelsMapPage({
       });
       circlesLayerGroupRef.current.addLayer(innerAura);
 
-      // Radii concentric rings matching screenshot (180m, 320m)
+      // Radii concentric rings (180m, 320m)
       const midRing = L.circle(centerInfo.coordinates, {
         radius: 180,
         color: ringColor,
@@ -330,11 +279,10 @@ export function HotelsMapPage({
       const holyIconHtml = `
         <div class="hm-center-landmark ${isMakkah ? 'makkah' : 'madinah'}">
           <div class="hm-center-icon-box">
-            ${
-              isMakkah
-                ? '<span class="hm-kaaba-symbol">🕋</span>'
-                : '<span class="hm-dome-symbol">🕌</span>'
-            }
+            ${isMakkah
+          ? '<span class="hm-kaaba-symbol">🕋</span>'
+          : '<span class="hm-dome-symbol">🕌</span>'
+        }
           </div>
           <div class="hm-center-label-pill">
             ${centerInfo.name}
@@ -398,7 +346,7 @@ export function HotelsMapPage({
 
       const marker = L.marker(hotel.coordinates, {
         icon: hotelIcon,
-        zIndexOffset: isActive ? 500 : 200,
+        zIndexOffset: isActive ? 600 : 200,
       });
 
       marker.on('click', () => {
@@ -406,27 +354,153 @@ export function HotelsMapPage({
       });
 
       markersLayerGroupRef.current.addLayer(marker);
+      markersMapRef.current.set(hotel.id, marker);
     });
-  };
+  }, [mapHotels, debouncedSearch]);
 
-  // Handle Hotel Selection
-  const handleSelectHotel = (hotel) => {
+  // Handle Hotel Selection with instantaneous DOM class toggle (No layer thrashing)
+  const handleSelectHotel = useCallback((hotel) => {
     setActiveHotel(hotel);
     setIsCardVisible(true);
 
     if (mapInstanceRef.current) {
-      import('leaflet').then((L) => {
-        // Pan smoothly with slight offset downward so card doesn't cover marker
-        const targetLat = hotel.coordinates[0] - 0.001;
-        const targetLng = hotel.coordinates[1];
-        mapInstanceRef.current.flyTo([targetLat, targetLng], 16.5, {
-          duration: 0.8,
-        });
+      const targetLat = hotel.coordinates[0] - 0.001;
+      const targetLng = hotel.coordinates[1];
+      mapInstanceRef.current.flyTo([targetLat, targetLng], 16.5, {
+        duration: 0.8,
+      });
 
-        renderCenterAndPins(L, mapInstanceRef.current, selectedCity, hotel.id);
+      // Update DOM classes directly without rebuilding entire map layers
+      if (mapContainerRef.current) {
+        const previousActiveEl = mapContainerRef.current.querySelector('.hm-hotel-marker-pill.active');
+        if (previousActiveEl) {
+          previousActiveEl.classList.remove('active');
+        }
+      }
+
+      const activeMarker = markersMapRef.current.get(hotel.id);
+      if (activeMarker) {
+        const el = activeMarker.getElement()?.querySelector('.hm-hotel-marker-pill');
+        if (el) el.classList.add('active');
+        activeMarker.setZIndexOffset(600);
+      }
+    }
+  }, []);
+
+  // Initialize Leaflet Map
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initMap() {
+      if (typeof window === 'undefined' || !mapContainerRef.current) return;
+
+      const L = await import('leaflet');
+      leafletRef.current = L;
+
+      if (!isMounted || !mapContainerRef.current) return;
+      if (mapInstanceRef.current) return;
+
+      const isAll = selectedCity === 'all';
+      const initialCenter = isAll
+        ? [22.9448, 39.7186]
+        : selectedCity === 'madinah'
+          ? HOLY_CENTERS.madinah.coordinates
+          : HOLY_CENTERS.makkah.coordinates;
+
+      const map = L.map(mapContainerRef.current, {
+        center: initialCenter,
+        zoom: isAll ? 7 : 16,
+        minZoom: 5,
+        maxZoom: 19,
+        zoomControl: false,
+        attributionControl: false,
+      });
+
+      if (isAll) {
+        map.fitBounds(DUAL_CITIES_BOUNDS, {
+          padding: [50, 50],
+          maxZoom: 8,
+        });
+      }
+
+      mapInstanceRef.current = map;
+
+      // Base tile layer
+      const tileConfig = getTileConfig('satellite');
+      const tileLayer = L.tileLayer(tileConfig.url, {
+        attribution: tileConfig.attribution,
+        maxZoom: tileConfig.maxZoom,
+        subdomains: tileConfig.subdomains || 'abc',
+      }).addTo(map);
+
+      tileLayerRef.current = tileLayer;
+
+      // Layer groups
+      circlesLayerGroupRef.current = L.layerGroup().addTo(map);
+      markersLayerGroupRef.current = L.layerGroup().addTo(map);
+
+      // Render initial center rings and pins
+      renderCenterAndPins(L, map, 'all', null);
+
+      // Zoom listener for compact/expanded pin styling
+      const checkZoom = () => {
+        setIsCompactZoom(map.getZoom() < 14);
+      };
+      checkZoom();
+      map.on('zoomend', checkZoom);
+
+      // Close active card when clicking on empty map area
+      map.on('click', () => {
+        setIsCardVisible(false);
+        setActiveHotel(null);
+        if (mapContainerRef.current) {
+          const activeEl = mapContainerRef.current.querySelector('.hm-hotel-marker-pill.active');
+          if (activeEl) activeEl.classList.remove('active');
+        }
       });
     }
-  };
+
+    initMap();
+
+    return () => {
+      isMounted = false;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update Tile Layer when mapStyle changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    const applyTileLayer = (L) => {
+      if (!mapInstanceRef.current) return;
+      if (tileLayerRef.current) {
+        mapInstanceRef.current.removeLayer(tileLayerRef.current);
+      }
+
+      const tileConfig = getTileConfig(mapStyle);
+      const newLayer = L.tileLayer(tileConfig.url, {
+        attribution: tileConfig.attribution,
+        maxZoom: tileConfig.maxZoom,
+        subdomains: tileConfig.subdomains || 'abc',
+      }).addTo(mapInstanceRef.current);
+
+      newLayer.bringToBack();
+      tileLayerRef.current = newLayer;
+    };
+
+    if (leafletRef.current) {
+      applyTileLayer(leafletRef.current);
+    } else {
+      import('leaflet').then((L) => {
+        leafletRef.current = L;
+        applyTileLayer(L);
+      });
+    }
+  }, [mapStyle]);
 
   // Handle City Tab Change
   const handleCityChange = (cityKey) => {
@@ -435,7 +509,7 @@ export function HotelsMapPage({
     setIsCardVisible(false);
 
     if (mapInstanceRef.current) {
-      import('leaflet').then((L) => {
+      const applyChange = (L) => {
         if (cityKey === 'all') {
           mapInstanceRef.current.flyToBounds(DUAL_CITIES_BOUNDS, {
             padding: [50, 50],
@@ -454,7 +528,16 @@ export function HotelsMapPage({
         }
 
         renderCenterAndPins(L, mapInstanceRef.current, cityKey, null);
-      });
+      };
+
+      if (leafletRef.current) {
+        applyChange(leafletRef.current);
+      } else {
+        import('leaflet').then((L) => {
+          leafletRef.current = L;
+          applyChange(L);
+        });
+      }
     }
   };
 
@@ -471,12 +554,12 @@ export function HotelsMapPage({
     }
   };
 
-  // Enlarge / Expand mode toggle (Matches user's reference view)
+  // Fullscreen toggle
   const toggleEnlarge = () => {
     setIsEnlarged((prev) => !prev);
   };
 
-  // Lock body scroll, listen to Escape key, and trigger invalidateSize on enlarge toggle
+  // Lock body scroll and invalidateSize on enlarge toggle
   useEffect(() => {
     if (isEnlarged) {
       document.body.style.overflow = 'hidden';
@@ -491,7 +574,6 @@ export function HotelsMapPage({
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // Call invalidateSize across multiple ticks to smoothly handle layout reflow
     const timers = [50, 150, 300, 500].map((delay) =>
       setTimeout(() => {
         if (mapInstanceRef.current) {
@@ -507,22 +589,28 @@ export function HotelsMapPage({
     };
   }, [isEnlarged]);
 
-  // Keep pins updated when search query, mapHotels, or city change
+  // Keep pins updated when search query or mapHotels change
   useEffect(() => {
     if (!mapInstanceRef.current) return;
-    import('leaflet').then((L) => {
+    const L = leafletRef.current;
+    if (L) {
       renderCenterAndPins(L, mapInstanceRef.current, selectedCity, activeHotel?.id);
-    });
-  }, [mapHotels, selectedCity, debouncedSearch, activeHotel]);
+    } else {
+      import('leaflet').then((mod) => {
+        leafletRef.current = mod;
+        renderCenterAndPins(mod, mapInstanceRef.current, selectedCity, activeHotel?.id);
+      });
+    }
+  }, [mapHotels, selectedCity, debouncedSearch, renderCenterAndPins]);
 
-  // Dynamic filter pill counts
+  // Dynamic counts
   const allCount = mapHotels.length;
   const makkahCount = mapHotels.filter((h) => h.city === 'makkah').length;
   const madinahCount = mapHotels.filter((h) => h.city === 'madinah').length;
 
   return (
     <div className={`hotels-map-page-root ${isEnlarged ? 'hm-is-enlarged' : ''}`}>
-      {/* ── 1. TopBar & Floating Navbar Hero Banner (Hidden when enlarged) ── */}
+      {/* ── 1. TopBar & Hero Banner (Hidden when enlarged) ── */}
       {!isEnlarged && (
         <AppBar
           onOpenContact={() => setIsContactOpen(true)}
@@ -548,7 +636,7 @@ export function HotelsMapPage({
       {/* ── 2. Main Body Container ── */}
       <div className={`hm-main-layout ${isEnlarged ? 'hm-main-enlarged' : ''}`}>
         <div className={isEnlarged ? 'hm-enlarged-container' : 'section-container'}>
-          {/* Back button row (Hidden when enlarged) */}
+          {/* Breadcrumb row */}
           {!isEnlarged && (
             <div className="hm-top-breadcrumb-row">
               <button
@@ -636,9 +724,10 @@ export function HotelsMapPage({
           </div>
 
           {/* ── 3. Interactive Map Canvas Container ── */}
-          <div className={`hm-map-card-wrapper ${isEnlarged ? 'hm-map-enlarged' : ''}`}>
-            {/* Dedicated Leaflet Map Canvas (clean DOM with no React JSX children inside) */}
+          <div className={`hm-map-card-wrapper ${isEnlarged ? 'hm-map-enlarged' : ''} ${isCompactZoom ? 'hm-compact-zoom' : ''}`}>
+            {/* Dedicated Leaflet Map Canvas */}
             <div className="hm-map-canvas" ref={mapContainerRef} />
+
             {/* Top-Left: Search Bar */}
             <div className="hm-map-overlay-search">
               <Search size={15} className="hm-search-icon" />
@@ -719,7 +808,7 @@ export function HotelsMapPage({
             </div>
           </div>
 
-          {/* Bottom-Center: Floating Hotel Card Popup (Page Bottom Center) */}
+          {/* Bottom-Center: Floating Hotel Card Popup */}
           {activeHotel && isCardVisible && (
             <div className="hm-floating-hotel-popup animate-popup">
               <div className="hm-popup-inner">
@@ -760,8 +849,14 @@ export function HotelsMapPage({
                   </div>
 
                   <div className="hm-popup-price-row">
-                    <span className="hm-popup-price">{activeHotel.price}</span>
-                    <span className="hm-popup-unit"> {activeHotel.unit}</span>
+                    {/rates on booking/i.test(activeHotel.price) || /contact/i.test(activeHotel.price) ? (
+                      <span className="hm-popup-price rates-on-booking">Rates on Booking</span>
+                    ) : (
+                      <>
+                        <span className="hm-popup-price">{activeHotel.price}</span>
+                        <span className="hm-popup-unit"> {activeHotel.unit}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -773,6 +868,10 @@ export function HotelsMapPage({
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsCardVisible(false);
+                      if (mapContainerRef.current) {
+                        const activeEl = mapContainerRef.current.querySelector('.hm-hotel-marker-pill.active');
+                        if (activeEl) activeEl.classList.remove('active');
+                      }
                     }}
                     title="Close"
                   >
@@ -797,7 +896,7 @@ export function HotelsMapPage({
         </div>
       </div>
 
-      {/* ── 4. Newsletter & Footer Section (Hidden when in fullscreen enlarge mode) ── */}
+      {/* ── 4. Newsletter & Footer Section ── */}
       {!isEnlarged && <Footer onOpenContact={() => setIsContactOpen(true)} />}
 
       {/* ── 5. Global Modals ── */}

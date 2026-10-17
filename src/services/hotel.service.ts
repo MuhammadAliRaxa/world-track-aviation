@@ -24,8 +24,12 @@ async function fetchHotelListing(
   filters: ApiHotelFilters = {},
 ): Promise<{ hotels: ApiHotel[]; pagination: ApiPagination | undefined }> {
   try {
-    console.log('[hotelService] POST /hotel/minRate with filters:', JSON.stringify({ filters }));
-    const res = await apiPost<ApiHotel[]>('/hotel/minRate', { filters }, {
+    const payloadFilters: ApiHotelFilters = {
+      available_only: typeof filters.available_only === 'boolean' ? filters.available_only : false,
+      ...filters,
+    };
+    console.log('[hotelService] POST /hotel/minRate with filters:', JSON.stringify({ filters: payloadFilters }));
+    const res = await apiPost<ApiHotel[]>('/hotel/minRate', { filters: payloadFilters }, {
       cache: "no-store",
     } as RequestInit);
     console.log('[hotelService] Got', Array.isArray(res.data) ? res.data.length : 0, 'hotels back');
@@ -65,9 +69,10 @@ export function normalizeHotelDetail(raw: any): Hotel | null {
     : (categoryStarMatch ? parseInt(categoryStarMatch[1], 10) : (isEconomy ? 0 : 5));
 
   const rawPrice = item.price || item.min_rate;
-  const price = rawPrice
+  const numPrice = Number(String(rawPrice || '').replace(/[^0-9.]/g, ''));
+  const price = rawPrice && !isNaN(numPrice) && numPrice > 0
     ? (typeof rawPrice === 'number' || (!String(rawPrice).includes('Rs') && !String(rawPrice).includes('SAR')) ? `SAR ${rawPrice}` : String(rawPrice))
-    : 'Contact for Price';
+    : 'Rates on Booking';
 
   const rawImages = Array.isArray(item.images)
     ? item.images.map((img: any) => typeof img === 'string' ? img : (img?.file || '')).filter(Boolean)
@@ -156,6 +161,9 @@ export const hotelService = {
   async getHotels(filters?: HotelFilterParams): Promise<Hotel[]> {
     try {
       const apiFilters: ApiHotelFilters = {};
+      if (typeof filters?.available_only === 'boolean') {
+        apiFilters.available_only = filters.available_only;
+      }
       if (filters) {
         if (filters.searchQuery) apiFilters.search = filters.searchQuery;
         if (filters.destination && filters.destination !== 'all') {
