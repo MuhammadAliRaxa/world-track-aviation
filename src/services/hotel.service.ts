@@ -17,8 +17,31 @@ import type {
 } from '../types/api.types';
 
 // ---------------------------------------------------------------------------
-// Real API helpers
-// ---------------------------------------------------------------------------
+// In-memory cache for slug-to-numeric-ID mappings (preserves resolution across 100+ pages)
+const slugToIdCache = new Map<string, string>();
+
+function indexHotelSlug(hotel: any): void {
+  if (!hotel) return;
+  const idStr = String(hotel.id || '');
+  if (!idStr) return;
+
+  const urlSlug = hotel.seo?.url_slug || hotel.slug;
+  if (urlSlug && typeof urlSlug === 'string') {
+    slugToIdCache.set(urlSlug.toLowerCase().trim(), idStr);
+  }
+
+  const name = hotel.hotel_name || hotel.name;
+  if (name && typeof name === 'string') {
+    const slugFromName = name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    if (slugFromName) {
+      slugToIdCache.set(slugFromName, idStr);
+    }
+  }
+}
 
 async function fetchHotelListing(
   filters: ApiHotelFilters = {},
@@ -33,8 +56,10 @@ async function fetchHotelListing(
       cache: "no-store",
     } as RequestInit);
     console.log('[hotelService] Got', Array.isArray(res.data) ? res.data.length : 0, 'hotels back');
+    const hotels = Array.isArray(res.data) ? res.data : [];
+    hotels.forEach(indexHotelSlug);
     return {
-      hotels: Array.isArray(res.data) ? res.data : [],
+      hotels,
       pagination: res.pagination,
     };
   } catch (err) {
@@ -48,6 +73,7 @@ export function normalizeHotelDetail(raw: any): Hotel | null {
     ? raw[0]
     : (raw?.data && Array.isArray(raw.data) ? raw.data[0] : (raw?.data || raw));
   if (!item || typeof item !== 'object') return null;
+  indexHotelSlug(item);
 
   const id = String(item.id || '');
   const name = item.hotel_name || item.name || 'Hotel';
@@ -201,19 +227,102 @@ export const hotelService = {
 
   /**
    * Helper to resolve a numeric hotel ID from either an ID or an SEO slug.
+   * Scalable to 100+ pages of database records:
+   * 1. Direct numeric check (/^\d+$/)
+   * 2. Prefix ID check (/^(\d+)-/)
+   * 3. In-memory Slug Cache (0ms, 0 API calls)
+   * 4. Targeted backend database search via POST /hotel/minRate with filters.search & perPage: 50
    */
   async resolveHotelId(idOrSlug: string | number): Promise<string> {
-    const raw = String(idOrSlug).trim();
+    const raw = String(idOrSlug || '').trim().replace(/^\/+|\/+$/g, '');
+    if (!raw) return '';
+
+    // 1. Direct numeric ID (e.g. "18")
     if (/^\d+$/.test(raw)) return raw;
 
+    // 2. Numeric ID with slug prefix (e.g. "18-maidan-al-bait-madina")
+    const prefixMatch = raw.match(/^(\d+)-/);
+    if (prefixMatch) return prefixMatch[1];
+
+    const rawLower = raw.toLowerCase();
+
+    // 3. Check in-memory slug cache (fast path, 0 API calls)
+    if (slugToIdCache.has(rawLower)) {
+      return slugToIdCache.get(rawLower)!;
+    }
+
     try {
-      const { hotels } = await fetchHotelListing({});
-      const found = hotels.find(
+      // 4. Targeted backend database search (1 API call across all pages in database)
+      const searchQuery = raw.replace(/[-_]+/g, ' ').trim();
+      const { hotels: searchHotels } = await fetchHotelListing({
+        search: searchQuery,
+        perPage: 50,
+      });
+
+      let found = searchHotels.find(
         (h) =>
           String(h.id) === raw ||
-          h.seo?.url_slug?.toLowerCase().trim() === raw.toLowerCase(),
+          h.seo?.url_slug?.toLowerCase().trim() === rawLower ||
+          (h as any).slug?.toLowerCase().trim() === rawLower,
       );
-      return found ? String(found.id) : raw;
+
+      // Check normalized name match if exact slug wasn't in SEO object
+      if (!found) {
+        const cleanQuery = searchQuery.toLowerCase().replace(/[^a-z0-9]/g, '');
+        found = searchHotels.find((h) => {
+          const hName = (h.hotel_name || (h as any).name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          return hName && (hName === cleanQuery || hName.includes(cleanQuery) || cleanQuery.includes(hName));
+        });
+      }
+
+      if (found) {
+        const resolvedId = String(found.id);
+        slugToIdCache.set(rawLower, resolvedId);
+        return resolvedId;
+      }
+
+      // 5. Fallback: if search had extra words (e.g. "hotel", "makkah", "madina"), strip them and retry
+      const strippedQuery = rawLower
+        .replace(/\b(hotel|makkah|madina|madinah)\b/g, '')
+        .replace(/[-_]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (strippedQuery && strippedQuery !== searchQuery.toLowerCase()) {
+        const { hotels: fallbackHotels } = await fetchHotelListing({
+          search: strippedQuery,
+          perPage: 50,
+        });
+
+        const fallbackFound = fallbackHotels.find(
+          (h) =>
+            String(h.id) === raw ||
+            h.seo?.url_slug?.toLowerCase().trim() === rawLower ||
+            (h as any).slug?.toLowerCase().trim() === rawLower,
+        );
+
+        if (fallbackFound) {
+          const resolvedId = String(fallbackFound.id);
+          slugToIdCache.set(rawLower, resolvedId);
+          return resolvedId;
+        }
+      }
+
+      // 6. Last resort: default listing (perPage: 50)
+      const { hotels } = await fetchHotelListing({ perPage: 50 });
+      const lastFound = hotels.find(
+        (h) =>
+          String(h.id) === raw ||
+          h.seo?.url_slug?.toLowerCase().trim() === rawLower ||
+          (h as any).slug?.toLowerCase().trim() === rawLower,
+      );
+      if (lastFound) {
+        const resolvedId = String(lastFound.id);
+        slugToIdCache.set(rawLower, resolvedId);
+        return resolvedId;
+      }
+
+      return raw;
     } catch {
       return raw;
     }

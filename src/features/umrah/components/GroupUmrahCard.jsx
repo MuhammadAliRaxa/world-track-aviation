@@ -1,11 +1,10 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { WhatsAppIcon } from '../../../shared';
+import { openGroupUmrahWhatsApp } from '../utils/groupUmrahWhatsApp';
 
 export function GroupUmrahCard({ pkg }) {
-  const router = useRouter();
-
   if (!pkg) return null;
 
   return (
@@ -59,7 +58,11 @@ export function GroupUmrahCard({ pkg }) {
           )}
           <button
             type="button"
-            onClick={() => router.push('/umrah-group-packages')}
+            onClick={(e) => {
+              e.stopPropagation();
+              openGroupUmrahWhatsApp(pkg);
+            }}
+            aria-label={`Book ${pkg.sector || 'Group Umrah Package'} on WhatsApp`}
             style={{
               background: '#0284c7',
               color: '#ffffff',
@@ -71,8 +74,12 @@ export function GroupUmrahCard({ pkg }) {
               cursor: 'pointer',
               boxShadow: '0 2px 4px rgba(2,132,199,0.2)',
               whiteSpace: 'nowrap',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
+            <WhatsAppIcon size={14} color="#ffffff" />
             Book Now
           </button>
         </div>

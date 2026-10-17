@@ -21,50 +21,58 @@ export function RoomTypePopup({
   adultCount = 1,
   hotelName = '',
   isLoading = false,
+  showCapacityValidation = false,
 }) {
   if (!isOpen) return null;
 
   const DEFAULT_ALL_TYPES = ['Double', 'Triple', 'Quad', 'Quint', 'Sharing'];
 
+  const cleanTypeName = (t) => {
+    if (!t) return '';
+    const raw = typeof t === 'string' ? t : (t?.name || t?.room_type || '');
+    return String(raw).replace(/\s+(Bedroom|Room)$/i, '').trim();
+  };
+
   // All room types to display (defaults to standard Umrah types + any additional API types)
   const displayTypes = React.useMemo(() => {
     if (Array.isArray(allRoomTypes) && allRoomTypes.length > 0) {
-      return allRoomTypes;
+      return allRoomTypes.map(cleanTypeName).filter(Boolean);
     }
     const set = new Set(DEFAULT_ALL_TYPES);
     if (Array.isArray(availableRoomTypes)) {
       availableRoomTypes.forEach((t) => {
-        if (t) set.add(t);
+        const val = cleanTypeName(t);
+        if (val) set.add(val);
       });
     }
     if (Array.isArray(roomTypes) && roomTypes.length > 0) {
       roomTypes.forEach((t) => {
-        if (t) set.add(t);
+        const val = cleanTypeName(t);
+        if (val) set.add(val);
       });
     }
-    return Array.from(set);
+    return Array.from(set).filter(Boolean);
   }, [allRoomTypes, availableRoomTypes, roomTypes]);
 
   // Check if a specific room type is active from the API
   const isTypeActive = (roomType) => {
+    const target = cleanTypeName(roomType).toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!target) return true;
+
     // If availableRoomTypes is explicitly passed (e.g. from Custom Umrah)
     if (availableRoomTypes !== null && availableRoomTypes !== undefined) {
       if (!Array.isArray(availableRoomTypes) || availableRoomTypes.length === 0) {
         return false;
       }
-      const clean = (s) => String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      const target = clean(roomType);
       return availableRoomTypes.some((item) => {
-        const a = clean(item);
+        const a = cleanTypeName(item).toLowerCase().replace(/[^a-z0-9]/g, '');
         return a === target || a.includes(target) || target.includes(a);
       });
     }
     // Backward compatibility: if only roomTypes array was passed
     if (Array.isArray(roomTypes) && roomTypes.length > 0) {
-      const clean = (s) => String(s || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      const target = clean(roomType);
       return roomTypes.some((item) => {
-        const a = clean(item);
+        const a = cleanTypeName(item).toLowerCase().replace(/[^a-z0-9]/g, '');
         return a === target || a.includes(target) || target.includes(a);
       });
     }
@@ -94,17 +102,20 @@ export function RoomTypePopup({
   }, 0);
 
   const isUnderCapacity = totalBeds < adultCount;
+  const shouldShowCapacity = (showCapacityValidation || availableRoomTypes !== null) && adultCount > 0;
+  const needsHotelSelection = availableRoomTypes !== null && !hotelName;
 
   return (
     <div
       style={{
         position: 'absolute',
         top: 'calc(100% + 6px)',
+        left: 0,
         right: 0,
-        minWidth: '290px',
+        minWidth: '270px',
         backgroundColor: '#ffffff',
-        borderRadius: '16px',
-        padding: '18px 20px',
+        borderRadius: '20px',
+        padding: '20px 22px 18px 22px',
         boxShadow: '0 16px 36px -6px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06)',
         zIndex: 1200,
       }}
@@ -114,47 +125,49 @@ export function RoomTypePopup({
         <div style={{ padding: '16px 8px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
           Loading hotel room types...
         </div>
-      ) : !hotelName ? (
+      ) : needsHotelSelection ? (
         <div style={{ padding: '16px 8px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
           Please select a hotel first to view room types.
         </div>
       ) : (
         <>
           {/* Capacity Validation Status Banner */}
-          <div
-            style={{
-              marginBottom: '14px',
-              padding: '10px 12px',
-              borderRadius: '10px',
-              background: isUnderCapacity ? '#fffbeb' : '#ecfdf5',
-              border: `1px solid ${isUnderCapacity ? '#fde68a' : '#a7f3d0'}`,
-            }}
-          >
+          {shouldShowCapacity && (
             <div
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '12px',
-                fontWeight: 700,
-                color: isUnderCapacity ? '#92400e' : '#065f46',
+                marginBottom: '14px',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                background: isUnderCapacity ? '#fffbeb' : '#ecfdf5',
+                border: `1px solid ${isUnderCapacity ? '#fde68a' : '#a7f3d0'}`,
               }}
             >
-              <span>Adults: {adultCount}</span>
-              <span>Beds: {totalBeds}</span>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: isUnderCapacity ? '#92400e' : '#065f46',
+                }}
+              >
+                <span>Adults: {adultCount}</span>
+                <span>Beds: {totalBeds}</span>
+              </div>
+              <div
+                style={{
+                  marginTop: '4px',
+                  fontSize: '11.5px',
+                  fontWeight: 500,
+                  color: isUnderCapacity ? '#b45309' : '#047857',
+                }}
+              >
+                {isUnderCapacity
+                  ? `⚠️ Need ${adultCount - totalBeds} more bed${adultCount - totalBeds > 1 ? 's' : ''} to accommodate ${adultCount} adults.`
+                  : `✓ Accommodates all ${adultCount} adults (${totalBeds} beds).`}
+              </div>
             </div>
-            <div
-              style={{
-                marginTop: '4px',
-                fontSize: '11.5px',
-                fontWeight: 500,
-                color: isUnderCapacity ? '#b45309' : '#047857',
-              }}
-            >
-              {isUnderCapacity
-                ? `⚠️ Need ${adultCount - totalBeds} more bed${adultCount - totalBeds > 1 ? 's' : ''} to accommodate ${adultCount} adults.`
-                : `✓ Accommodates all ${adultCount} adults (${totalBeds} beds).`}
-            </div>
-          </div>
+          )}
 
           {displayTypes.map((room) => {
             const isActive = isTypeActive(room);

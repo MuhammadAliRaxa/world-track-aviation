@@ -234,7 +234,7 @@ export function BlogDetailPage({ initialArticle = null }) {
                     id="blogInquiryName"
                     type="text"
                     required
-                    placeholder="John Doe"
+                    placeholder="Muhammad Ali"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                   />
@@ -247,7 +247,7 @@ export function BlogDetailPage({ initialArticle = null }) {
                     id="blogInquiryEmail"
                     type="email"
                     required
-                    placeholder="john@example.com"
+                    placeholder="muhammad.ali@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -312,9 +312,9 @@ export function BlogDetailPage({ initialArticle = null }) {
                 <span>Chat on WhatsApp</span>
               </button>
 
-              <a href="tel:+923010044147" className="btn-support-call">
+              <a href={`tel:${COMPANY_CONFIG.phoneRaw}`} className="btn-support-call">
                 <Phone size={13} />
-                <span>Call +92 301 0044147</span>
+                <span>Call {COMPANY_CONFIG.phone}</span>
               </a>
             </div>
           </div>

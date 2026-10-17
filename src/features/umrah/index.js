@@ -8,3 +8,4 @@ export { CustomUmrahPage } from './components/CustomUmrahPage';
 export { PrivateTransportPage } from './components/PrivateTransportPage';
 export { UMRAH_PACKAGES } from './data/umrahData';
 export { GROUP_UMRAH_PACKAGES } from './data/groupUmrahData';
+export { buildGroupUmrahWhatsAppMessage, openGroupUmrahWhatsApp } from './utils/groupUmrahWhatsApp';

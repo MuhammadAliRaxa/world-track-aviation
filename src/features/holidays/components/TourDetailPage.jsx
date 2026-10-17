@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -14,6 +14,7 @@ import { Footer } from '../../../shared/components/Footer';
 import { PassportIcon } from '../../../shared';
 import { COMPANY_CONFIG } from '../../../config/company';
 import { tourService, inquiryService } from '../../../services';
+import { GuestsPopup } from '../../hotels';
 import { HolidayCard } from './HolidayCard';
 
 const POPULAR_TAGS = [
@@ -83,6 +84,46 @@ export function TourDetailPage({ initialTour = null }) {
     [allTours, tour, id]
   );
 
+  const [isPaxOpen, setIsPaxOpen] = useState(false);
+  const [paxCounts, setPaxCounts] = useState({
+    Adult: 0,
+    Child: 0,
+    Infant: 0,
+  });
+  const paxRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (paxRef.current && !paxRef.current.contains(event.target)) {
+        setIsPaxOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const updatePaxCount = (type, delta) => {
+    setPaxCounts((prev) => {
+      const currentVal = prev[type] ?? 0;
+      const nextVal = Math.max(0, currentVal + delta);
+      const nextCounts = { ...prev, [type]: nextVal };
+
+      const parts = [];
+      if (nextCounts.Adult > 0) {
+        parts.push(`${nextCounts.Adult} Adult${nextCounts.Adult > 1 ? 's' : ''}`);
+      }
+      if (nextCounts.Child > 0) {
+        parts.push(`${nextCounts.Child} Child${nextCounts.Child > 1 ? 'ren' : ''}`);
+      }
+      if (nextCounts.Infant > 0) {
+        parts.push(`${nextCounts.Infant} Infant${nextCounts.Infant > 1 ? 's' : ''}`);
+      }
+      const label = parts.join(', ');
+      setForm((f) => ({ ...f, pax: label }));
+      return nextCounts;
+    });
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!tour) return;
@@ -91,8 +132,10 @@ export function TourDetailPage({ initialTour = null }) {
         type: 'tour',
         name: form.name || 'N/A',
         email: form.email || 'N/A',
-        contact: form.pax || 'N/A',
-        adults: parseInt(form.pax, 10) || 1,
+        contact: form.email || 'N/A',
+        adults: paxCounts?.Adult || parseInt(form.pax, 10) || 1,
+        children: paxCounts?.Child || 0,
+        infants: paxCounts?.Infant || 0,
         message: form.message || `Tour inquiry for ${tour.title}. Subject: ${form.help || 'General'}`,
       });
     } catch (err) {
@@ -211,7 +254,7 @@ export function TourDetailPage({ initialTour = null }) {
                     <input
                       type="text"
                       className="tdp-form-input"
-                      placeholder="John Doe"
+                      placeholder="Muhammad Ali"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                     />
@@ -222,28 +265,58 @@ export function TourDetailPage({ initialTour = null }) {
                     <input
                       type="email"
                       className="tdp-form-input"
-                      placeholder="john@example.com"
+                      placeholder="muhammad.ali@example.com"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                     />
                   </div>
 
-                  <div className="tdp-form-group">
+                  <div className="tdp-form-group" ref={paxRef} style={{ position: 'relative' }}>
                     <label className="tdp-form-label">No. of Pax</label>
-                    <div className="tdp-select-wrap">
-                      <select
-                        className="tdp-form-select"
-                        value={form.pax}
-                        onChange={(e) => setForm({ ...form, pax: e.target.value })}
+                    <div className="tdp-select-wrap" style={{ position: 'relative' }}>
+                      <button
+                        type="button"
+                        onClick={() => setIsPaxOpen((prev) => !prev)}
+                        aria-expanded={isPaxOpen}
+                        aria-label="Select Number of Pax"
+                        style={{
+                          width: '100%',
+                          height: '38px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 12px',
+                          backgroundColor: '#fff',
+                          border: `1px solid ${isPaxOpen ? '#0080f6' : '#e2e8f0'}`,
+                          borderRadius: '7px',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          fontSize: '12.5px',
+                          color: form.pax ? '#1e293b' : '#94a3b8',
+                          fontFamily: 'inherit',
+                          outline: 'none',
+                          transition: 'border-color 0.15s',
+                        }}
                       >
-                        <option value="">Select Pax</option>
-                        <option value="1">1 Person</option>
-                        <option value="2">2 Persons</option>
-                        <option value="3">3 Persons</option>
-                        <option value="4">4 Persons</option>
-                        <option value="5+">5+ Persons</option>
-                      </select>
-                      <ChevronDown size={14} className="tdp-select-arrow" />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {form.pax || 'Select Pax'}
+                        </span>
+                        <ChevronDown
+                          size={14}
+                          style={{
+                            transform: isPaxOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s ease',
+                            color: '#94a3b8',
+                            flexShrink: 0,
+                          }}
+                        />
+                      </button>
+                      <GuestsPopup
+                        isOpen={isPaxOpen}
+                        onClose={() => setIsPaxOpen(false)}
+                        counts={paxCounts}
+                        onUpdateCount={updatePaxCount}
+                      />
                     </div>
                   </div>
 
