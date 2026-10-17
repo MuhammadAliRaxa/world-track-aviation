@@ -75,7 +75,7 @@ export function HotelDetailPage({ initialHotel = null }) {
   // Gallery states
   const [prevHotelId, setPrevHotelId] = useState(hotel ? hotel.id : id);
   const [activeImage, setActiveImage] = useState(hotel ? hotel.image : '');
-  const [selectedRoom, setSelectedRoom] = useState(hotel?.roomTypes?.[0]?.name || 'Double Bedroom');
+  const [selectedRoom, setSelectedRoom] = useState('');
   const [isContactOpen, setIsContactOpen] = useState(false);
 
   // Lightbox state
@@ -85,14 +85,13 @@ export function HotelDetailPage({ initialHotel = null }) {
   useEffect(() => {
     if (hotel) {
       setActiveImage(hotel.image);
-      setSelectedRoom(hotel.roomTypes?.[0]?.name || 'Double Bedroom');
     }
   }, [hotel]);
 
   // Form State
-  const [checkIn, setCheckIn] = useState('2026-05-23');
-  const [checkOut, setCheckOut] = useState('2026-08-30');
-  const [guests, setGuests] = useState('2 Adults');
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [guests, setGuests] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -110,12 +109,13 @@ export function HotelDetailPage({ initialHotel = null }) {
     Infant: 0,
   });
 
-  // Room counts: Double (default 1), Triple, Quad, Quint
+  // Room counts: Double, Triple, Quad, Quint, Sharing
   const [roomCounts, setRoomCounts] = useState({
     Double: 0,
     Triple: 0,
     Quad: 0,
     Quint: 0,
+    Sharing: 0,
   });
 
   const guestsRef = useRef(null);
@@ -150,7 +150,7 @@ export function HotelDetailPage({ initialHotel = null }) {
       if (nextCounts.Infant > 0) {
         parts.push(`${nextCounts.Infant} Infant${nextCounts.Infant > 1 ? 's' : ''}`);
       }
-      setGuests(parts.join(', ') || 'Select Guests');
+      setGuests(parts.join(', '));
       return nextCounts;
     });
   };
@@ -164,10 +164,10 @@ export function HotelDetailPage({ initialHotel = null }) {
       const parts = [];
       Object.entries(nextCounts).forEach(([rType, count]) => {
         if (count > 0) {
-          parts.push(`${count > 1 ? `${count} ` : ''}${rType} Bedroom${count > 1 ? 's' : ''}`);
+          parts.push(`${count > 1 ? `${count} ` : ''}${rType} Sharing`);
         }
       });
-      setSelectedRoom(parts.join(', ') || 'Select Room Type');
+      setSelectedRoom(parts.join(', '));
       return nextCounts;
     });
   };
@@ -176,7 +176,6 @@ export function HotelDetailPage({ initialHotel = null }) {
   if (hotel && hotel.id !== prevHotelId) {
     setPrevHotelId(hotel.id);
     setActiveImage(hotel.image);
-    setSelectedRoom(hotel.roomTypes?.[0]?.name || 'Double Bedroom');
     setSubmitted(false);
   }
 
@@ -194,10 +193,10 @@ export function HotelDetailPage({ initialHotel = null }) {
         contact: phone,
         checkin_date: checkIn || '',
         checkout_date: checkOut || '',
-        adults: guestCounts?.Adult || 1,
+        adults: guestCounts?.Adult || 0,
         children: guestCounts?.Child || 0,
         infants: guestCounts?.Infant || 0,
-        room_type: selectedRoom,
+        room_type: selectedRoom || '',
         message: message || `Hotel inquiry for ${hotel?.name} (${hotel?.location}).`,
       });
     } catch (err) {
@@ -208,17 +207,45 @@ export function HotelDetailPage({ initialHotel = null }) {
 
   const handleWhatsAppChat = () => {
     if (!hotel) return;
-    const text = `Hello World Track Aviation, I would like to inquire about *${hotel.name}* (${hotel.location}). Room: ${selectedRoom}, Check-in: ${checkIn}, Check-out: ${checkOut}. Please share rates and availability.`;
+    const details = [];
+    if (selectedRoom) details.push(`Room: ${selectedRoom}`);
+    if (checkIn) details.push(`Check-in: ${checkIn}`);
+    if (checkOut) details.push(`Check-out: ${checkOut}`);
+    if (guests) details.push(`Guests: ${guests}`);
+    const detailsStr = details.length > 0 ? ` (${details.join(', ')})` : '';
+    const text = `Hello World Track Aviation, I would like to inquire about *${hotel.name}* (${hotel.location})${detailsStr}. Please share rates and availability.`;
     window.open(COMPANY_CONFIG.getWhatsAppUrl(text), '_blank');
   };
 
   if (!hotel) {
     return (
       <div className="hotel-detail-page-root">
-        <AppBar onOpenContact={() => setIsContactOpen(true)} />
-        <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <AppBar
+          onOpenContact={() => setIsContactOpen(true)}
+          heroContent={
+            <section className="hotel-page-hero">
+              <div className="hotel-page-hero-overlay" />
+              <div className="hotel-page-hero-content">
+                <p className="hotel-page-hero-title" role="doc-subtitle">Hotel Details</p>
+              </div>
+            </section>
+          }
+        />
+        <div style={{ minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="text-center p-8">
-            <h2 className="text-xl font-semibold mb-2">Loading hotel details...</h2>
+            <div
+              style={{
+                margin: '0 auto 1.25rem',
+                width: '40px',
+                height: '40px',
+                border: '3px solid #e2e8f0',
+                borderTopColor: '#0080f6',
+                borderRadius: '50%',
+                animation: 'spin 0.9s linear infinite',
+              }}
+            />
+            <h2 className="text-xl font-semibold mb-2 text-slate-800">Loading hotel details...</h2>
+            <p className="text-sm text-slate-500">Please wait while we retrieve rates and room availability.</p>
           </div>
         </div>
         <Footer />
@@ -567,12 +594,30 @@ export function HotelDetailPage({ initialHotel = null }) {
                 <CheckCircle2 size={42} className="inquiry-success-icon" />
                 <h4>Message Received!</h4>
                 <p>
-                  Thank you <strong>{name || 'Traveler'}</strong>. Our senior hotel reservation officer has received your request and will contact you directly on <strong>{phone || '+92 329 2721721'}</strong>.
+                  Thank you <strong>{name || 'Traveler'}</strong>. Our senior hotel reservation officer has received your request and will contact you directly on <strong>{phone || COMPANY_CONFIG.phone}</strong>.
                 </p>
                 <button
                   type="button"
                   className="btn-send-inquiry-gold mt-4"
-                  onClick={() => setSubmitted(false)}
+                  onClick={() => {
+                    setSubmitted(false);
+                    setName('');
+                    setEmail('');
+                    setPhone('');
+                    setMessage('');
+                    setCheckIn('');
+                    setCheckOut('');
+                    setGuests('');
+                    setSelectedRoom('');
+                    setGuestCounts({ Adult: 0, Child: 0, Infant: 0 });
+                    setRoomCounts({
+                      Double: 0,
+                      Triple: 0,
+                      Quad: 0,
+                      Quint: 0,
+                      Sharing: 0,
+                    });
+                  }}
                 >
                   Send Another Message
                 </button>
@@ -663,12 +708,12 @@ export function HotelDetailPage({ initialHotel = null }) {
                       cursor: 'pointer',
                       textAlign: 'left',
                       fontSize: '13.5px',
-                      color: '#0f172a',
+                      color: guests ? '#0f172a' : '#64748b',
                       fontWeight: 500,
                       outline: 'none',
                     }}
                   >
-                    <span>{guests}</span>
+                    <span>{guests || 'Select Guests'}</span>
                     <ChevronDown
                       size={14}
                       className="select-chevron-icon"
@@ -708,12 +753,12 @@ export function HotelDetailPage({ initialHotel = null }) {
                       cursor: 'pointer',
                       textAlign: 'left',
                       fontSize: '13.5px',
-                      color: '#0f172a',
+                      color: selectedRoom ? '#0f172a' : '#64748b',
                       fontWeight: 500,
                       outline: 'none',
                     }}
                   >
-                    <span>{selectedRoom}</span>
+                    <span>{selectedRoom || 'Select Room Type'}</span>
                     <ChevronDown
                       size={14}
                       className="select-chevron-icon"
@@ -729,6 +774,7 @@ export function HotelDetailPage({ initialHotel = null }) {
                     onClose={() => setIsRoomTypeOpen(false)}
                     counts={roomCounts}
                     onUpdateCount={updateRoomCount}
+                    hotelName={hotel?.name || 'Hotel'}
                   />
                 </div>
 
@@ -738,7 +784,7 @@ export function HotelDetailPage({ initialHotel = null }) {
                   <input
                     type="text"
                     required
-                    placeholder="Enter your name"
+                    placeholder="Muhammad Ali"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
@@ -750,7 +796,7 @@ export function HotelDetailPage({ initialHotel = null }) {
                   <input
                     type="email"
                     required
-                    placeholder="john@example.com"
+                    placeholder="muhammad.ali@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -762,7 +808,7 @@ export function HotelDetailPage({ initialHotel = null }) {
                   <input
                     type="tel"
                     required
-                    placeholder="03001231123"
+                    placeholder="+92 300 1234567"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -807,7 +853,7 @@ export function HotelDetailPage({ initialHotel = null }) {
 
               <a href={`tel:${COMPANY_CONFIG.phoneRaw}`} className="btn-support-call">
                 <Phone size={13} />
-                <span>Call +92 300 1234567</span>
+                <span>Call {COMPANY_CONFIG.phone}</span>
               </a>
             </div>
           </div>

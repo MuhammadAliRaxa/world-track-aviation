@@ -220,7 +220,7 @@ export function InquiryForm({
               <input
                 type="text"
                 required
-                placeholder="e.g. John Doe"
+                placeholder="e.g. Muhammad Ali"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 transition"
@@ -248,7 +248,7 @@ export function InquiryForm({
             <input
               type="email"
               required
-              placeholder="you@example.com"
+              placeholder="muhammad.ali@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 transition"

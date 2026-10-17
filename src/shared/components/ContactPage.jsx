@@ -272,7 +272,7 @@ export function ContactPage({ contactInfo }) {
                     id="fullName"
                     type="text"
                     required
-                    placeholder="John Doe"
+                    placeholder="Muhammad Ali"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                   />
@@ -285,7 +285,7 @@ export function ContactPage({ contactInfo }) {
                     id="contactEmail"
                     type="email"
                     required
-                    placeholder="john@example.com"
+                    placeholder="muhammad.ali@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />

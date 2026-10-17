@@ -66,10 +66,10 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
 
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [form, setForm] = useState(() => ({
-    checkIn: getIsoDate(7),
-    checkOut: getIsoDate(21),
-    pax: '1 Adult',
-    roomType: 'Triple Sharing',
+    checkIn: '',
+    checkOut: '',
+    pax: '',
+    roomType: '',
     name: '',
     email: '',
     contact: '',
@@ -83,17 +83,17 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
   const [isPaxOpen, setIsPaxOpen] = useState(false);
   const [isRoomTypeOpen, setIsRoomTypeOpen] = useState(false);
 
-  // Pax counts: Adult (1), Child (0), Infant (0) default
+  // Pax counts: Adult (0), Child (0), Infant (0) default
   const [paxCounts, setPaxCounts] = useState({
-    Adult: 1,
+    Adult: 0,
     Child: 0,
     Infant: 0,
   });
 
-  // Room counts: Triple (1) to match mockup default "Triple Sharing"
+  // Room counts
   const [roomCounts, setRoomCounts] = useState({
     Double: 0,
-    Triple: 1,
+    Triple: 0,
     Quad: 0,
     Quint: 0,
   });
@@ -130,7 +130,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
       if (nextCounts.Infant > 0) {
         parts.push(`${nextCounts.Infant} Infant${nextCounts.Infant > 1 ? 's' : ''}`);
       }
-      const label = parts.join(', ') || 'Select Pax';
+      const label = parts.join(', ');
       setForm((f) => ({ ...f, pax: label }));
       return nextCounts;
     });
@@ -148,7 +148,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
           parts.push(`${count > 1 ? `${count} ` : ''}${rType} Sharing`);
         }
       });
-      const label = parts.join(', ') || 'Select Room Type';
+      const label = parts.join(', ');
       setForm((f) => ({ ...f, roomType: label }));
       return nextCounts;
     });
@@ -200,12 +200,18 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
   };
 
   const handleWhatsApp = () => {
-    const text = `Hi, I have a question regarding the "${pkg.title}" tour package. Please share further details.`;
+    const details = [];
+    if (form.roomType) details.push(`Room: ${form.roomType}`);
+    if (form.checkIn) details.push(`Check-in: ${form.checkIn}`);
+    if (form.checkOut) details.push(`Check-out: ${form.checkOut}`);
+    if (form.pax) details.push(`Pax: ${form.pax}`);
+    const detailsStr = details.length > 0 ? ` (${details.join(', ')})` : '';
+    const text = `Hi, I have a question regarding the "${pkg?.title || 'Umrah Package'}" tour package${detailsStr}. Please share further details.`;
     window.open(COMPANY_CONFIG.getWhatsAppUrl(text), '_blank');
   };
 
   const handleCall = () => {
-    window.location.href = `tel:+923001234567`;
+    window.location.href = `tel:${COMPANY_CONFIG.phoneRaw}`;
   };
 
   return (
@@ -363,13 +369,18 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                         type="button"
                         onClick={() => {
                           setSent(false);
-                          setForm((prev) => ({
-                            ...prev,
+                          setForm({
+                            checkIn: '',
+                            checkOut: '',
+                            pax: '',
+                            roomType: '',
                             name: '',
                             email: '',
                             contact: '',
                             message: '',
-                          }));
+                          });
+                          setPaxCounts({ Adult: 0, Child: 0, Infant: 0 });
+                          setRoomCounts({ Double: 0, Triple: 0, Quad: 0, Quint: 0 });
                         }}
                         style={{
                           width: '100%',
@@ -491,7 +502,9 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                           aria-expanded={isPaxOpen}
                           aria-label="Select Number of Pax"
                         >
-                          <span className="upd-trigger-text">{form.pax}</span>
+                          <span className="upd-trigger-text" style={{ color: form.pax ? '#0f172a' : '#64748b' }}>
+                            {form.pax || 'Select Pax'}
+                          </span>
                           <ChevronDown
                             size={14}
                             className={`upd-select-arrow ${isPaxOpen ? 'open' : ''}`}
@@ -520,7 +533,9 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                           aria-expanded={isRoomTypeOpen}
                           aria-label="Select Room Type"
                         >
-                          <span className="upd-trigger-text">{form.roomType}</span>
+                          <span className="upd-trigger-text" style={{ color: form.roomType ? '#0f172a' : '#64748b' }}>
+                            {form.roomType || 'Select Room Type'}
+                          </span>
                           <ChevronDown
                             size={14}
                             className={`upd-select-arrow ${isRoomTypeOpen ? 'open' : ''}`}
@@ -531,6 +546,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                           onClose={() => setIsRoomTypeOpen(false)}
                           counts={roomCounts}
                           onUpdateCount={updateRoomCount}
+                          hotelName={pkg?.title || 'Umrah Package'}
                         />
                       </div>
                     </div>
@@ -542,7 +558,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                         type="text"
                         required
                         className="upd-form-input"
-                        placeholder="Enter your name"
+                        placeholder="Muhammad Ali"
                         value={form.name}
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
                       />
@@ -555,7 +571,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                         type="email"
                         required
                         className="upd-form-input"
-                        placeholder="john@example.com"
+                        placeholder="muhammad.ali@example.com"
                         value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                       />
@@ -568,7 +584,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                         type="tel"
                         required
                         className="upd-form-input"
-                        placeholder="03001232123"
+                        placeholder="+92 300 1234567"
                         value={form.contact}
                         onChange={(e) => setForm({ ...form, contact: e.target.value })}
                       />
@@ -622,7 +638,7 @@ export function UmrahPackageDetailPage({ initialPackage = null }) {
                   </button>
                   <button type="button" className="upd-call-btn" onClick={handleCall}>
                     <Phone size={13} />
-                    <span>Call +92 300 1234567</span>
+                    <span>Call {COMPANY_CONFIG.phone}</span>
                   </button>
                 </div>
               </div>

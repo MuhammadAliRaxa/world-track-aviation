@@ -7,6 +7,7 @@ import { umrahService } from '../../../services';
 import { AppBar, Footer, Modals, WhatsAppIcon } from '../../../shared';
 import { COMPANY_CONFIG } from '../../../config/company';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
+import { openGroupUmrahWhatsApp } from '../utils/groupUmrahWhatsApp';
 
 export function GroupUmrahPage({
   initialPackages = [],
@@ -459,7 +460,8 @@ export function GroupUmrahPage({
                       </span>
                       <button
                         type="button"
-                        onClick={() => router.push(`/umrah-packages/${pkg.id || 'luxury-ramadan'}`)}
+                        onClick={() => openGroupUmrahWhatsApp(pkg)}
+                        aria-label={`Book ${pkg.sector || 'Group Umrah Package'} on WhatsApp`}
                         style={{
                           background: '#0284c7',
                           color: '#ffffff',
@@ -470,9 +472,13 @@ export function GroupUmrahPage({
                           fontWeight: 600,
                           cursor: 'pointer',
                           boxShadow: '0 2px 4px rgba(2,132,199,0.2)',
-                          whiteSpace: 'nowrap'
+                          whiteSpace: 'nowrap',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
                         }}
                       >
+                        <WhatsAppIcon size={14} color="#ffffff" />
                         Book Now
                       </button>
                     </div>

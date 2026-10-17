@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { buildMetadata } from '@/lib/seo';
 import { hotelService } from '@/services/hotel.service';
 import { HotelDetailPage } from '@/features/hotels/components/HotelDetailPage';
@@ -38,6 +39,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     hotelService.getHotelById(id),
   ]);
 
+  if (!rawHotel && !normalizedHotel) {
+    return buildMetadata({
+      pageKey: 'hotels',
+      fallbackTitle: 'Hotel Not Found | World Track Aviation',
+      fallbackDescription: 'The requested hotel could not be found.',
+    });
+  }
+
   const preferredSlug = rawHotel?.seo?.url_slug || (normalizedHotel as any)?.slug || id;
 
   return buildMetadata({
@@ -57,6 +66,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const { id } = await params;
   const hotel = await hotelService.getHotelById(id);
+
+  if (!hotel) {
+    notFound();
+  }
 
   const breadcrumbs = [
     { name: 'Home', path: '/' },

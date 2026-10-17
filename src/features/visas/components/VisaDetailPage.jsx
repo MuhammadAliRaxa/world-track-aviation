@@ -332,7 +332,7 @@ export function VisaDetailPage({ initialVisa = null }) {
                   <input
                     type="text"
                     required
-                    placeholder="John Doe"
+                    placeholder="Muhammad Ali"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="compact-input"
@@ -344,7 +344,7 @@ export function VisaDetailPage({ initialVisa = null }) {
                   <input
                     type="email"
                     required
-                    placeholder="john@example.com"
+                    placeholder="muhammad.ali@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="compact-input"
@@ -356,7 +356,7 @@ export function VisaDetailPage({ initialVisa = null }) {
                   <input
                     type="tel"
                     required
-                    placeholder="13445665432"
+                    placeholder="+92 300 1234567"
                     value={contact}
                     onChange={(e) => setContact(e.target.value)}
                     className="compact-input"
@@ -429,9 +429,9 @@ export function VisaDetailPage({ initialVisa = null }) {
                 <span>Chat on WhatsApp</span>
               </button>
 
-              <a href="tel:+923001234567" className="visa-phone-btn">
+              <a href={`tel:${COMPANY_CONFIG.phoneRaw}`} className="visa-phone-btn">
                 <Phone size={13} />
-                <span>Call +92 300 1234567</span>
+                <span>Call {COMPANY_CONFIG.phone}</span>
               </a>
             </div>
           </div>
