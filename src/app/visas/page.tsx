@@ -23,8 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const [paginatedData, countries, pageSeo] = await Promise.all([
+  const [paginatedData, visaLookups, countries, pageSeo] = await Promise.all([
     visaService.getVisasPaginated(),
+    visaService.getVisaLookups(),
     visaService.getVisaCountries(),
     fetchPageSeo('visas'),
   ]);
@@ -40,6 +41,7 @@ export default async function Page() {
       <VisasPage
         initialVisas={paginatedData.visas}
         initialPagination={paginatedData.pagination}
+        initialVisaLookups={visaLookups}
         initialCountries={countries}
         h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
         heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}

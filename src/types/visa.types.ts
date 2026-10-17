@@ -67,6 +67,8 @@ export interface VisaFilterParams {
   category?: string;
   searchQuery?: string;
   country?: string;
+  visa_type?: string;
+  duration?: string;
   price_range?: string;
   entryType?: string[];
   processingTime?: string[];

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Filter,
@@ -28,6 +28,7 @@ import {
 export function VisasPage({
   initialVisas = [],
   initialPagination = undefined,
+  initialVisaLookups = null,
   initialCountries = [],
   h1 = 'Umrah and Visit Visa Services',
   heroIntro = "Whether you need an Umrah visa or a tourist visa for another country, every application goes through a document check before it's submitted, so avoidable mistakes get caught early. Pick your visa type below to see processing time and price.",
@@ -46,33 +47,113 @@ export function VisasPage({
     },
   );
 
-  // Use API-driven countries if available, fall back to static list
-  const [countries, setCountries] = useState(
-    initialCountries && initialCountries.length > 1
-      ? initialCountries
-      : VISA_COUNTRIES_FILTER
-  );
+  const [visaLookups, setVisaLookups] = useState(initialVisaLookups);
 
   useEffect(() => {
-    if (initialCountries && initialCountries.length > 1) {
-      setCountries(initialCountries);
+    if (
+      initialVisaLookups &&
+      (initialVisaLookups.countries?.length > 0 ||
+        initialVisaLookups.visa_types?.length > 0 ||
+        initialVisaLookups.durations?.length > 0)
+    ) {
+      setVisaLookups(initialVisaLookups);
       return;
     }
     let isMounted = true;
-    visaService.getVisaCountries().then((list) => {
-      if (isMounted && Array.isArray(list) && list.length > 1) {
-        setCountries(list);
+    visaService.getVisaLookups().then((lookups) => {
+      if (isMounted && lookups) {
+        setVisaLookups(lookups);
       }
     });
-    return () => { isMounted = false; };
-  }, [initialCountries]);
+    return () => {
+      isMounted = false;
+    };
+  }, [initialVisaLookups]);
+
+  // Derive countries list from API lookups, fallback to initialCountries / static
+  const countries = useMemo(() => {
+    const list = [{ key: 'all', label: 'All Countries', count: 0 }];
+    const apiCountries = visaLookups?.countries || [];
+    if (Array.isArray(apiCountries) && apiCountries.length > 0) {
+      apiCountries.forEach((c) => {
+        const val = typeof c === 'string' ? c : (c.value || c.name || c.country || '');
+        if (val) {
+          list.push({
+            key: val.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            label: val,
+            count: typeof c.visas_count === 'number' ? c.visas_count : (c.count || 0),
+          });
+        }
+      });
+      return list;
+    }
+    if (Array.isArray(initialCountries) && initialCountries.length > 1) {
+      return initialCountries;
+    }
+    return VISA_COUNTRIES_FILTER;
+  }, [visaLookups, initialCountries]);
+
+  // Derive visa types list from API lookups
+  const visaTypes = useMemo(() => {
+    const list = [{ key: 'all', label: 'All Types', count: 0 }];
+    const apiTypes = visaLookups?.visa_types || [];
+    if (Array.isArray(apiTypes) && apiTypes.length > 0) {
+      apiTypes.forEach((t) => {
+        const val = typeof t === 'string' ? t : (t.value || t.name || t.visa_type || '');
+        if (val) {
+          list.push({
+            key: val.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            label: val,
+            count: typeof t.visas_count === 'number' ? t.visas_count : (t.count || 0),
+          });
+        }
+      });
+      return list;
+    }
+    return [
+      { key: 'all', label: 'All Types', count: 0 },
+      { key: 'e-visa', label: 'E-Visa', count: 0 },
+      { key: 'visit-visa', label: 'Visit Visa', count: 0 },
+    ];
+  }, [visaLookups]);
+
+  // Derive durations list from API lookups
+  const durations = useMemo(() => {
+    const list = [{ key: 'all', label: 'All Durations', count: 0 }];
+    const apiDurations = visaLookups?.durations || [];
+    if (Array.isArray(apiDurations) && apiDurations.length > 0) {
+      apiDurations.forEach((d) => {
+        const val = typeof d === 'string' ? d : (d.value || d.name || d.duration || '');
+        if (val) {
+          list.push({
+            key: val.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            label: val,
+            count: typeof d.visas_count === 'number' ? d.visas_count : (d.count || 0),
+          });
+        }
+      });
+      return list;
+    }
+    return [
+      { key: 'all', label: 'All Durations', count: 0 },
+      { key: '30-days', label: '30 Days', count: 0 },
+      { key: '60-days', label: '60 Days', count: 0 },
+      { key: '90-days', label: '90 Days', count: 0 },
+    ];
+  }, [visaLookups]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 800);
   const [selectedCountry, setSelectedCountry] = useState('all');
+  const [selectedVisaType, setSelectedVisaType] = useState('all');
+  const [selectedDuration, setSelectedDuration] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
+
   const debouncedCountry = useDebounce(selectedCountry, 800);
+  const debouncedVisaType = useDebounce(selectedVisaType, 800);
+  const debouncedDuration = useDebounce(selectedDuration, 800);
   const debouncedPrice = useDebounce(selectedPrice, 800);
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -97,10 +178,17 @@ export function VisasPage({
     window.open(COMPANY_CONFIG.getWhatsAppUrl('Hi, I need assistance with custom group visa booking. Please assist.'), '_blank');
   };
 
-  const hasFilters = selectedCountry !== 'all' || selectedPrice !== 'all' || searchQuery.trim() !== '';
+  const hasFilters =
+    selectedCountry !== 'all' ||
+    selectedVisaType !== 'all' ||
+    selectedDuration !== 'all' ||
+    selectedPrice !== 'all' ||
+    searchQuery.trim() !== '';
 
   const clearAll = () => {
     setSelectedCountry('all');
+    setSelectedVisaType('all');
+    setSelectedDuration('all');
     setSelectedPrice('all');
     setSearchQuery('');
   };
@@ -112,13 +200,29 @@ export function VisasPage({
     if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
 
     if (debouncedCountry !== 'all') {
-      // Look up the full country name from the countries list
-      const countryObj = countries.find(c => c.key === debouncedCountry);
+      const countryObj = countries.find((c) => c.key === debouncedCountry);
       if (countryObj && countryObj.key !== 'all') {
         filters.country = countryObj.label;
       } else {
-        // Direct key match for API-driven countries
         filters.country = debouncedCountry;
+      }
+    }
+
+    if (debouncedVisaType !== 'all') {
+      const typeObj = visaTypes.find((t) => t.key === debouncedVisaType);
+      if (typeObj && typeObj.key !== 'all') {
+        filters.visa_type = typeObj.label;
+      } else {
+        filters.visa_type = debouncedVisaType;
+      }
+    }
+
+    if (debouncedDuration !== 'all') {
+      const durObj = durations.find((d) => d.key === debouncedDuration);
+      if (durObj && durObj.key !== 'all') {
+        filters.duration = durObj.label;
+      } else {
+        filters.duration = debouncedDuration;
       }
     }
 
@@ -161,7 +265,7 @@ export function VisasPage({
       });
 
     return () => { active = false; };
-  }, [debouncedSearch, debouncedCountry, debouncedPrice]);
+  }, [debouncedSearch, debouncedCountry, debouncedVisaType, debouncedDuration, debouncedPrice]);
 
   // Page Change handler
   const handlePageChange = async (targetPage) => {
@@ -300,7 +404,7 @@ export function VisasPage({
                   <div className="vp-sb-sec-head">
                     <span className="vp-sb-sec-title">COUNTRIES</span>
                     <span className="vp-sb-sec-sub">
-                      {countries.filter(c => c.key !== 'all').length} destinations
+                      {countries.filter((c) => c.key !== 'all').length} destinations
                     </span>
                   </div>
 
@@ -336,7 +440,89 @@ export function VisasPage({
                   </div>
                 </div>
 
-                {/* Section 2: PRICE RANGE */}
+                {/* Section 2: VISA TYPES */}
+                <div className="vp-sb-section">
+                  <div className="vp-sb-sec-head">
+                    <span className="vp-sb-sec-title">VISA TYPES</span>
+                    <span className="vp-sb-sec-sub">
+                      {visaTypes.filter((t) => t.key !== 'all').length} types
+                    </span>
+                  </div>
+
+                  <div className="vp-sb-radio-list">
+                    {visaTypes.map((t) => {
+                      const isChecked = selectedVisaType === t.key;
+                      const count = t.key === 'all' ? totalCount : (t.count || 0);
+                      return (
+                        <label key={t.key} className="vp-sb-radio-row">
+                          <div className="vp-sb-radio-left">
+                            <input
+                              type="radio"
+                              name="visa-type"
+                              className="vp-sb-radio"
+                              checked={isChecked}
+                              onChange={() => {
+                                setSelectedVisaType(t.key);
+                                setMobileOpen(false);
+                              }}
+                            />
+                            <span
+                              className={`vp-sb-radio-label ${
+                                isChecked ? 'vp-sb-radio-label-active' : ''
+                              }`}
+                            >
+                              {t.label}
+                            </span>
+                          </div>
+                          {count > 0 && <span className="vp-sb-count">{count}</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section 3: DURATION */}
+                <div className="vp-sb-section">
+                  <div className="vp-sb-sec-head">
+                    <span className="vp-sb-sec-title">DURATION</span>
+                    <span className="vp-sb-sec-sub">
+                      {durations.filter((d) => d.key !== 'all').length} durations
+                    </span>
+                  </div>
+
+                  <div className="vp-sb-radio-list">
+                    {durations.map((d) => {
+                      const isChecked = selectedDuration === d.key;
+                      const count = d.key === 'all' ? totalCount : (d.count || 0);
+                      return (
+                        <label key={d.key} className="vp-sb-radio-row">
+                          <div className="vp-sb-radio-left">
+                            <input
+                              type="radio"
+                              name="visa-duration"
+                              className="vp-sb-radio"
+                              checked={isChecked}
+                              onChange={() => {
+                                setSelectedDuration(d.key);
+                                setMobileOpen(false);
+                              }}
+                            />
+                            <span
+                              className={`vp-sb-radio-label ${
+                                isChecked ? 'vp-sb-radio-label-active' : ''
+                              }`}
+                            >
+                              {d.label}
+                            </span>
+                          </div>
+                          {count > 0 && <span className="vp-sb-count">{count}</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section 4: PRICE RANGE */}
                 <div className="vp-sb-section">
                   <div className="vp-sb-sec-head">
                     <span className="vp-sb-sec-title">PRICE RANGE</span>
