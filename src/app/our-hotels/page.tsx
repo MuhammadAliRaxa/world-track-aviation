@@ -22,9 +22,18 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function Page() {
+interface PageProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function Page({ searchParams }: PageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const rawPage = resolvedSearchParams?.page;
+  const pageParam = typeof rawPage === 'string' ? parseInt(rawPage, 10) : 1;
+  const initialPage = !isNaN(pageParam) && pageParam > 0 ? pageParam : 1;
+
   const [paginatedData, lookups, faqs, pageSeo] = await Promise.all([
-    hotelService.getHotelsPaginated({ perPage: 12, nextPage: 1 }),
+    hotelService.getHotelsPaginated({ perPage: 12, nextPage: initialPage }),
     hotelService.getHotelLookups(),
     hotelService.getHotelFaqs({ category: 'Hotel' }),
     fetchPageSeo('hotels'),
@@ -56,6 +65,7 @@ export default async function Page() {
         initialPagination={paginatedData.pagination}
         initialLookups={lookups}
         initialFaqs={faqs}
+        initialPage={initialPage}
         h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
         heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
       />

@@ -183,6 +183,18 @@ export function HotelDetailPage({ initialHotel = null }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
 
+  const handleBackToHotels = () => {
+    let target = '/our-hotels';
+    try {
+      const savedPage = typeof window !== 'undefined' ? sessionStorage.getItem('hotels_page') : null;
+      const num = parseInt(savedPage || '1', 10);
+      if (!isNaN(num) && num > 1) {
+        target = `/our-hotels?page=${num}`;
+      }
+    } catch {}
+    router.push(target);
+  };
+
   const handleInquirySubmit = async (e) => {
     e.preventDefault();
     try {
@@ -320,13 +332,13 @@ export function HotelDetailPage({ initialHotel = null }) {
           <button
             type="button"
             className="breadcrumb-back-capsule"
-            onClick={() => router.push('/#hotels')}
+            onClick={handleBackToHotels}
           >
             <ArrowLeft size={13} />
             <span>All Hotels</span>
           </button>
           <span className="breadcrumb-slash">/</span>
-          <span className="breadcrumb-nav-link" onClick={() => router.push('/#hotels')}>Hotels</span>
+          <span className="breadcrumb-nav-link" onClick={handleBackToHotels}>Hotels</span>
           <span className="breadcrumb-slash">/</span>
           <span className="breadcrumb-nav-link">{hotel.category}</span>
           <span className="breadcrumb-slash">/</span>
@@ -871,7 +883,7 @@ export function HotelDetailPage({ initialHotel = null }) {
             <button
               type="button"
               className="view-all-link-btn"
-              onClick={() => router.push('/#hotels')}
+              onClick={handleBackToHotels}
               style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: '#0ea5e9', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
             >
               View All Properties <ArrowRight size={14} />

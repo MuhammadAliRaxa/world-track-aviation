@@ -186,7 +186,9 @@ export const hotelService = {
    */
   async getHotels(filters?: HotelFilterParams): Promise<Hotel[]> {
     try {
-      const apiFilters: ApiHotelFilters = {};
+      const apiFilters: ApiHotelFilters = {
+        perPage: 50,
+      };
       if (typeof filters?.available_only === 'boolean') {
         apiFilters.available_only = filters.available_only;
       }
@@ -216,8 +218,24 @@ export const hotelService = {
         }
       }
 
-      const { hotels } = await fetchHotelListing(apiFilters);
-      let result = hotels.map(normalizeHotelDetail).filter(Boolean) as unknown as Hotel[];
+      const firstPage = await fetchHotelListing(apiFilters);
+      const allHotels = [...(firstPage.hotels || [])];
+
+      const totalPages = firstPage.pagination?.total_pages || 1;
+      if (totalPages > 1) {
+        const remainingPromises = [];
+        for (let p = 2; p <= totalPages; p++) {
+          remainingPromises.push(fetchHotelListing({ ...apiFilters, nextPage: p }));
+        }
+        const remainingPages = await Promise.all(remainingPromises);
+        remainingPages.forEach((pg) => {
+          if (Array.isArray(pg.hotels)) {
+            allHotels.push(...pg.hotels);
+          }
+        });
+      }
+
+      let result = allHotels.map(normalizeHotelDetail).filter(Boolean) as unknown as Hotel[];
 
       return result;
     } catch {

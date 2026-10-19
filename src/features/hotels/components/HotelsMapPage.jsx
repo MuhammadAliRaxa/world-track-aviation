@@ -65,17 +65,22 @@ function normalizeMapHotel(hotel, index) {
   let lat = parseFloat(hotel.lat || hotel.latitude);
   let lng = parseFloat(hotel.lng || hotel.longitude);
 
+  let initialDist = 0;
+  if (!isNaN(lat) && !isNaN(lng)) {
+    initialDist = getHaversineDistanceMeters(lat, lng, sanctuaryCenter[0], sanctuaryCenter[1]);
+  }
+
   const hasValidCoordinates =
     !isNaN(lat) &&
     !isNaN(lng) &&
     lat !== 0 &&
     lng !== 0 &&
-    (Math.abs(lat) >= 0.1 || Math.abs(lng) >= 0.1);
+    initialDist < 30000; // Within 30km of the sanctuary
 
   if (!hasValidCoordinates) {
     // Elegant procedural fallback in golden angle spiral around sanctuary
     const angle = (index || 0) * 2.39996323;
-    const radius = 0.0015 + ((index || 0) % 7) * 0.0008;
+    const radius = 0.0035 + ((index || 0) % 7) * 0.0012;
     lat = sanctuaryCenter[0] + Math.cos(angle) * radius;
     lng = sanctuaryCenter[1] + Math.sin(angle) * radius;
   }

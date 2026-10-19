@@ -10,6 +10,15 @@ export function HotelCard({ hotel }) {
   const router = useRouter();
 
   const handleSelectHotel = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const p = urlParams.get('page');
+        if (p) {
+          sessionStorage.setItem('hotels_page', p);
+        }
+      }
+    } catch {}
     const target = hotel.slug || hotel?.seo?.url_slug || hotel.id;
     router.push(`/our-hotels/${target}/`);
   };

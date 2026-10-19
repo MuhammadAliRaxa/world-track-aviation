@@ -62,6 +62,7 @@ export function HotelsPage({
   initialPagination = undefined,
   initialLookups = null,
   initialFaqs = [],
+  initialPage = 1,
   h1 = 'Hotel Booking in Makkah & Madinah',
   heroIntro = 'Every hotel listed here is checked by our team before it goes live. Use the filters to sort by price, star rating, or distance from the Haram, and book with instant confirmation.',
 }) {
@@ -71,7 +72,7 @@ export function HotelsPage({
   const [hotels, setHotels] = useState(() => normalizeHotels(initialHotels));
   const [pagination, setPagination] = useState(
     initialPagination || {
-      current_page: 1,
+      current_page: initialPage || 1,
       per_page: 12,
       total_pages: 1,
       total_records: initialHotels.length,
@@ -88,9 +89,6 @@ export function HotelsPage({
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [selectedRoomTypes, setSelectedRoomTypes] = useState([]);
-  const debouncedCategories = useDebounce(selectedCategories, 800);
-  const debouncedFacilities = useDebounce(selectedFacilities, 800);
-  const debouncedRoomTypes = useDebounce(selectedRoomTypes, 800);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -183,8 +181,8 @@ export function HotelsPage({
     }
 
     // Category → hotel_category ("5 Star", "4 Star", etc.) and hotel_rating (5, 4, etc.)
-    if (debouncedCategories.length > 0) {
-      const selectedCat = debouncedCategories[debouncedCategories.length - 1];
+    if (selectedCategories.length > 0) {
+      const selectedCat = selectedCategories[selectedCategories.length - 1];
       filters.hotel_category = selectedCat;
       const starMatch = selectedCat.match(/^(\d)/);
       if (starMatch) {
@@ -192,12 +190,12 @@ export function HotelsPage({
       }
     }
 
-    if (debouncedFacilities.length > 0) {
-      filters.hotel_facilities = debouncedFacilities;
+    if (selectedFacilities.length > 0) {
+      filters.hotel_facilities = selectedFacilities;
     }
 
-    if (debouncedRoomTypes.length > 0) {
-      filters.room_types = debouncedRoomTypes;
+    if (selectedRoomTypes.length > 0) {
+      filters.room_types = selectedRoomTypes;
     }
 
     filters.nextPage = page;
@@ -205,14 +203,54 @@ export function HotelsPage({
     return filters;
   };
 
-  // ── Skip first mount refetch when SSR data is available ──
-  const isFirstMount = useRef(true);
+  // ── Track last applied filters to prevent reset to page 1 on mount or non-filter updates ──
+  const lastFiltersRef = useRef({
+    search: '',
+    city: 'all',
+    price: 'all',
+    categories: '',
+    facilities: '',
+    roomTypes: '',
+  });
 
+  // ── Filter change effect (resets to page 1 ONLY when user actively changes a filter) ──
   useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
+    const currentCatStr = selectedCategories.slice().sort().join(',');
+    const currentFacStr = selectedFacilities.slice().sort().join(',');
+    const currentRoomStr = selectedRoomTypes.slice().sort().join(',');
+
+    const hasChanged =
+      lastFiltersRef.current.search !== debouncedSearch ||
+      lastFiltersRef.current.city !== selectedCity ||
+      lastFiltersRef.current.price !== selectedPrice ||
+      lastFiltersRef.current.categories !== currentCatStr ||
+      lastFiltersRef.current.facilities !== currentFacStr ||
+      lastFiltersRef.current.roomTypes !== currentRoomStr;
+
+    if (!hasChanged) {
       return;
     }
+
+    lastFiltersRef.current = {
+      search: debouncedSearch,
+      city: selectedCity,
+      price: selectedPrice,
+      categories: currentCatStr,
+      facilities: currentFacStr,
+      roomTypes: currentRoomStr,
+    };
+
+    // User explicitly changed a filter: reset URL to page 1 and clear storage
+    try {
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('page')) {
+          url.searchParams.delete('page');
+          router.replace(url.pathname, { scroll: false });
+        }
+        sessionStorage.removeItem('hotels_page');
+      }
+    } catch {}
 
     let active = true;
     setIsLoading(true);
@@ -231,7 +269,75 @@ export function HotelsPage({
       });
 
     return () => { active = false; };
-  }, [debouncedSearch, selectedCity, selectedPrice, debouncedCategories, debouncedFacilities, debouncedRoomTypes]);
+  }, [debouncedSearch, selectedCity, selectedPrice, selectedCategories, selectedFacilities, selectedRoomTypes]);
+
+  // ── Restore page on client mount if URL or sessionStorage has page > 1 ──
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let targetPage = parseInt(urlParams.get('page') || '', 10);
+    if (isNaN(targetPage) || targetPage < 1) {
+      const saved = sessionStorage.getItem('hotels_page');
+      const savedNum = parseInt(saved || '', 10);
+      if (!isNaN(savedNum) && savedNum > 1) {
+        targetPage = savedNum;
+        router.replace(`/our-hotels?page=${targetPage}`, { scroll: false });
+      }
+    }
+
+    if (!isNaN(targetPage) && targetPage > 1 && Number(pagination?.current_page) !== targetPage) {
+      setIsLoading(true);
+      hotelService
+        .getHotelsPaginated(buildApiFilters(targetPage))
+        .then((res) => {
+          setHotels(normalizeHotels(res.hotels));
+          setPagination(res.pagination);
+        })
+        .catch((err) => {
+          console.error('[HotelsPage] restore page error:', err);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, []);
+
+  // ── Popstate handler for browser back/forward buttons ──
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const pageNum = parseInt(params.get('page') || '1', 10);
+      const target = !isNaN(pageNum) && pageNum > 0 ? pageNum : 1;
+      if (target !== Number(pagination?.current_page || 1)) {
+        setIsLoading(true);
+        hotelService
+          .getHotelsPaginated(buildApiFilters(target))
+          .then((res) => {
+            setHotels(normalizeHotels(res.hotels));
+            setPagination(res.pagination);
+            try {
+              if (target > 1) {
+                sessionStorage.setItem('hotels_page', String(target));
+              } else {
+                sessionStorage.removeItem('hotels_page');
+              }
+            } catch {}
+          })
+          .catch((err) => {
+            console.error('[HotelsPage] popstate page error:', err);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [pagination?.current_page, debouncedSearch, selectedCity, selectedPrice, selectedCategories, selectedFacilities, selectedRoomTypes]);
 
   // ── Page Change handler ──
   const handlePageChange = async (targetPage) => {
@@ -253,6 +359,17 @@ export function HotelsPage({
       const res = await hotelService.getHotelsPaginated(buildApiFilters(targetPage));
       setHotels(normalizeHotels(res.hotels));
       setPagination(res.pagination);
+
+      // Update URL and storage
+      const targetUrl = targetPage > 1 ? `/our-hotels?page=${targetPage}` : '/our-hotels';
+      router.replace(targetUrl, { scroll: false });
+      try {
+        if (targetPage > 1) {
+          sessionStorage.setItem('hotels_page', String(targetPage));
+        } else {
+          sessionStorage.removeItem('hotels_page');
+        }
+      } catch {}
 
       if (resultsHeadRef.current) {
         resultsHeadRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, ArrowRight } from 'lucide-react';
+import { Clock, Globe, CalendarDays } from 'lucide-react';
 
 const DEFAULT_VISA_IMAGE = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80';
 
@@ -51,6 +51,10 @@ export function VisaCard({ visa }) {
     .replace(/^processing\s*time\s*:?\s*/i, '')
     .replace(/\s*-\s*/g, '-')
     .toLowerCase();
+
+  // Entry type and validity
+  const entryType = visa.entry_type || visa.entryType || visa.specs?.entryType || null;
+  const validity = visa.validity || visa.specs?.validity || null;
 
   const imageUrl = getVisaImage(visa);
   const displayTitle = visa.title || visa.name || (visa.country ? `${visa.country} Visit Visa` : 'Tourist Visit Visa');
@@ -102,6 +106,22 @@ export function VisaCard({ visa }) {
           <Clock size={14} className="visa-clock-icon" strokeWidth={2.4} />
           <span>Processing time {formattedDuration}</span>
         </div>
+
+        {/* Entry Type */}
+        {entryType && (
+          <div className="visa-processing-row">
+            <Globe size={14} className="visa-clock-icon" strokeWidth={2.4} />
+            <span>{entryType}</span>
+          </div>
+        )}
+
+        {/* Validity */}
+        {validity && (
+          <div className="visa-processing-row">
+            <CalendarDays size={14} className="visa-clock-icon" strokeWidth={2.4} />
+            <span>Validity {validity}</span>
+          </div>
+        )}
 
         {/* Price and View Details Action */}
         <div className="visa-pricing-action-row">
