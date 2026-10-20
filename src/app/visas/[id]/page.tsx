@@ -13,7 +13,14 @@ interface Props {
 export async function generateStaticParams() {
   const visas = await visaService.getVisas();
   if (!Array.isArray(visas)) return [];
-  return visas.map((v) => ({ id: String(v.id) }));
+  const params: { id: string }[] = [];
+  visas.forEach((v) => {
+    params.push({ id: String(v.id) });
+    if (v.seo?.url_slug && v.seo.url_slug !== String(v.id)) {
+      params.push({ id: v.seo.url_slug });
+    }
+  });
+  return params;
 }
 
 export const revalidate = 86400; // 24 hours ISR

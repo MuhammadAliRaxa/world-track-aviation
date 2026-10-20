@@ -138,19 +138,18 @@ export const visaService = {
    */
   async getVisas(filters?: VisaFilterParams): Promise<VisaItem[]> {
     try {
-      const apiFilters: ApiVisaFilters = {};
+      const apiFilters: ApiVisaFilters = {
+        perPage: filters?.perPage || 50,
+      };
 
       if (filters) {
         if (filters.searchQuery?.trim()) apiFilters.search = filters.searchQuery.trim();
         if (filters.country) apiFilters.country = filters.country;
         if (filters.price_range) apiFilters.price_range = filters.price_range;
         if (filters.nextPage) apiFilters.nextPage = filters.nextPage;
-        if (filters.perPage) apiFilters.perPage = filters.perPage;
       }
 
-      const { visas } = await this.getVisasPaginated(
-        Object.keys(apiFilters).length > 0 ? apiFilters : undefined,
-      );
+      const { visas } = await this.getVisasPaginated(apiFilters);
 
       // Client-side category filter (backwards compat)
       let result = visas;
@@ -170,15 +169,61 @@ export const visaService = {
 
   /**
    * Fetch a single visa item by ID / slug.
+   * Scalable for 100+ pages:
+   * 1. If slug is provided (e.g. "indonesia-5-year-business-evisa"), queries the backend directly
+   *    filtered by country, instantly narrowing thousands of records to one country in 1 request.
+   * 2. Otherwise fetches with maximum allowed perPage (50).
+   * 3. Paginate remaining pages with a safe bound to prevent hanging.
    */
   async getVisaById(id: string): Promise<VisaItem | null> {
     try {
-      const res = await apiPost<ApiVisa[]>('/visa/list', {}, { cache: 'no-store' } as RequestInit);
+      const cleanId = String(id).trim();
+
+      // 1. If it's an SEO slug, extract country (first slug segment) for instant 1-query lookup
+      const isSlug = !/^\d+$/.test(cleanId);
+      if (isSlug) {
+        const potentialCountry = cleanId.split('-')[0];
+        if (potentialCountry && potentialCountry.length > 2) {
+          const countryRes = await apiPost<ApiVisa[]>(
+            '/visa/list',
+            { filters: { country: potentialCountry, perPage: 50 } },
+            { cache: 'no-store' } as RequestInit
+          );
+          const countryList = Array.isArray(countryRes.data) ? countryRes.data : [];
+          const found = countryList.find(
+            (v) => String(v.id) === cleanId || (v.seo as any)?.url_slug === cleanId,
+          );
+          if (found) return normalizeVisaDetail(found);
+        }
+      }
+
+      // 2. Query with perPage: 50 (maximum allowed by API)
+      const res = await apiPost<ApiVisa[]>(
+        '/visa/list',
+        { filters: { perPage: 50 } },
+        { cache: 'no-store' } as RequestInit
+      );
       const list = Array.isArray(res.data) ? res.data : [];
-      const found = list.find(
-        (v) => String(v.id) === id || (v.seo as any)?.url_slug === id,
+      let found = list.find(
+        (v) => String(v.id) === cleanId || (v.seo as any)?.url_slug === cleanId,
       );
       if (found) return normalizeVisaDetail(found);
+
+      // 3. Fallback for numeric IDs: Iterate remaining pages up to max 10 pages
+      const totalPages = Math.min(res.pagination?.total_pages || 1, 10);
+      for (let p = 2; p <= totalPages; p++) {
+        const nextRes = await apiPost<ApiVisa[]>(
+          '/visa/list',
+          { filters: { nextPage: p, perPage: 50 } },
+          { cache: 'no-store' } as RequestInit
+        );
+        const nextList = Array.isArray(nextRes.data) ? nextRes.data : [];
+        found = nextList.find(
+          (v) => String(v.id) === cleanId || (v.seo as any)?.url_slug === cleanId,
+        );
+        if (found) return normalizeVisaDetail(found);
+      }
+
       return null;
     } catch {
       return null;
