@@ -9,7 +9,6 @@ import {
   Calendar,
   LogIn,
   FileText,
-  CreditCard,
   Tag,
   Check,
   Phone,
@@ -36,6 +35,95 @@ const formatPrice = (p) => {
   }
   return str || 'Contact for Price';
 };
+
+function VisaSpecsCard({ visa, className = '' }) {
+  return (
+    <div className={`visa-specs-card ${className}`.trim()}>
+      <span className="visa-specs-eyebrow">
+        {visa.eyebrow || visa.country?.toUpperCase() || 'AZERBAIJAN'}
+      </span>
+      <h2 className="visa-specs-title">
+        {visa.detailTitle || visa.heroTitle || visa.title}
+      </h2>
+      <p className="visa-specs-subtitle">
+        {visa.detailDesc ||
+          'Official ASAN e-Visa for Baku explorations, Gabala mountain excursions, and Caspian Sea holidays'}
+      </p>
+
+      <div className="visa-specs-list">
+        {/* Processing Time */}
+        <div className="visa-spec-row">
+          <div className="visa-spec-left">
+            <Clock size={15} className="visa-spec-icon" />
+            <span>Processing Time</span>
+          </div>
+          <div className="visa-spec-value">
+            {visa.specs?.processingTime || visa.duration || '3 Working Days'}
+          </div>
+        </div>
+
+        {/* Stay Duration */}
+        <div className="visa-spec-row">
+          <div className="visa-spec-left">
+            <Calendar size={15} className="visa-spec-icon" />
+            <span>Stay Duration</span>
+          </div>
+          <div className="visa-spec-value">
+            {visa.specs?.stayDuration || visa.stayDuration || '30 Days'}
+          </div>
+        </div>
+
+        {/* Entry Type */}
+        <div className="visa-spec-row">
+          <div className="visa-spec-left">
+            <LogIn size={15} className="visa-spec-icon" />
+            <span>Entry Type</span>
+          </div>
+          <div className="visa-spec-value">
+            {visa.specs?.entryType || 'Single Entry'}
+          </div>
+        </div>
+
+        {/* Validity */}
+        <div className="visa-spec-row">
+          <div className="visa-spec-left">
+            <FileText size={15} className="visa-spec-icon" />
+            <span>Validity</span>
+          </div>
+          <div className="visa-spec-value">
+            {visa.specs?.validity || visa.validity || '90 Days'}
+          </div>
+        </div>
+
+        {/* Visa Type */}
+        <div className="visa-spec-row">
+          <div className="visa-spec-left">
+            <PassportIcon size={15} className="visa-spec-icon" />
+            <span>Visa Type</span>
+          </div>
+          <div className="visa-spec-value">
+            {visa.specs?.visaType || visa.processingType || 'Electronic ASAN Visa'}
+          </div>
+        </div>
+
+        {/* Price */}
+        <div className="visa-spec-row visa-spec-price-row">
+          <div className="visa-spec-left">
+            <Tag size={15} className="visa-spec-icon" />
+            <span>Price</span>
+          </div>
+          <div className="visa-spec-value">
+            <span className="visa-usd-bold">
+              {formatPrice(
+                visa.specs?.price || visa.specs?.pricePKR || visa.pricePKR || visa.rate || visa.price
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function VisaDetailPage({ initialVisa = null }) {
   const { id } = useParams();
@@ -196,6 +284,9 @@ export function VisaDetailPage({ initialVisa = null }) {
             />
           </div>
 
+          {/* Visa Specification Summary Card — Displayed above description in mobile view */}
+          <VisaSpecsCard visa={visa} className="visa-specs-card--mobile" />
+
           {/* About Section */}
           <section className="visa-detail-section">
             <h2 className="visa-section-heading">
@@ -217,91 +308,8 @@ export function VisaDetailPage({ initialVisa = null }) {
 
         {/* Right Column: Sticky Sidebar with 3 Cards */}
         <aside className="visa-detail-sidebar">
-          {/* 1. Visa Specification Summary Card */}
-          <div className="visa-specs-card">
-            <span className="visa-specs-eyebrow">
-              {visa.eyebrow || visa.country?.toUpperCase() || 'AZERBAIJAN'}
-            </span>
-            <h2 className="visa-specs-title">
-              {visa.detailTitle || visa.heroTitle || visa.title}
-            </h2>
-            <p className="visa-specs-subtitle">
-              {visa.detailDesc ||
-                'Official ASAN e-Visa for Baku explorations, Gabala mountain excursions, and Caspian Sea holidays'}
-            </p>
-
-            <div className="visa-specs-list">
-              {/* Processing Time */}
-              <div className="visa-spec-row">
-                <div className="visa-spec-left">
-                  <Clock size={15} className="visa-spec-icon" />
-                  <span>Processing Time</span>
-                </div>
-                <div className="visa-spec-value">
-                  {visa.specs?.processingTime || visa.duration || '3 Working Days'}
-                </div>
-              </div>
-
-              {/* Stay Duration */}
-              <div className="visa-spec-row">
-                <div className="visa-spec-left">
-                  <Calendar size={15} className="visa-spec-icon" />
-                  <span>Stay Duration</span>
-                </div>
-                <div className="visa-spec-value">
-                  {visa.specs?.stayDuration || visa.stayDuration || '30 Days'}
-                </div>
-              </div>
-
-              {/* Entry Type */}
-              <div className="visa-spec-row">
-                <div className="visa-spec-left">
-                  <LogIn size={15} className="visa-spec-icon" />
-                  <span>Entry Type</span>
-                </div>
-                <div className="visa-spec-value">
-                  {visa.specs?.entryType || 'Single Entry'}
-                </div>
-              </div>
-
-              {/* Validity */}
-              <div className="visa-spec-row">
-                <div className="visa-spec-left">
-                  <FileText size={15} className="visa-spec-icon" />
-                  <span>Validity</span>
-                </div>
-                <div className="visa-spec-value">
-                  {visa.specs?.validity || visa.validity || '90 Days'}
-                </div>
-              </div>
-
-              {/* Visa Type */}
-              <div className="visa-spec-row">
-                <div className="visa-spec-left">
-                  <PassportIcon size={15} className="visa-spec-icon" />
-                  <span>Visa Type</span>
-                </div>
-                <div className="visa-spec-value">
-                  {visa.specs?.visaType || visa.processingType || 'Electronic ASAN Visa'}
-                </div>
-              </div>
-
-              {/* Price */}
-              <div className="visa-spec-row visa-spec-price-row">
-                <div className="visa-spec-left">
-                  <Tag size={15} className="visa-spec-icon" />
-                  <span>Price</span>
-                </div>
-                <div className="visa-spec-value">
-                  <span className="visa-usd-bold">
-                    {formatPrice(
-                      visa.specs?.price || visa.specs?.pricePKR || visa.pricePKR || visa.rate || visa.price
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* 1. Visa Specification Summary Card — Visible in sidebar on desktop */}
+          <VisaSpecsCard visa={visa} className="visa-specs-card--desktop" />
 
           {/* 2. "Send Us a Message" Card */}
           <div className="visa-inquiry-card">

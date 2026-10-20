@@ -3582,6 +3582,14 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
+.visa-specs-card--mobile {
+  display: none;
+}
+
+.visa-specs-card--desktop {
+  display: block;
+}
+
 .visa-specs-eyebrow {
   display: block;
   font-size: 10.5px;
@@ -3966,6 +3974,16 @@
     position: static;
   }
 
+  /* On mobile view, show specs card above description in left column, hide sidebar duplicate */
+  .visa-specs-card--mobile {
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  .visa-specs-card--desktop {
+    display: none;
+  }
+
   .visa-related-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -3978,6 +3996,11 @@
 
   .visa-featured-media {
     height: 230px;
+    margin-bottom: 18px;
+  }
+
+  .visa-specs-card {
+    padding: 20px 18px;
   }
 
   .visa-support-actions {
