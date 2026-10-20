@@ -3,6 +3,7 @@ import { buildMetadata } from '@/lib/seo';
 import { visaService } from '@/services/visa.service';
 import { VisaDetailPage } from '@/features/visas/components/VisaDetailPage';
 
+import { notFound } from 'next/navigation';
 import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
 
 interface Props {
@@ -39,6 +40,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const { id } = await params;
   const visa = await visaService.getVisaById(id);
+
+  if (!visa) {
+    notFound();
+  }
 
   const breadcrumbs = [
     { name: 'Home', path: '/' },

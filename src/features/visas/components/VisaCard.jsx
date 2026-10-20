@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Clock, Globe, CalendarDays } from 'lucide-react';
 
@@ -36,7 +37,7 @@ const getVisaImage = (visa) => {
   return DEFAULT_VISA_IMAGE;
 };
 
-export function VisaCard({ visa }) {
+function VisaCardComponent({ visa, priority = false }) {
   const router = useRouter();
 
   const slug = visa.seo?.url_slug || visa.slug || visa.id;
@@ -57,6 +58,14 @@ export function VisaCard({ visa }) {
   const validity = visa.validity || visa.specs?.validity || null;
 
   const imageUrl = getVisaImage(visa);
+  const [imgSrc, setImgSrc] = useState(imageUrl);
+  const [prevImageUrl, setPrevImageUrl] = useState(imageUrl);
+
+  if (prevImageUrl !== imageUrl) {
+    setPrevImageUrl(imageUrl);
+    setImgSrc(imageUrl);
+  }
+
   const displayTitle = visa.title || visa.name || (visa.country ? `${visa.country} Visit Visa` : 'Tourist Visit Visa');
 
   // Format price cleanly without duplicate "Rs"
@@ -76,17 +85,17 @@ export function VisaCard({ visa }) {
     >
       {/* Media Image Container */}
       <div className="visa-card-media">
-        <img
-          src={imageUrl}
+        <Image
+          src={imgSrc}
           alt={visa.imageAltText || visa.seo?.image_alt || `${displayTitle} - World Track Aviation`}
           className="visa-card-img"
-          loading="lazy"
-          decoding="async"
           width={360}
           height={205}
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = DEFAULT_VISA_IMAGE;
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
+          priority={priority}
+          quality={75}
+          onError={() => {
+            setImgSrc(DEFAULT_VISA_IMAGE);
           }}
         />
 
@@ -148,4 +157,5 @@ export function VisaCard({ visa }) {
   );
 }
 
+export const VisaCard = React.memo(VisaCardComponent);
 export default VisaCard;

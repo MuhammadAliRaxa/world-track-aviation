@@ -1200,9 +1200,7 @@
 .vp-sidebar {
   display: flex;
   flex-direction: column;
-  position: sticky;
-  top: 80px;
-  z-index: 10;
+  position: static;
 }
 
 .vp-sidebar-card {

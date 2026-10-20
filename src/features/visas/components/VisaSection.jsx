@@ -132,7 +132,7 @@ export function VisaSection({ initialVisas = [], searchFilter = null, onClearFil
             <button
               type="button"
               className="visa-view-all-btn"
-              onClick={() => router.push('/visas')}
+              onClick={() => router.push('/visas/')}
             >
               View All Visa
             </button>

@@ -40,10 +40,18 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
     setMounted(true);
   }, []);
 
-  // Sticky scroll detection
+  // Sticky scroll detection with rAF throttle & hysteresis to prevent jitter/flicker
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 60);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const y = window.scrollY;
+          setScrolled((prev) => (prev ? y > 60 : y > 110));
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     handleScroll(); // run once on mount
     window.addEventListener('scroll', handleScroll, { passive: true });

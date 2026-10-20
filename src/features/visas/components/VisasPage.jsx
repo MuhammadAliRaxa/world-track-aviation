@@ -50,15 +50,7 @@ export function VisasPage({
   const [visaLookups, setVisaLookups] = useState(initialVisaLookups);
 
   useEffect(() => {
-    if (
-      initialVisaLookups &&
-      (initialVisaLookups.countries?.length > 0 ||
-        initialVisaLookups.visa_types?.length > 0 ||
-        initialVisaLookups.durations?.length > 0)
-    ) {
-      setVisaLookups(initialVisaLookups);
-      return;
-    }
+    if (initialVisaLookups) return;
     let isMounted = true;
     visaService.getVisaLookups().then((lookups) => {
       if (isMounted && lookups) {
@@ -143,16 +135,11 @@ export function VisasPage({
   }, [visaLookups]);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 800);
+  const debouncedSearch = useDebounce(searchQuery, 400);
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [selectedVisaType, setSelectedVisaType] = useState('all');
   const [selectedDuration, setSelectedDuration] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
-
-  const debouncedCountry = useDebounce(selectedCountry, 800);
-  const debouncedVisaType = useDebounce(selectedVisaType, 800);
-  const debouncedDuration = useDebounce(selectedDuration, 800);
-  const debouncedPrice = useDebounce(selectedPrice, 800);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -160,18 +147,13 @@ export function VisasPage({
   const [isPageChanging, setIsPageChanging] = useState(false);
   const resultsHeadRef = useRef(null);
 
+  // Lock background scroll on mobile only when sidebar drawer is open
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  // Lock background scroll on mobile when sidebar drawer is open
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
+    if (!mobileOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => {
       document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
+    };
   }, [mobileOpen]);
 
   const handleWhatsApp = () => {
@@ -199,39 +181,39 @@ export function VisasPage({
 
     if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
 
-    if (debouncedCountry !== 'all') {
-      const countryObj = countries.find((c) => c.key === debouncedCountry);
+    if (selectedCountry !== 'all') {
+      const countryObj = countries.find((c) => c.key === selectedCountry);
       if (countryObj && countryObj.key !== 'all') {
         filters.country = countryObj.label;
       } else {
-        filters.country = debouncedCountry;
+        filters.country = selectedCountry;
       }
     }
 
-    if (debouncedVisaType !== 'all') {
-      const typeObj = visaTypes.find((t) => t.key === debouncedVisaType);
+    if (selectedVisaType !== 'all') {
+      const typeObj = visaTypes.find((t) => t.key === selectedVisaType);
       if (typeObj && typeObj.key !== 'all') {
         filters.visa_type = typeObj.label;
       } else {
-        filters.visa_type = debouncedVisaType;
+        filters.visa_type = selectedVisaType;
       }
     }
 
-    if (debouncedDuration !== 'all') {
-      const durObj = durations.find((d) => d.key === debouncedDuration);
+    if (selectedDuration !== 'all') {
+      const durObj = durations.find((d) => d.key === selectedDuration);
       if (durObj && durObj.key !== 'all') {
         filters.duration = durObj.label;
       } else {
-        filters.duration = debouncedDuration;
+        filters.duration = selectedDuration;
       }
     }
 
-    if (debouncedPrice !== 'all') {
-      if (debouncedPrice === 'under-60k') filters.price_range = 'under_60000';
-      else if (debouncedPrice === '60k-120k') filters.price_range = '60000_120000';
-      else if (debouncedPrice === '120k-200k') filters.price_range = '120000_200000';
-      else if (debouncedPrice === '200k-plus') filters.price_range = 'above_200000';
-      else filters.price_range = debouncedPrice;
+    if (selectedPrice !== 'all') {
+      if (selectedPrice === 'under-60k') filters.price_range = 'under_60000';
+      else if (selectedPrice === '60k-120k') filters.price_range = '60000_120000';
+      else if (selectedPrice === '120k-200k') filters.price_range = '120000_200000';
+      else if (selectedPrice === '200k-plus') filters.price_range = 'above_200000';
+      else filters.price_range = selectedPrice;
     }
 
     filters.nextPage = page;
@@ -239,7 +221,7 @@ export function VisasPage({
     return filters;
   };
 
-  // Skip first mount refetch when SSR data is available
+  // Skip initial mount fetch to prevent overwriting SSR data
   const isFirstMount = useRef(true);
 
   useEffect(() => {
@@ -265,7 +247,7 @@ export function VisasPage({
       });
 
     return () => { active = false; };
-  }, [debouncedSearch, debouncedCountry, debouncedVisaType, debouncedDuration, debouncedPrice]);
+  }, [debouncedSearch, selectedCountry, selectedVisaType, selectedDuration, selectedPrice]);
 
   // Page Change handler
   const handlePageChange = async (targetPage) => {
@@ -312,13 +294,7 @@ export function VisasPage({
         onOpenContact={() => setIsContactOpen(true)}
         heroContent={
           <div className="tr-hero">
-            <div
-              className="tr-hero-bg"
-              style={{
-                backgroundImage:
-                  "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&auto=format&fit=crop&q=80')",
-              }}
-            />
+            <div className="tr-hero-bg" />
             <div className="tr-hero-overlay" />
             <div className="tr-hero-body">
               <h1 className="tr-hero-h1">{h1}</h1>
@@ -602,7 +578,7 @@ export function VisasPage({
               </div>
 
               {/* Cards Grid */}
-              {isLoading ? (
+              {isLoading && visas.length === 0 ? (
                 <div className="vp-empty-state" style={{ color: '#64748b' }}>
                   <Loader2 size={32} style={{ animation: 'spin 1s linear infinite' }} />
                   <p className="vp-empty-title">Loading visas...</p>
@@ -612,19 +588,20 @@ export function VisasPage({
                   <div
                     className="vp-cards-grid"
                     style={
-                      isPageChanging
+                      isLoading || isPageChanging
                         ? {
-                            opacity: 0.5,
+                            opacity: 0.6,
                             pointerEvents: 'none',
                             transition: 'opacity 0.2s ease',
                           }
                         : undefined
                     }
                   >
-                    {visas.map((visa) => (
+                    {visas.map((visa, idx) => (
                       <VisaCard
                         key={visa.id}
                         visa={visa}
+                        priority={idx < 6}
                       />
                     ))}
                   </div>

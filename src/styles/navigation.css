@@ -163,7 +163,6 @@
   transition: top 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* When user has scrolled past the hero — float becomes a fixed sticky bar */
 .navbar-floating-container.navbar-scrolled {
   position: fixed;
   top: 0;
@@ -172,11 +171,9 @@
   z-index: 1200;
   padding-top: 10px;
   padding-bottom: 10px;
-  background: rgba(10, 25, 60, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(10, 25, 60, 0.96);
   box-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
-  animation: navbarDropIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: background 0.2s ease, box-shadow 0.2s ease, padding 0.2s ease;
 }
 
 /* Used on non-home pages: navbar sits in normal flow below the TopBar */

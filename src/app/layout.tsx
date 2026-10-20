@@ -80,7 +80,7 @@ export default async function RootLayout({
   );
 
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="en" className={`${plusJakarta.variable} ${outfit.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />

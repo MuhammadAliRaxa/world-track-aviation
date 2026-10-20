@@ -168,7 +168,7 @@ export function VisaDetailPage({ initialVisa = null }) {
           <button
             type="button"
             className="breadcrumb-back-capsule"
-            onClick={() => router.push('/#visa')}
+            onClick={() => router.push('/visas/')}
           >
             <ArrowLeft size={13} />
             <span>Visa</span>
@@ -446,7 +446,7 @@ export function VisaDetailPage({ initialVisa = null }) {
             <button
               type="button"
               className="visa-view-all-link"
-              onClick={() => router.push('/#visa')}
+              onClick={() => router.push('/visas/')}
             >
               <span>View All</span>
               <ArrowRight size={14} />
