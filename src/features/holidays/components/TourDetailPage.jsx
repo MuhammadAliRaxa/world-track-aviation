@@ -73,10 +73,22 @@ export function TourDetailPage({ initialTour = null }) {
     tourService.getTours().then(setAllTours);
   }, [id, initialTour]);
 
+  const cleanId = String(id || '').trim().toLowerCase();
   const tour =
     tourState ||
-    allTours.find((t) => String(t.id) === String(id) || t?.slug === id) ||
-    allTours[0] ||
+    (initialTour &&
+    (String(initialTour.id) === String(id) ||
+      initialTour.slug === id ||
+      initialTour.seo?.url_slug === id)
+      ? initialTour
+      : null) ||
+    allTours.find(
+      (t) =>
+        String(t.id) === String(id) ||
+        t?.slug === id ||
+        t?.seo?.url_slug === id ||
+        t?.seo?.url_slug === cleanId
+    ) ||
     null;
 
   const related = useMemo(
@@ -158,7 +170,17 @@ export function TourDetailPage({ initialTour = null }) {
     window.location.href = `tel:${COMPANY_CONFIG.phoneRaw}`;
   };
 
-  if (!tour) return null;
+  if (!tour) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+        <AppBar />
+        <div className="flex-1 flex items-center justify-center p-8">
+          <p className="text-slate-500 font-medium">Loading tour details...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const inclusions = Array.isArray(tour.packageIncludes) && tour.packageIncludes.length > 0
     ? tour.packageIncludes

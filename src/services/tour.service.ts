@@ -133,9 +133,14 @@ export const tourService = {
   /**
    * Fetch tours via POST /tour/list.
    */
+  /**
+   * Fetch tours via POST /tour/list.
+   */
   async getTours(filters?: TourFilterParams): Promise<TourPackage[]> {
     try {
-      const apiFilters: ApiTourFilters = {};
+      const apiFilters: ApiTourFilters = {
+        perPage: filters?.perPage || 50,
+      };
 
       if (filters) {
         if (filters.searchQuery?.trim()) {
@@ -158,12 +163,9 @@ export const tourService = {
           apiFilters.rating = filters.stars[0];
         }
         if (filters.nextPage) apiFilters.nextPage = filters.nextPage;
-        if (filters.perPage) apiFilters.perPage = filters.perPage;
       }
 
-      const { tours } = await this.getToursPaginated(
-        Object.keys(apiFilters).length > 0 ? apiFilters : undefined,
-      );
+      const { tours } = await this.getToursPaginated(apiFilters);
       return tours;
     } catch (err) {
       console.error('[tourService] getTours error:', err);
@@ -179,9 +181,8 @@ export const tourService = {
         .replace(/^\/?(tours|tour-packages)\//i, '')
         .replace(/^\/+|\/+$/g, '');
 
-      const res = await apiPost<ApiTour[]>('/tour/list', {}, { cache: 'no-store' } as RequestInit);
-      const list = Array.isArray(res.data) ? res.data : [];
-      const found = list.find((t) => {
+      // Helper to match a tour against input id or clean target slug
+      const matchesTour = (t: any) => {
         if (String(t.id) === rawInput || String(t.id) === cleanTarget) return true;
         const apiSlug = (t.seo as any)?.url_slug || (t as any)?.slug || t.name;
         if (!apiSlug) return false;
@@ -195,8 +196,47 @@ export const tourService = {
           cleanApi === decodedInput ||
           decodedApi === cleanTarget
         );
-      });
+      };
+
+      // 1. If it's an SEO slug, search by destination keyword (O(1) database lookup for 100+ pages)
+      const isSlug = !/^\d+$/.test(cleanTarget);
+      if (isSlug) {
+        const potentialLocation = cleanTarget.split('-')[0];
+        if (potentialLocation && potentialLocation.length > 2) {
+          const locRes = await apiPost<ApiTour[]>(
+            '/tour/list',
+            { filters: { search: potentialLocation, perPage: 50 } },
+            { cache: 'no-store' } as RequestInit
+          );
+          const locList = Array.isArray(locRes.data) ? locRes.data : [];
+          const foundInLoc = locList.find(matchesTour);
+          if (foundInLoc) return normalizeTourDetail(foundInLoc);
+        }
+      }
+
+      // 2. Fetch with perPage: 50
+      const res = await apiPost<ApiTour[]>(
+        '/tour/list',
+        { filters: { perPage: 50 } },
+        { cache: 'no-store' } as RequestInit
+      );
+      const list = Array.isArray(res.data) ? res.data : [];
+      let found = list.find(matchesTour);
       if (found) return normalizeTourDetail(found);
+
+      // 3. Fallback for numeric IDs: Iterate remaining pages up to max 10 pages
+      const totalPages = Math.min(res.pagination?.total_pages || 1, 10);
+      for (let p = 2; p <= totalPages; p++) {
+        const nextRes = await apiPost<ApiTour[]>(
+          '/tour/list',
+          { filters: { nextPage: p, perPage: 50 } },
+          { cache: 'no-store' } as RequestInit
+        );
+        const nextList = Array.isArray(nextRes.data) ? nextRes.data : [];
+        found = nextList.find(matchesTour);
+        if (found) return normalizeTourDetail(found);
+      }
+
       return null;
     } catch {
       return null;
