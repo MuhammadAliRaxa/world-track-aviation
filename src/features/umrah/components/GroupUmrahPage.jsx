@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Search, ShieldCheck, SlidersHorizontal } from 'lucide-react';
-import { umrahService } from '../../../services';
+import { umrahService, getAirlineLogo } from '../../../services';
 import { AppBar, Footer, Modals, WhatsAppIcon } from '../../../shared';
 import { COMPANY_CONFIG } from '../../../config/company';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
-import { openGroupUmrahWhatsApp } from '../utils/groupUmrahWhatsApp';
+import { GroupUmrahCard } from './GroupUmrahCard';
 
 export function GroupUmrahPage({
   initialPackages = [],
@@ -83,6 +83,7 @@ export function GroupUmrahPage({
         id: a.id,
         code: a.code || '',
         name: a.name,
+        logo: a.logo || getAirlineLogo(a.logo, a.code, a.name),
         count: a.packages_count ?? null,
       }));
     }
@@ -296,7 +297,13 @@ export function GroupUmrahPage({
                           onChange={() => toggleAirline(air.id)}
                           style={{ accentColor: '#0284c7', width: '14px', height: '14px', borderRadius: '3px', cursor: 'pointer' }}
                         />
-                        {air.code && <span style={{ fontWeight: 700, fontSize: '11px', background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', color: '#475569' }}>{air.code}</span>}
+                        {air.logo ? (
+                          <span className="gt-sb-airline-pill">
+                            <img src={air.logo} alt={air.name} loading="lazy" />
+                          </span>
+                        ) : air.code ? (
+                          <span className="gt-sb-airline-pill">{air.code}</span>
+                        ) : null}
                         <span style={{ fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>{air.name}</span>
                       </div>
                       {air.count !== null && air.count !== undefined && (
@@ -409,217 +416,7 @@ export function GroupUmrahPage({
             ) : packages.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {packages.map((pkg) => (
-                <div
-                  key={pkg.id}
-                  className="group-umrah-card"
-                >
-                  {/* Card Header Row */}
-                  <div className="group-card-header">
-                    <div className="group-card-airline-info">
-                      <div
-                        style={{
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '8px',
-                          border: '1px solid #e2e8f0',
-                          background: '#f8fafc',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 800,
-                          fontSize: '14px',
-                          color: '#334155',
-                          flexShrink: 0
-                        }}
-                      >
-                        {pkg.airlineCode}
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <h3 className="group-card-sector-title">
-                          {pkg.sector}
-                        </h3>
-                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '1px' }}>
-                          {pkg.airlineName}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="group-card-header-actions">
-                      <span
-                        style={{
-                          background: '#dcfce7',
-                          color: '#15803d',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          padding: '4px 10px',
-                          borderRadius: '20px',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {pkg.seatsLeft} Seats Left
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => openGroupUmrahWhatsApp(pkg)}
-                        aria-label={`Book ${pkg.sector || 'Group Umrah Package'} on WhatsApp`}
-                        style={{
-                          background: '#0284c7',
-                          color: '#ffffff',
-                          border: 'none',
-                          padding: '7px 18px',
-                          borderRadius: '6px',
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 4px rgba(2,132,199,0.2)',
-                          whiteSpace: 'nowrap',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                        }}
-                      >
-                        <WhatsAppIcon size={14} color="#ffffff" />
-                        Book Now
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Flight Info Strip */}
-                  <div className="group-flight-strip">
-                    <div className="group-flight-leg">
-                      <div style={{ color: '#0284c7', fontWeight: 700, marginBottom: '2px' }}>
-                        OUTBOUND - {pkg.outbound?.date || pkg.departure_date || 'ON REQUEST'}
-                      </div>
-                      <div style={{ color: '#0f172a', fontWeight: 600 }}>
-                        {pkg.outbound?.flightNo || ''} {pkg.outbound?.time ? `(${pkg.outbound.time})` : ''}
-                      </div>
-                      <div style={{ color: '#64748b', fontSize: '10px', marginTop: '2px' }}>
-                        {pkg.outbound?.baggage || ''}
-                      </div>
-                    </div>
-
-                    <div className="group-flight-leg">
-                      <div style={{ color: '#ea580c', fontWeight: 700, marginBottom: '2px' }}>
-                        INBOUND - {pkg.inbound?.date || 'CONFIRMED'}
-                      </div>
-                      <div style={{ color: '#0f172a', fontWeight: 600 }}>
-                        {pkg.inbound?.flightNo || ''} {pkg.inbound?.time ? `(${pkg.inbound.time})` : ''}
-                      </div>
-                      <div style={{ color: '#64748b', fontSize: '10px', marginTop: '2px' }}>
-                        {pkg.inbound?.baggage || ''}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hotels & Pricing Grid */}
-                  <div className="group-hotels-pricing-grid">
-                    
-                    {/* Hotels Column */}
-                    <div className="group-hotels-list" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      {/* Makkah Hotel */}
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                        <div
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            background: '#fef3c7',
-                            color: '#d97706',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
-                            flexShrink: 0
-                          }}
-                        >
-                          🕋
-                        </div>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.05em' }}>MAKKAH</div>
-                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', lineHeight: '1.2' }}>
-                            {pkg.makkahHotel?.name || 'Makkah Hotel'}
-                          </div>
-                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                            {pkg.makkahHotel?.nights ? `${pkg.makkahHotel.nights} nights` : ''} {pkg.makkahHotel?.shuttle ? `• ${pkg.makkahHotel.shuttle}` : ''}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Madinah Hotel */}
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                        <div
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            background: '#dcfce7',
-                            color: '#16a34a',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
-                            flexShrink: 0
-                          }}
-                        >
-                          🕌
-                        </div>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.05em' }}>MADINAH</div>
-                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', lineHeight: '1.2' }}>
-                            {pkg.madinahHotel?.name || 'Madinah Hotel'}
-                          </div>
-                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                            {pkg.madinahHotel?.nights ? `${pkg.madinahHotel.nights} nights` : ''} {pkg.madinahHotel?.shuttle ? `• ${pkg.madinahHotel.shuttle}` : ''}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Pricing Matrix Column */}
-                    <div className="group-pricing-wrapper">
-                      {/* Desktop Table Header */}
-                      <div className="group-pricing-table-header">
-                        <div>SHARING</div>
-                        <div>DOUBLE</div>
-                        <div>TRIPLE</div>
-                        <div>QUAD</div>
-                      </div>
-
-                      {/* Pricing Body Cells */}
-                      <div className="group-pricing-table-body">
-                        <div className="group-pricing-cell">
-                          <div className="group-pricing-tier-badge">SHARING</div>
-                          <div className="group-pricing-currency">PKR</div>
-                          <div className="group-pricing-amount">{pkg.pricing?.sharing || pkg.price || 'Call'}</div>
-                          <div className="group-pricing-sub">per person</div>
-                        </div>
-
-                        <div className="group-pricing-cell">
-                          <div className="group-pricing-tier-badge">DOUBLE</div>
-                          <div className="group-pricing-currency">PKR</div>
-                          <div className="group-pricing-amount">{pkg.pricing?.double || pkg.price || 'Call'}</div>
-                          <div className="group-pricing-sub">per person</div>
-                        </div>
-
-                        <div className="group-pricing-cell">
-                          <div className="group-pricing-tier-badge">TRIPLE</div>
-                          <div className="group-pricing-currency">PKR</div>
-                          <div className="group-pricing-amount">{pkg.pricing?.triple || pkg.price || 'Call'}</div>
-                          <div className="group-pricing-sub">per person</div>
-                        </div>
-
-                        <div className="group-pricing-cell">
-                          <div className="group-pricing-tier-badge">QUAD</div>
-                          <div className="group-pricing-currency">PKR</div>
-                          <div className="group-pricing-amount">{pkg.pricing?.quad || pkg.price || 'Call'}</div>
-                          <div className="group-pricing-sub">per person</div>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-
-                </div>
+                <GroupUmrahCard key={pkg.id} pkg={pkg} />
               ))}
             </div>
             ) : (

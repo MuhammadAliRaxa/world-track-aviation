@@ -207,9 +207,11 @@ export function TourDetailPage({ initialTour = null }) {
 
           {/* Breadcrumb */}
           <div className="tdp-breadcrumb">
-            <Link href="/" className="tdp-bc-link">‹ Home</Link>
+            <Link href="/tour-packages/" className="tdp-bc-link">‹ Tours</Link>
             <span className="tdp-bc-sep">/</span>
-            <span className="tdp-bc-current">Tours Details</span>
+            <span className="tdp-bc-current" title={tour.title || tour.name || 'Tour Details'}>
+              {tour.title || tour.name || 'Tour Details'}
+            </span>
           </div>
 
           {/* Two-column layout */}

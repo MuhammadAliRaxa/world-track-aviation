@@ -10,6 +10,7 @@ import {
   UmrahFilterParams,
 } from '../types/umrah.types';
 import { apiPost, apiGet } from './api.client';
+import { getAirlineLogo } from './flight.service';
 import type {
   ApiGroupUmrahPackage,
   ApiGroupUmrahFilters,
@@ -97,6 +98,8 @@ export function normalizeGroupUmrahPackage(item: any): GroupUmrahPackage | null 
 
   const airlineCode = item.airline?.code || groupTicket.airline?.code || item.airlineCode || 'SV';
   const airlineName = item.airline?.name || groupTicket.airline?.name || item.airlineName || 'Saudi Arabian Airlines';
+  const rawAirlineLogo = item.airline?.logo || groupTicket.airline?.logo || item.airlineLogo || item.airline?.image || null;
+  const airlineLogo = getAirlineLogo(rawAirlineLogo, airlineCode, airlineName);
   const sector = item.route?.name || groupTicket.route?.name || groupTicket.name || item.sector || 'ISLAMABAD - JEDDAH - ISLAMABAD';
   const seatsLeft = groupTicket.seats_left ?? item.seatsLeft ?? 12;
 
@@ -162,6 +165,7 @@ export function normalizeGroupUmrahPackage(item: any): GroupUmrahPackage | null 
     airline: item.airline || groupTicket.airline,
     airlineCode,
     airlineName,
+    airlineLogo,
     route: item.route || groupTicket.route,
     sector,
     seatsLeft,
