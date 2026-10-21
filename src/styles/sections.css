@@ -1588,21 +1588,25 @@
 .holiday-media-box {
   position: relative;
   width: 100%;
-  height: 185px;
+  height: 195px;
   overflow: hidden;
   background: #0f172a;
 }
 
 .holiday-card-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
   transition: transform 0.45s ease;
   display: block;
+  image-rendering: -webkit-optimize-contrast;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .holiday-tour-card:hover .holiday-card-img {
-  transform: scale(1.04);
+  transform: scale(1.05) translateZ(0);
 }
 
 .holiday-rating-pill {

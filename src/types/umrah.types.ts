@@ -29,7 +29,10 @@ export interface GroupUmrahPackage extends UmrahPackage {
   departureCity?: string;
   departureDate?: string;
   returnDate?: string;
-  airline?: string;
+  airline?: string | { id?: number; name?: string; code?: string | null; logo?: string | null };
+  airlineCode?: string;
+  airlineName?: string;
+  airlineLogo?: string | null;
   seatsTotal?: number;
   seatsAvailable?: number;
 }

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   Filter,
   Search,
-  Star,
   Clock,
   ChevronLeft,
   X,
@@ -62,25 +61,19 @@ export function ToursPage({
 
   const [selectedDest, setSelectedDest] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
-  const [selectedStars, setSelectedStars] = useState([]);
   const debouncedDest = useDebounce(selectedDest, 800);
   const debouncedPrice = useDebounce(selectedPrice, 800);
-  const debouncedStars = useDebounce(selectedStars, 800);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 800);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const toggleStar = (n) =>
-    setSelectedStars(p => p.includes(n) ? p.filter(x => x !== n) : [...p, n]);
-
   const clearAll = () => {
     setSelectedDest('all');
     setSelectedPrice('all');
-    setSelectedStars([]);
     setSearchQuery('');
   };
 
-  const hasFilters = selectedDest !== 'all' || selectedPrice !== 'all' || selectedStars.length > 0 || searchQuery.trim() !== '';
+  const hasFilters = selectedDest !== 'all' || selectedPrice !== 'all' || searchQuery.trim() !== '';
 
   // Lock background scroll on mobile when sidebar drawer is open
   useEffect(() => {
@@ -125,10 +118,6 @@ export function ToursPage({
         else filters.price_range = debouncedPrice;
       }
 
-      if (debouncedStars.length > 0) {
-        filters.rating = debouncedStars[0];
-      }
-
       filters.nextPage = page;
       filters.perPage = 12;
       return filters;
@@ -148,7 +137,7 @@ export function ToursPage({
       });
 
     return () => { active = false; };
-  }, [debouncedSearch, debouncedDest, debouncedPrice, debouncedStars]);
+  }, [debouncedSearch, debouncedDest, debouncedPrice]);
 
   // Page Change handler: calls API for the selected page
   const handlePageChange = async (targetPage) => {
@@ -182,7 +171,6 @@ export function ToursPage({
         else if (debouncedPrice === 'above200') filters.price_range = 'above_200000';
         else filters.price_range = debouncedPrice;
       }
-      if (debouncedStars.length > 0) filters.rating = debouncedStars[0];
       filters.nextPage = targetPage;
       filters.perPage = 12;
 
@@ -376,38 +364,6 @@ export function ToursPage({
                   </div>
                 </div>
 
-                {/* Section 3: HOTEL STAR RATING */}
-                <div className="hp-sb-section">
-                  <div className="hp-sb-sec-head">
-                    <span className="hp-sb-sec-title">HOTEL STAR RATING</span>
-                  </div>
-
-                  <div className="hp-sb-check-list">
-                    {[5, 4, 3].map((n) => {
-                      const isChecked = selectedStars.includes(n);
-                      const count = tours.filter(t => t.stars === n).length;
-                      return (
-                        <label key={n} className="hp-sb-check-row">
-                          <div className="hp-sb-check-left">
-                            <input
-                              type="checkbox"
-                              className="hp-sb-checkbox"
-                              checked={isChecked}
-                              onChange={() => toggleStar(n)}
-                            />
-                            <div className="hp-stars-icons">
-                              {Array.from({ length: n }).map((_, i) => (
-                                <Star key={i} size={11} className="hp-star-gold" />
-                              ))}
-                            </div>
-                            <span className="hp-sb-check-label">{n} Stars</span>
-                          </div>
-                          <span className="hp-sb-count">{count}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
 
                 {/* CUSTOM GROUP BOOKING CARD */}
                 <div className="hp-group-booking-card">
@@ -491,7 +447,7 @@ export function ToursPage({
               ) : (
                 <div className="tr-empty">
                   <h3>No tours match your filters</h3>
-                  <p>Try adjusting the destination, price, or star rating filters.</p>
+                  <p>Try adjusting the destination or price filters.</p>
                   <button type="button" className="tr-view-btn" onClick={clearAll}>Reset Filters</button>
                 </div>
               )}

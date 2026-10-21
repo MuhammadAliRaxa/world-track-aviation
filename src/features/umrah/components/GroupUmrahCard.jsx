@@ -1,41 +1,95 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { WhatsAppIcon } from '../../../shared';
 import { openGroupUmrahWhatsApp } from '../utils/groupUmrahWhatsApp';
+import { getAirlineLogo } from '../../../services';
+
+export function AirlineLogoBadge({ code, name, logo }) {
+  const [imgError, setImgError] = useState(false);
+  const displayLogo = !imgError ? (logo || getAirlineLogo(logo, code, name)) : null;
+
+  if (displayLogo) {
+    return (
+      <div
+        className="group-airline-badge"
+        style={{
+          width: '42px',
+          height: '42px',
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0',
+          background: '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          overflow: 'hidden',
+          padding: '4px',
+          boxSizing: 'border-box',
+        }}
+      >
+        <img
+          src={displayLogo}
+          alt={name || code || 'Airline'}
+          onError={() => setImgError(true)}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            display: 'block',
+          }}
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="group-airline-badge"
+      style={{
+        width: '42px',
+        height: '42px',
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0',
+        background: '#f8fafc',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 800,
+        fontSize: '13px',
+        color: '#334155',
+        flexShrink: 0,
+      }}
+    >
+      {code || 'PK'}
+    </div>
+  );
+}
 
 export function GroupUmrahCard({ pkg }) {
   if (!pkg) return null;
+
+  const airlineCode = pkg.airlineCode || pkg.airline?.code || 'SV';
+  const airlineName = pkg.airlineName || pkg.airline?.name || 'Direct / Connecting Flight';
+  const airlineLogo = pkg.airlineLogo || pkg.airline?.logo;
 
   return (
     <div className="group-umrah-card">
       {/* Card Header Row */}
       <div className="group-card-header">
         <div className="group-card-airline-info">
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              background: '#f8fafc',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '14px',
-              color: '#334155',
-              flexShrink: 0,
-            }}
-          >
-            {pkg.airlineCode || 'PK'}
-          </div>
+          <AirlineLogoBadge
+            code={airlineCode}
+            name={airlineName}
+            logo={airlineLogo}
+          />
           <div style={{ minWidth: 0 }}>
             <h3 className="group-card-sector-title">
               {pkg.sector || pkg.name || pkg.title || 'Group Umrah Package'}
             </h3>
             <div style={{ fontSize: '12px', color: '#64748b', marginTop: '1px' }}>
-              {pkg.airlineName || 'Direct / Connecting Flight'}
+              {airlineName}
             </div>
           </div>
         </div>

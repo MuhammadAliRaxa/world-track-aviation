@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Star, Clock, Hotel, Ticket, MapPin, IdCard, Check } from 'lucide-react';
 
@@ -48,6 +49,21 @@ function renderInclusionIcon(type) {
 
 const DEFAULT_HOLIDAY_IMAGE = 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80';
 
+const ALLOWED_IMAGE_HOSTS = new Set([
+  'admin.worldtracktravel.com',
+  'sample.worldtracktravel.com',
+  'images.unsplash.com',
+]);
+
+function isAllowedDomain(url) {
+  try {
+    const parsed = new URL(url, 'https://admin.worldtracktravel.com');
+    return ALLOWED_IMAGE_HOSTS.has(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function HolidayCard({ tour, onSelectTour }) {
   const router = useRouter();
 
@@ -67,12 +83,19 @@ export function HolidayCard({ tour, onSelectTour }) {
   const row2 = inclusions.slice(3);
 
   const displayTitle = tour.title || tour.name || 'Tour Package';
-  const imageUrl = tour.image || DEFAULT_HOLIDAY_IMAGE;
+  const initialImageUrl = tour.image || DEFAULT_HOLIDAY_IMAGE;
+  const [imgSrc, setImgSrc] = useState(initialImageUrl);
+
+  useEffect(() => {
+    setImgSrc(tour.image || DEFAULT_HOLIDAY_IMAGE);
+  }, [tour.image]);
 
   const rawPrice = tour.pricePKR ?? tour.price;
   const formattedPrice = typeof rawPrice === 'number'
     ? rawPrice.toLocaleString()
     : (rawPrice ? String(rawPrice) : '158,000');
+
+  const canOptimize = isAllowedDomain(imgSrc);
 
   return (
     <div
@@ -83,17 +106,16 @@ export function HolidayCard({ tour, onSelectTour }) {
     >
       {/* Media Image */}
       <div className="holiday-media-box">
-        <img
-          src={imageUrl}
+        <Image
+          src={imgSrc}
           alt={tour?.imageAltText || displayTitle}
           className="holiday-card-img"
-          loading="lazy"
-          decoding="async"
-          width={360}
-          height={200}
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = DEFAULT_HOLIDAY_IMAGE;
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
+          quality={85}
+          unoptimized={!canOptimize}
+          onError={() => {
+            setImgSrc(DEFAULT_HOLIDAY_IMAGE);
           }}
         />
 

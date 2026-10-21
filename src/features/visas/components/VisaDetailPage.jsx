@@ -256,7 +256,13 @@ export function VisaDetailPage({ initialVisa = null }) {
           <button
             type="button"
             className="breadcrumb-back-capsule"
-            onClick={() => router.push('/visas/')}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/visas/');
+              }
+            }}
           >
             <ArrowLeft size={13} />
             <span>Visa</span>

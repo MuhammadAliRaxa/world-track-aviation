@@ -50,6 +50,18 @@ export function VisasPage({
   const [visaLookups, setVisaLookups] = useState(initialVisaLookups);
 
   useEffect(() => {
+    if (initialPagination) {
+      setPagination(initialPagination);
+    }
+  }, [initialPagination]);
+
+  useEffect(() => {
+    if (initialVisas) {
+      setVisas(initialVisas);
+    }
+  }, [initialVisas]);
+
+  useEffect(() => {
     if (initialVisaLookups) return;
     let isMounted = true;
     visaService.getVisaLookups().then((lookups) => {
@@ -167,12 +179,24 @@ export function VisasPage({
     selectedPrice !== 'all' ||
     searchQuery.trim() !== '';
 
+  const updateUrlPage = (page) => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (page > 1) {
+      url.searchParams.set('page', String(page));
+    } else {
+      url.searchParams.delete('page');
+    }
+    window.history.pushState({ page }, '', url.toString());
+  };
+
   const clearAll = () => {
     setSelectedCountry('all');
     setSelectedVisaType('all');
     setSelectedDuration('all');
     setSelectedPrice('all');
     setSearchQuery('');
+    updateUrlPage(1);
   };
 
   // Build API filters from current UI state
@@ -240,6 +264,7 @@ export function VisasPage({
         setVisas(res.visas);
         setPagination(res.pagination);
         setIsLoading(false);
+        updateUrlPage(1);
       })
       .catch(() => {
         if (!active) return;
@@ -250,13 +275,13 @@ export function VisasPage({
   }, [debouncedSearch, selectedCountry, selectedVisaType, selectedDuration, selectedPrice]);
 
   // Page Change handler
-  const handlePageChange = async (targetPage) => {
+  const handlePageChange = async (targetPage, updateHistory = true) => {
     const curr = Number(pagination?.current_page || 1);
     const total = Number(pagination?.total_pages || 1);
     if (
       targetPage === curr ||
       targetPage < 1 ||
-      targetPage > total ||
+      (total > 0 && targetPage > total) ||
       isLoading ||
       isPageChanging
     ) {
@@ -270,6 +295,10 @@ export function VisasPage({
       setVisas(res.visas);
       setPagination(res.pagination);
 
+      if (updateHistory) {
+        updateUrlPage(targetPage);
+      }
+
       if (resultsHeadRef.current) {
         resultsHeadRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -279,6 +308,29 @@ export function VisasPage({
       setIsPageChanging(false);
     }
   };
+
+  // Handle popstate for browser forward/back buttons
+  useEffect(() => {
+    const onPopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const targetPage = parseInt(params.get('page') || '1', 10);
+      if (targetPage !== Number(pagination?.current_page || 1)) {
+        handlePageChange(targetPage, false);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [pagination?.current_page]);
+
+  // Sync with URL parameter on mount if it differs from current page
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const urlPage = parseInt(params.get('page') || '', 10);
+    if (urlPage && urlPage > 1 && urlPage !== Number(pagination?.current_page || 1)) {
+      handlePageChange(urlPage, false);
+    }
+  }, []);
 
   const totalCount = Number(pagination?.total_records ?? visas.length);
   const currentPage = Number(pagination?.current_page || 1);
