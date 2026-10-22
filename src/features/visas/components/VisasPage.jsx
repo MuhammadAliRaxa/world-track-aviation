@@ -48,6 +48,15 @@ export function VisasPage({
   );
 
   const [visaLookups, setVisaLookups] = useState(initialVisaLookups);
+  const initialTotalVisas = useRef(
+    Number(initialPagination?.total_records ?? initialVisas?.length ?? 0),
+  );
+
+  useEffect(() => {
+    if (initialPagination?.total_records && !initialTotalVisas.current) {
+      initialTotalVisas.current = Number(initialPagination.total_records);
+    }
+  }, [initialPagination]);
 
   useEffect(() => {
     if (initialPagination) {
@@ -76,46 +85,71 @@ export function VisasPage({
 
   // Derive countries list from API lookups, fallback to initialCountries / static
   const countries = useMemo(() => {
-    const list = [{ key: 'all', label: 'All Countries', count: 0 }];
     const apiCountries = visaLookups?.countries || [];
     if (Array.isArray(apiCountries) && apiCountries.length > 0) {
+      let sum = 0;
+      const list = [];
       apiCountries.forEach((c) => {
         const val = typeof c === 'string' ? c : (c.value || c.name || c.country || '');
         if (val) {
+          const cnt = typeof c.visas_count === 'number' ? c.visas_count : (c.count || 0);
+          sum += cnt;
           list.push({
             key: val.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             label: val,
-            count: typeof c.visas_count === 'number' ? c.visas_count : (c.count || 0),
+            count: cnt,
           });
         }
       });
-      return list;
+      return [
+        {
+          key: 'all',
+          label: 'All Countries',
+          count: sum || initialTotalVisas.current || 0,
+        },
+        ...list,
+      ];
     }
     if (Array.isArray(initialCountries) && initialCountries.length > 1) {
-      return initialCountries;
+      const copy = initialCountries.map((c) => ({ ...c }));
+      if (copy[0] && copy[0].key === 'all' && !copy[0].count) {
+        const sum = copy.slice(1).reduce((acc, c) => acc + (c.count || 0), 0);
+        copy[0].count = sum || initialTotalVisas.current || 0;
+      }
+      return copy;
     }
     return VISA_COUNTRIES_FILTER;
   }, [visaLookups, initialCountries]);
 
   // Derive visa types list from API lookups
   const visaTypes = useMemo(() => {
-    const list = [{ key: 'all', label: 'All Types', count: 0 }];
     const apiTypes = visaLookups?.visa_types || [];
     if (Array.isArray(apiTypes) && apiTypes.length > 0) {
+      let sum = 0;
+      const list = [];
       apiTypes.forEach((t) => {
         const val = typeof t === 'string' ? t : (t.value || t.name || t.visa_type || '');
         if (val) {
+          const cnt = typeof t.visas_count === 'number' ? t.visas_count : (t.count || 0);
+          sum += cnt;
           list.push({
             key: val.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             label: val,
-            count: typeof t.visas_count === 'number' ? t.visas_count : (t.count || 0),
+            count: cnt,
           });
         }
       });
-      return list;
+      return [
+        {
+          key: 'all',
+          label: 'All Types',
+          count: sum || initialTotalVisas.current || 0,
+        },
+        ...list,
+      ];
     }
     return [
-      { key: 'all', label: 'All Types', count: 0 },
+      { key: 'all', label: 'All Types', count: initialTotalVisas.current || 0 },
       { key: 'e-visa', label: 'E-Visa', count: 0 },
       { key: 'visit-visa', label: 'Visit Visa', count: 0 },
     ];
@@ -123,23 +157,33 @@ export function VisasPage({
 
   // Derive durations list from API lookups
   const durations = useMemo(() => {
-    const list = [{ key: 'all', label: 'All Durations', count: 0 }];
     const apiDurations = visaLookups?.durations || [];
     if (Array.isArray(apiDurations) && apiDurations.length > 0) {
+      let sum = 0;
+      const list = [];
       apiDurations.forEach((d) => {
         const val = typeof d === 'string' ? d : (d.value || d.name || d.duration || '');
         if (val) {
+          const cnt = typeof d.visas_count === 'number' ? d.visas_count : (d.count || 0);
+          sum += cnt;
           list.push({
             key: val.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             label: val,
-            count: typeof d.visas_count === 'number' ? d.visas_count : (d.count || 0),
+            count: cnt,
           });
         }
       });
-      return list;
+      return [
+        {
+          key: 'all',
+          label: 'All Durations',
+          count: sum || initialTotalVisas.current || 0,
+        },
+        ...list,
+      ];
     }
     return [
-      { key: 'all', label: 'All Durations', count: 0 },
+      { key: 'all', label: 'All Durations', count: initialTotalVisas.current || 0 },
       { key: '30-days', label: '30 Days', count: 0 },
       { key: '60-days', label: '60 Days', count: 0 },
       { key: '90-days', label: '90 Days', count: 0 },
@@ -439,7 +483,7 @@ export function VisasPage({
                   <div className="vp-sb-radio-list">
                     {countries.map((c) => {
                       const isChecked = selectedCountry === c.key;
-                      const count = c.key === 'all' ? totalCount : (c.count || 0);
+                      const count = c.count || 0;
                       return (
                         <label key={c.key} className="vp-sb-radio-row">
                           <div className="vp-sb-radio-left">
@@ -480,7 +524,7 @@ export function VisasPage({
                   <div className="vp-sb-radio-list">
                     {visaTypes.map((t) => {
                       const isChecked = selectedVisaType === t.key;
-                      const count = t.key === 'all' ? totalCount : (t.count || 0);
+                      const count = t.count || 0;
                       return (
                         <label key={t.key} className="vp-sb-radio-row">
                           <div className="vp-sb-radio-left">
@@ -521,7 +565,7 @@ export function VisasPage({
                   <div className="vp-sb-radio-list">
                     {durations.map((d) => {
                       const isChecked = selectedDuration === d.key;
-                      const count = d.key === 'all' ? totalCount : (d.count || 0);
+                      const count = d.count || 0;
                       return (
                         <label key={d.key} className="vp-sb-radio-row">
                           <div className="vp-sb-radio-left">

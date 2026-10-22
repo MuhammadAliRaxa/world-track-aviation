@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -16,6 +17,22 @@ import { COMPANY_CONFIG } from '../../../config/company';
 import { tourService, inquiryService } from '../../../services';
 import { GuestsPopup } from '../../hotels';
 import { HolidayCard } from './HolidayCard';
+
+const ALLOWED_IMAGE_HOSTS = new Set([
+  'admin.worldtracktravel.com',
+  'sample.worldtracktravel.com',
+  'images.unsplash.com',
+]);
+
+function isAllowedDomain(url) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url, 'https://admin.worldtracktravel.com');
+    return ALLOWED_IMAGE_HOSTS.has(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
 
 const POPULAR_TAGS = [
   'Flight Hacks',
@@ -241,7 +258,16 @@ export function TourDetailPage({ initialTour = null }) {
 
               {/* Main image */}
               <div className="tdp-main-img-wrap">
-                <img src={tour.image} alt={tour?.imageAltText || tour.title} className="tdp-main-img" />
+                <Image
+                  src={tour.image || 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80'}
+                  alt={tour?.imageAltText || tour.title}
+                  className="tdp-main-img"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 840px"
+                  quality={85}
+                  unoptimized={!isAllowedDomain(tour.image)}
+                />
               </div>
 
               {/* Package includes icons */}

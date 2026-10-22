@@ -245,43 +245,45 @@ export const visaService = {
       const lookups = await this.getVisaLookups();
       const lookupCountries = lookups?.countries;
       if (Array.isArray(lookupCountries) && lookupCountries.length > 0) {
-        const list: { key: string; label: string; count: number }[] = [
-          { key: 'all', label: 'All Countries', count: 0 },
-        ];
+        let totalCount = 0;
+        const list: { key: string; label: string; count: number }[] = [];
         lookupCountries.forEach((c) => {
           const name = c.value || (c as any).name || (c as any).country || '';
           if (name) {
+            const cnt = typeof c.visas_count === 'number' ? c.visas_count : ((c as any).count || 0);
+            totalCount += cnt;
             list.push({
               key: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
               label: name,
-              count: typeof c.visas_count === 'number' ? c.visas_count : ((c as any).count || 0),
+              count: cnt,
             });
           }
         });
-        return list;
+        return [{ key: 'all', label: 'All Countries', count: totalCount }, ...list];
       }
 
       const res = await apiGet<any>('/inquiry/lookups', { cache: 'no-store' } as RequestInit);
       const countries = res.data?.custom_visa_countries || [];
 
-      const list: { key: string; label: string; count: number }[] = [
-        { key: 'all', label: 'All Countries', count: 0 },
-      ];
+      let totalCount = 0;
+      const list: { key: string; label: string; count: number }[] = [];
 
       if (Array.isArray(countries)) {
         countries.forEach((c: any) => {
           const name = c.name || c.short_name || '';
           if (name) {
+            const cnt = c.count || 0;
+            totalCount += cnt;
             list.push({
               key: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
               label: name,
-              count: c.count || 0,
+              count: cnt,
             });
           }
         });
       }
 
-      return list;
+      return [{ key: 'all', label: 'All Countries', count: totalCount }, ...list];
     } catch {
       return [{ key: 'all', label: 'All Countries', count: 0 }];
     }
