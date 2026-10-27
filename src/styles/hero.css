@@ -469,18 +469,19 @@
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  min-width: 100%;
+  min-width: max(100%, 260px);
   width: max-content;
   max-width: 380px;
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 18px;
   box-shadow: 0 18px 40px -4px rgba(11, 21, 40, 0.18), 0 6px 18px rgba(0, 0, 0, 0.06);
-  padding: 6px;
+  padding: 8px 6px;
   z-index: 1000;
-  max-height: 280px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  max-height: 350px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-sizing: border-box;
   animation: heroDropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -502,20 +503,104 @@
   }
 }
 
-.hero-pill-dropdown-menu::-webkit-scrollbar {
+/* Sticky search input at top of dropdown */
+.hero-pill-dropdown-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin: 2px 2px 8px 2px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.hero-pill-dropdown-search-wrap:focus-within {
+  border-color: #0080f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 128, 246, 0.12);
+}
+
+.hero-pill-dropdown-search-icon {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.hero-pill-dropdown-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #0f172a;
+  width: 100%;
+  padding: 0;
+  font-family: inherit;
+}
+
+.hero-pill-dropdown-search-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.hero-pill-dropdown-search-clear {
+  border: none;
+  background: #e2e8f0;
+  color: #475569;
+  border-radius: 999px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.hero-pill-dropdown-search-clear:hover {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+/* Scrollable options list */
+.hero-pill-dropdown-options-list {
+  flex: 1;
+  min-height: 0;
+  max-height: 270px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.hero-pill-dropdown-empty {
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.hero-pill-dropdown-menu::-webkit-scrollbar,
+.hero-pill-dropdown-options-list::-webkit-scrollbar {
   width: 6px;
 }
 
-.hero-pill-dropdown-menu::-webkit-scrollbar-track {
+.hero-pill-dropdown-menu::-webkit-scrollbar-track,
+.hero-pill-dropdown-options-list::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.hero-pill-dropdown-menu::-webkit-scrollbar-thumb {
+.hero-pill-dropdown-menu::-webkit-scrollbar-thumb,
+.hero-pill-dropdown-options-list::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 999px;
 }
 
-.hero-pill-dropdown-menu::-webkit-scrollbar-thumb:hover {
+.hero-pill-dropdown-menu::-webkit-scrollbar-thumb:hover,
+.hero-pill-dropdown-options-list::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
@@ -534,7 +619,8 @@
   gap: 12px;
 }
 
-.hero-pill-dropdown-item:hover {
+.hero-pill-dropdown-item:hover,
+.hero-pill-dropdown-item.is-highlighted {
   background: #f1f5f9;
   color: #0080f6;
 }
@@ -618,6 +704,8 @@
   min-width: 280px;
   padding: 16px 18px;
   border-radius: 20px;
+  max-height: none;
+  overflow: visible;
 }
 
 .hero-guest-row {

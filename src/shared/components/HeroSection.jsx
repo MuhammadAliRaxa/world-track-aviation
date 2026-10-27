@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Building2,
   ChevronDown,
   Check,
+  Search,
+  X,
 } from 'lucide-react';
 import Image from 'next/image';
 import { PassportIcon } from './icons/PassportIcon';
@@ -53,10 +55,97 @@ function HeroDropdownField({
   onSelect,
   isWide = false,
   alignRight = false,
+  searchable = true,
+  searchPlaceholder,
 }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const searchInputRef = useRef(null);
+  const listRef = useRef(null);
+
+  // Auto-focus search input when opened
+  useEffect(() => {
+    if (isOpen) {
+      setSearchTerm('');
+      setHighlightedIndex(-1);
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 40);
+      return () => clearTimeout(timer);
+    } else {
+      setSearchTerm('');
+      setHighlightedIndex(-1);
+    }
+  }, [isOpen]);
+
   const hasValue = Boolean(value);
   const shownText = hasValue ? (displayValue || value) : placeholder;
   const isPlaceholder = !hasValue && Boolean(placeholder);
+
+  // Filter options based on search query
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchTerm.trim()) return options;
+    const q = searchTerm.toLowerCase().trim();
+    return options.filter((opt) => {
+      const optLabel = String(typeof opt === 'object' ? (opt.label ?? opt.value) : opt).toLowerCase();
+      const optVal = String(typeof opt === 'object' ? opt.value : opt).toLowerCase();
+      // Omit empty placeholder "Select ..." options when actively filtering
+      if (typeof opt === 'object' && !opt.value && optLabel.startsWith('select ')) {
+        return false;
+      }
+      return optLabel.includes(q) || optVal.includes(q);
+    });
+  }, [options, searchTerm, searchable]);
+
+  // Keep highlighted item visible during keyboard navigation
+  useEffect(() => {
+    if (highlightedIndex >= 0 && listRef.current) {
+      const itemEl = listRef.current.querySelector(`[data-index="${highlightedIndex}"]`);
+      if (itemEl && typeof itemEl.scrollIntoView === 'function') {
+        itemEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightedIndex]);
+
+  // Keyboard navigation
+  const handleKeyDown = (e) => {
+    if (!isOpen) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        onToggle();
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        onToggle();
+        setSearchTerm(e.key);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => {
+        const next = prev + 1;
+        return next >= filteredOptions.length ? 0 : next;
+      });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => {
+        const next = prev - 1;
+        return next < 0 ? filteredOptions.length - 1 : next;
+      });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filteredOptions.length > 0) {
+        const target = highlightedIndex >= 0 ? filteredOptions[highlightedIndex] : filteredOptions[0];
+        if (target) {
+          const optVal = typeof target === 'object' ? target.value : target;
+          onSelect(optVal);
+        }
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      onToggle();
+    }
+  };
 
   return (
     <div
@@ -69,12 +158,7 @@ function HeroDropdownField({
       tabIndex={0}
       aria-haspopup="listbox"
       aria-expanded={isOpen}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onToggle();
-        }
-      }}
+      onKeyDown={handleKeyDown}
     >
       <div className="pill-field-content">
         <span className="pill-field-label">{label}</span>
@@ -95,29 +179,80 @@ function HeroDropdownField({
           role="listbox"
           onClick={(e) => e.stopPropagation()}
         >
-          {options.map((opt) => {
-            const optVal = typeof opt === 'object' ? opt.value : opt;
-            const optLabel = typeof opt === 'object' ? opt.label : opt;
-            const isSelected = String(value) === String(optVal);
-
-            return (
-              <div
-                key={String(optVal)}
-                role="option"
-                aria-selected={isSelected}
-                className={`hero-pill-dropdown-item ${isSelected ? 'is-selected' : ''}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelect(optVal);
+          {searchable && (
+            <div
+              className="hero-pill-dropdown-search-wrap"
+              onClick={(e) => {
+                e.stopPropagation();
+                searchInputRef.current?.focus();
+              }}
+            >
+              <Search size={14} strokeWidth={2.2} className="hero-pill-dropdown-search-icon" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                className="hero-pill-dropdown-search-input"
+                placeholder={searchPlaceholder || `Search ${label.toLowerCase()}...`}
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setHighlightedIndex(0);
                 }}
-              >
-                <span className="hero-pill-dropdown-item-label">{optLabel}</span>
-                {isSelected && (
-                  <Check size={16} strokeWidth={2.6} className="hero-pill-dropdown-check" />
-                )}
+                onKeyDown={handleKeyDown}
+                onClick={(e) => e.stopPropagation()}
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  className="hero-pill-dropdown-search-clear"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSearchTerm('');
+                    setHighlightedIndex(-1);
+                    searchInputRef.current?.focus();
+                  }}
+                  aria-label="Clear search"
+                >
+                  <X size={12} strokeWidth={2.5} />
+                </button>
+              )}
+            </div>
+          )}
+
+          <div ref={listRef} className="hero-pill-dropdown-options-list">
+            {filteredOptions.length === 0 ? (
+              <div className="hero-pill-dropdown-empty">
+                No matching results found
               </div>
-            );
-          })}
+            ) : (
+              filteredOptions.map((opt, idx) => {
+                const optVal = typeof opt === 'object' ? opt.value : opt;
+                const optLabel = typeof opt === 'object' ? opt.label : opt;
+                const isSelected = String(value) === String(optVal);
+                const isHighlighted = idx === highlightedIndex;
+
+                return (
+                  <div
+                    key={String(optVal) + '-' + idx}
+                    data-index={idx}
+                    role="option"
+                    aria-selected={isSelected}
+                    className={`hero-pill-dropdown-item ${isSelected ? 'is-selected' : ''} ${isHighlighted ? 'is-highlighted' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelect(optVal);
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                  >
+                    <span className="hero-pill-dropdown-item-label">{optLabel}</span>
+                    {isSelected && (
+                      <Check size={16} strokeWidth={2.6} className="hero-pill-dropdown-check" />
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       )}
     </div>

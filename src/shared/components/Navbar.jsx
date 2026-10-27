@@ -502,7 +502,7 @@ export function Navbar({ onOpenContact: _onOpenContact, activeCategory = 'all', 
                     <span>WhatsApp</span>
                   </a>
                   <a
-                    href="tel:0512120721"
+                    href="tel:+923350122252"
                     className="mobile-quick-contact-pill call"
                   >
                     <PhoneCall size={15} />

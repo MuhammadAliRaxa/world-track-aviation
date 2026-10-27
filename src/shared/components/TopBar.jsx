@@ -38,11 +38,11 @@ export function TopBar({ transparent = false }) {
 
         {/* Right Contact Info */}
         <div className="contact-pill-group">
-          <a href="tel:0512120721" className="contact-link-item">
+          <a href="tel:+923350122252" className="contact-link-item">
             <span className="contact-phone-icon">
               <Phone size={13} strokeWidth={2.5} />
             </span>
-            <span className="contact-val">051-2120721</span>
+            <span className="contact-val">+92 335 0122252</span>
           </a>
 
           <span className="contact-pipe-divider">|</span>
