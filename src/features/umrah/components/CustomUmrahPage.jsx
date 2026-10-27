@@ -123,9 +123,9 @@ export function CustomUmrahPage({
     roe: 78,
   });
 
-  // All raw tickets from API — used for cascading sector → dates → airlines
+  // All raw tickets from API — dynamically populated for the selected duration
   const [allTickets, setAllTickets] = useState([]);
-
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -137,8 +137,7 @@ export function CustomUmrahPage({
       flightService.getGroupTicketLookups(),
       transportService.getTransportListing(),
       visaService.getCalculatorVisaTypes(),
-      flightService.getGroupTicketsPaginated(), // all tickets for cascading filter
-    ]).then(([lookupsRes, hotelsRes, flightLookupsRes, transportRes, visaRes, allTicketsRes]) => {
+    ]).then(([lookupsRes, hotelsRes, flightLookupsRes, transportRes, visaRes]) => {
       if (!isMounted) return;
       let cities = ['Makkah', 'Madinah'];
       let roomTypes = ['Double', 'Triple', 'Quad', 'Sharing'];
@@ -203,12 +202,6 @@ export function CustomUmrahPage({
         }));
       }
 
-      // Store full ticket list for cascading Sector → Dates → Airlines
-      if (allTicketsRes.status === 'fulfilled' && allTicketsRes.value) {
-        const tickets = allTicketsRes.value.tickets || [];
-        setAllTickets(tickets);
-      }
-
       // Extract transport routes and vehicle types from /transport/list API
       if (transportRes.status === 'fulfilled' && transportRes.value) {
         const tData = transportRes.value;
@@ -268,15 +261,79 @@ export function CustomUmrahPage({
     };
   }, []);
 
-
-  // When custom days are selected in duration, clear ticket fields
+  // When duration changes, dynamically fetch ALL tickets for that duration
   useEffect(() => {
-    if (duration && !durationOptions.includes(duration)) {
+    if (!duration) {
       setDeparture('');
       setAirline('');
       setSector('');
       setTicketPricePerPax(0);
+      setAllTickets([]);
+      return;
     }
+
+    // If custom days (e.g. 18 Days) write-in, tickets are not included in standard group calculation
+    if (!durationOptions.includes(duration)) {
+      setDeparture('');
+      setAirline('');
+      setSector('');
+      setTicketPricePerPax(0);
+      setAllTickets([]);
+      return;
+    }
+
+    const durationMatch = (String(duration).match(/(\d+)/) || [])[1];
+    const targetDaysNum = durationMatch ? parseInt(durationMatch, 10) : 0;
+    if (!targetDaysNum) return;
+
+    let isMounted = true;
+    setIsLoadingTickets(true);
+
+    // Reset downstream fields on duration switch
+    setDeparture('');
+    setAirline('');
+    setSector('');
+    setTicketPricePerPax(0);
+
+    // Fetch up to 50 tickets on page 1
+    flightService
+      .getGroupTicketsPaginated({
+        duration: [targetDaysNum],
+        perPage: 50,
+      })
+      .then(async (res) => {
+        if (!isMounted) return;
+        let tickets = res.tickets || [];
+
+        // If total_pages > 1 (e.g. 21 Days has 52 tickets), fetch page 2
+        if (res.pagination && res.pagination.total_pages > 1) {
+          try {
+            const page2 = await flightService.getGroupTicketsPaginated({
+              duration: [targetDaysNum],
+              perPage: 50,
+              nextPage: 2,
+            });
+            if (page2?.tickets?.length > 0) {
+              tickets = [...tickets, ...page2.tickets];
+            }
+          } catch (e) {
+            console.error('[CustomUmrahPage] Failed to fetch page 2 of tickets:', e);
+          }
+        }
+
+        if (isMounted) {
+          setAllTickets(tickets);
+          setIsLoadingTickets(false);
+        }
+      })
+      .catch((err) => {
+        console.error('[CustomUmrahPage] Failed to fetch tickets for duration:', err);
+        if (isMounted) setIsLoadingTickets(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [duration, durationOptions]);
 
   // Fetch real ticket price from loaded tickets / API when departure + airline + sector are all set
@@ -1291,6 +1348,7 @@ export function CustomUmrahPage({
                 setSector={setSector}
                 ticketLookups={ticketLookups}
                 allTickets={allTickets}
+                isLoadingTickets={isLoadingTickets}
                 errors={fieldErrors}
                 onClearError={clearFieldError}
               />

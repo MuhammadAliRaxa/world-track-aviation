@@ -53,7 +53,8 @@ export function UmrahFareInputs({
   sector,
   setSector,
   ticketLookups = {},
-  allTickets = [],   // full raw ticket list from API
+  allTickets = [],   // full raw ticket list from API for selected duration
+  isLoadingTickets = false,
   errors = {},
   onClearError,
 }) {
@@ -63,11 +64,8 @@ export function UmrahFareInputs({
 
   const hasTickets = Array.isArray(allTickets) && allTickets.length > 0;
 
-  // ── 1. Sector options (from ticketLookups or allTickets) ─────────────────
+  // ── 1. Sector options strictly from available tickets for this duration ───
   const sectorOptions = useMemo(() => {
-    if (ticketLookups.routes && ticketLookups.routes.length > 0) {
-      return ticketLookups.routes;
-    }
     if (hasTickets) {
       const seen = new Set();
       const list = [];
@@ -80,8 +78,11 @@ export function UmrahFareInputs({
       });
       if (list.length > 0) return list;
     }
+    if (ticketLookups.routes && ticketLookups.routes.length > 0) {
+      return ticketLookups.routes;
+    }
     return FALLBACK_SECTORS;
-  }, [ticketLookups.routes, hasTickets, allTickets]);
+  }, [hasTickets, allTickets, ticketLookups.routes]);
 
   // ── 2. Departure dates filtered strictly by selected sector ───────────────
   const departureOptions = useMemo(() => {
@@ -124,14 +125,15 @@ export function UmrahFareInputs({
         return ticketMatchesSector(t, sector) && raw === departure;
       });
 
-      // Extract unique airline names
+      // Extract unique airline names with live ticket price
       const seen = new Set();
       const airlines = [];
       relevant.forEach((t) => {
         const name = t.airlineName || '';
         if (name && !seen.has(name)) {
           seen.add(name);
-          airlines.push({ value: name, label: name });
+          const priceLabel = t.pricePKR > 0 ? ` (PKR ${t.pricePKR.toLocaleString()})` : '';
+          airlines.push({ value: name, label: `${name}${priceLabel}` });
         }
       });
 
@@ -157,16 +159,25 @@ export function UmrahFareInputs({
   };
 
   // ── Disabled states and dynamic labels ───────────────────────────────────
-  const dateDisabled = !sector || (hasTickets && departureOptions.length === 0);
-  const airlineDisabled = !sector || !departure || (hasTickets && airlineOptions.length === 0);
+  const sectorDisabled = isLoadingTickets;
+  const dateDisabled = isLoadingTickets || !sector || (hasTickets && departureOptions.length === 0);
+  const airlineDisabled = isLoadingTickets || !sector || !departure || (hasTickets && airlineOptions.length === 0);
 
-  const datePlaceholder = !sector
+  const sectorPlaceholder = isLoadingTickets
+    ? 'Loading available routes...'
+    : 'Select Sector';
+
+  const datePlaceholder = isLoadingTickets
+    ? 'Loading departure dates...'
+    : !sector
     ? 'Select sector first'
     : departureOptions.length === 0
     ? 'No departure dates available'
     : 'Select departure date';
 
-  const airlinePlaceholder = !sector
+  const airlinePlaceholder = isLoadingTickets
+    ? 'Loading airlines...'
+    : !sector
     ? 'Select sector first'
     : !departure
     ? 'Select date first'
@@ -194,16 +205,17 @@ export function UmrahFareInputs({
           label="Sector"
           required={true}
           value={sector}
-          placeholder="Select Sector"
+          placeholder={sectorPlaceholder}
           options={sectorOptions}
           onChange={(val) => {
             handleSectorChange(val);
             onClearError?.('ticketSector');
           }}
           error={errors.ticketSector}
-          isOpen={open === 'sector'}
-          onToggle={() => toggle('sector')}
+          isOpen={!sectorDisabled && open === 'sector'}
+          onToggle={() => !sectorDisabled && toggle('sector')}
           onClose={close}
+          disabled={sectorDisabled}
         />
 
         {/* 2 — Departure Date (available only after sector is selected) */}
