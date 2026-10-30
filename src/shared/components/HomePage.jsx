@@ -144,6 +144,8 @@ function HomePageInner({
             initialLookups={initialHotelLookups}
             initialVisaLookups={initialVisaLookups}
             initialGroupUmrahLookups={initialGroupUmrahLookups}
+            initialVisas={initialVisas}
+            initialUmrahPackages={initialUmrahPackages}
           />
         }
       />

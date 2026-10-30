@@ -39,7 +39,7 @@ export function SearchResultsSection({ searchData, onClose }) {
   const getCatalogLink = () => {
     switch (tab) {
       case 'hotels':
-        return '/hotels';
+        return '/our-hotels';
       case 'umrah':
         return '/umrah-group-packages';
       case 'visa':

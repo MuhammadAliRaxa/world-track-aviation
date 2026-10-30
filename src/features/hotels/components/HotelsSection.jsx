@@ -87,7 +87,7 @@ export function HotelsSection({ searchFilter = null, onClearFilter }) {
             <button
               type="button"
               className="hotel-view-all-pill"
-              onClick={() => router.push('/hotels')}
+              onClick={() => router.push('/our-hotels')}
             >
               View All Hotels
             </button>

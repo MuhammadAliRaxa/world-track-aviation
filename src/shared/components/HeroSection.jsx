@@ -26,12 +26,17 @@ function getTodayIso() {
   return `${year}-${month}-${day}`;
 }
 
-function getFutureIso(daysAhead = 3) {
-  const d = new Date();
-  d.setDate(d.getDate() + daysAhead);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+function addDaysToIso(dateStr, daysToAdd = 1) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return '';
+  const [y, m, d] = parts.map(Number);
+  if (!y || !m || !d) return '';
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + daysToAdd);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
@@ -109,6 +114,8 @@ function HeroDropdownField({
 
   // Keyboard navigation
   const handleKeyDown = (e) => {
+    e.stopPropagation();
+
     if (!isOpen) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
         e.preventDefault();
@@ -266,6 +273,8 @@ export function HeroSection({
   initialLookups = null,
   initialVisaLookups = null,
   initialGroupUmrahLookups = null,
+  initialVisas = null,
+  initialUmrahPackages = null,
 }) {
   const hotelsDispatch = useHotelsDispatch();
   const [isSearchingHotel, setIsSearchingHotel] = useState(false);
@@ -312,15 +321,12 @@ export function HeroSection({
     ? `${hotelAdults} adult${hotelAdults > 1 ? 's' : ''} (${hotelRooms || 1} Room${(hotelRooms || 1) > 1 ? 's' : ''})`
     : '';
 
+  const todayIso = useMemo(() => getTodayIso(), []);
+
   const handleHotelCheckInChange = (val) => {
     setHotelCheckIn(val);
     if (val && (!hotelCheckOut || hotelCheckOut <= val)) {
-      const d = new Date(val);
-      d.setDate(d.getDate() + 1);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      setHotelCheckOut(`${year}-${month}-${day}`);
+      setHotelCheckOut(addDaysToIso(val, 1));
     }
   };
 
@@ -330,12 +336,7 @@ export function HeroSection({
       return;
     }
     if (hotelCheckIn && val <= hotelCheckIn) {
-      const d = new Date(hotelCheckIn);
-      d.setDate(d.getDate() + 1);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      setHotelCheckOut(`${year}-${month}-${day}`);
+      setHotelCheckOut(addDaysToIso(hotelCheckIn, 1));
     } else {
       setHotelCheckOut(val);
     }
@@ -424,6 +425,41 @@ export function HeroSection({
   const [selectedRoute, setSelectedRoute] = useState('');
   const [selectedDepartureDate, setSelectedDepartureDate] = useState('');
   const [umrahDuration, setUmrahDuration] = useState('');
+
+  // Complete datasets used to establish dependent (cascading) filter relationships
+  const [allVisas, setAllVisas] = useState(() => (Array.isArray(initialVisas) ? initialVisas : []));
+  const [allUmrahPackages, setAllUmrahPackages] = useState(
+    () => (Array.isArray(initialUmrahPackages) ? initialUmrahPackages : [])
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!initialVisas || initialVisas.length === 0) {
+      visaService
+        .getVisas()
+        .then((data) => {
+          if (isMounted && Array.isArray(data) && data.length > 0) {
+            setAllVisas(data);
+          }
+        })
+        .catch(() => {});
+    }
+
+    if (!initialUmrahPackages || initialUmrahPackages.length === 0) {
+      umrahService
+        .getGroupUmrahPackages()
+        .then((data) => {
+          if (isMounted && Array.isArray(data) && data.length > 0) {
+            setAllUmrahPackages(data);
+          }
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialVisas, initialUmrahPackages]);
 
   // Fetch group Umrah lookups directly from GET /group-umrah-packages/lookups (if not supplied via SSR)
   useEffect(() => {
@@ -516,8 +552,32 @@ export function HeroSection({
     return list;
   }, [lookupVisaCountries]);
 
+  // Dynamic cascading Visa Type options: narrows down based on selected Country
   const visaTypeOptions = useMemo(() => {
     const list = [{ value: '', label: 'Select Visa Type' }];
+
+    // If destination country is selected and we have visas data, only show visa types for that country
+    if (visaDestination && allVisas.length > 0) {
+      const countryVisas = allVisas.filter((v) => {
+        const country = (v.country || '').trim().toLowerCase();
+        return country === visaDestination.trim().toLowerCase();
+      });
+
+      if (countryVisas.length > 0) {
+        const typesSet = new Set();
+        countryVisas.forEach((v) => {
+          const type = (v.badge || v.visa_type || '').trim();
+          if (type) typesSet.add(type);
+        });
+
+        if (typesSet.size > 0) {
+          typesSet.forEach((t) => list.push({ value: t, label: t }));
+          return list;
+        }
+      }
+    }
+
+    // Default: all visa types from lookups
     if (Array.isArray(lookupVisaTypes) && lookupVisaTypes.length > 0) {
       lookupVisaTypes.forEach((t) => {
         const val = typeof t === 'string' ? t : (t.value || t.name || t.visa_type || '');
@@ -531,7 +591,19 @@ export function HeroSection({
       });
     }
     return list;
-  }, [lookupVisaTypes]);
+  }, [visaDestination, allVisas, lookupVisaTypes]);
+
+  // Auto-reset visaType if selected type is not available in the newly selected country
+  useEffect(() => {
+    if (visaType && visaDestination) {
+      const isValid = visaTypeOptions.some(
+        (opt) => opt.value && opt.value.toLowerCase() === visaType.toLowerCase()
+      );
+      if (!isValid) {
+        setVisaType('');
+      }
+    }
+  }, [visaDestination, visaTypeOptions, visaType]);
 
   const groupUmrahRouteOptions = useMemo(() => {
     const list = [{ value: '', label: 'Select Route' }];
@@ -549,8 +621,42 @@ export function HeroSection({
     return found?.name || selectedRoute;
   }, [selectedRoute, lookupRoutes]);
 
+  // Dynamic cascading Departure Date options: narrows down based on selected Route
   const groupUmrahDepartureDateOptions = useMemo(() => {
     const list = [{ value: '', label: 'Select Departure Date' }];
+
+    // If a route is selected and packages are loaded, show only departure dates for that route
+    if (selectedRoute && allUmrahPackages.length > 0) {
+      const matchingPkgs = allUmrahPackages.filter((pkg) => {
+        const pkgRouteId = pkg.route?.id != null ? String(pkg.route.id) : '';
+        const pkgRouteName = (pkg.route?.name || pkg.sector || '').toLowerCase();
+        const selectedLabel = (selectedRouteLabel || '').toLowerCase();
+        return (
+          pkgRouteId === String(selectedRoute) ||
+          (selectedLabel && pkgRouteName.includes(selectedLabel))
+        );
+      });
+
+      if (matchingPkgs.length > 0) {
+        const dateMap = new Map();
+        matchingPkgs.forEach((pkg) => {
+          const rawDate = pkg.departure_date || pkg.outbound?.date;
+          if (rawDate && rawDate !== 'ON REQUEST' && !dateMap.has(rawDate)) {
+            const foundLookup = lookupDepartureDates.find((d) => d.value === rawDate);
+            dateMap.set(rawDate, foundLookup?.label || formatDisplayDate(rawDate));
+          }
+        });
+
+        if (dateMap.size > 0) {
+          dateMap.forEach((label, val) => {
+            list.push({ value: val, label });
+          });
+          return list;
+        }
+      }
+    }
+
+    // Default: all departure dates from lookups
     if (Array.isArray(lookupDepartureDates) && lookupDepartureDates.length > 0) {
       lookupDepartureDates.forEach((d) => {
         list.push({
@@ -560,7 +666,7 @@ export function HeroSection({
       });
     }
     return list;
-  }, [lookupDepartureDates]);
+  }, [selectedRoute, selectedRouteLabel, allUmrahPackages, lookupDepartureDates]);
 
   const selectedDepartureDateLabel = useMemo(() => {
     if (!selectedDepartureDate || selectedDepartureDate === 'All Departure Dates') {
@@ -570,8 +676,50 @@ export function HeroSection({
     return found?.label || selectedDepartureDate;
   }, [selectedDepartureDate, lookupDepartureDates]);
 
+  // Dynamic cascading Duration options: narrows down based on selected Route AND Departure Date
   const groupUmrahDurationOptions = useMemo(() => {
     const list = [{ value: '', label: 'Select Duration' }];
+
+    // If route and/or departure date is selected, filter durations matching them
+    if ((selectedRoute || selectedDepartureDate) && allUmrahPackages.length > 0) {
+      const matchingPkgs = allUmrahPackages.filter((pkg) => {
+        if (selectedRoute) {
+          const pkgRouteId = pkg.route?.id != null ? String(pkg.route.id) : '';
+          const pkgRouteName = (pkg.route?.name || pkg.sector || '').toLowerCase();
+          const selectedLabel = (selectedRouteLabel || '').toLowerCase();
+          const routeMatches =
+            pkgRouteId === String(selectedRoute) ||
+            (selectedLabel && pkgRouteName.includes(selectedLabel));
+          if (!routeMatches) return false;
+        }
+        if (selectedDepartureDate) {
+          const rawDate = pkg.departure_date || pkg.outbound?.date;
+          if (rawDate && rawDate !== selectedDepartureDate) return false;
+        }
+        return true;
+      });
+
+      if (matchingPkgs.length > 0) {
+        const durSet = new Set();
+        matchingPkgs.forEach((pkg) => {
+          const dVal = pkg.duration || (pkg.durationDays ? parseInt(pkg.durationDays, 10) : null);
+          if (dVal && !isNaN(dVal)) {
+            durSet.add(Number(dVal));
+          }
+        });
+
+        if (durSet.size > 0) {
+          Array.from(durSet)
+            .sort((a, b) => a - b)
+            .forEach((num) => {
+              list.push({ value: String(num), label: `${num} Days` });
+            });
+          return list;
+        }
+      }
+    }
+
+    // Default: all durations from lookups
     if (Array.isArray(lookupDurations) && lookupDurations.length > 0) {
       lookupDurations.forEach((d) => {
         const val = typeof d === 'object' && d !== null ? (d.value ?? d.duration ?? d.id) : d;
@@ -589,13 +737,37 @@ export function HeroSection({
       });
     }
     return list;
-  }, [lookupDurations]);
+  }, [selectedRoute, selectedRouteLabel, selectedDepartureDate, allUmrahPackages, lookupDurations]);
 
   const selectedDurationLabel = useMemo(() => {
     if (!umrahDuration || umrahDuration === 'All Durations') return '';
     const found = groupUmrahDurationOptions.find((d) => String(d.value) === String(umrahDuration));
     return found?.label || `${umrahDuration} Days`;
   }, [umrahDuration, groupUmrahDurationOptions]);
+
+  // Auto-reset departure date if no longer available for newly selected route
+  useEffect(() => {
+    if (selectedDepartureDate && selectedRoute) {
+      const isValid = groupUmrahDepartureDateOptions.some(
+        (opt) => opt.value === selectedDepartureDate
+      );
+      if (!isValid) {
+        setSelectedDepartureDate('');
+      }
+    }
+  }, [selectedRoute, groupUmrahDepartureDateOptions, selectedDepartureDate]);
+
+  // Auto-reset duration if no longer available for selected route or departure date
+  useEffect(() => {
+    if (umrahDuration && (selectedRoute || selectedDepartureDate)) {
+      const isValid = groupUmrahDurationOptions.some(
+        (opt) => String(opt.value) === String(umrahDuration)
+      );
+      if (!isValid) {
+        setUmrahDuration('');
+      }
+    }
+  }, [selectedRoute, selectedDepartureDate, groupUmrahDurationOptions, umrahDuration]);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -875,6 +1047,7 @@ export function HeroSection({
                 <input
                   type="date"
                   className="pill-native-date-input"
+                  min={todayIso}
                   value={hotelCheckIn}
                   onChange={(e) => handleHotelCheckInChange(e.target.value)}
                   aria-label="Check-in Date"
@@ -904,6 +1077,7 @@ export function HeroSection({
                 <input
                   type="date"
                   className="pill-native-date-input"
+                  min={hotelCheckIn ? addDaysToIso(hotelCheckIn, 1) : todayIso}
                   value={hotelCheckOut}
                   onChange={(e) => handleHotelCheckOutChange(e.target.value)}
                   aria-label="Check-out Date"
@@ -1091,6 +1265,7 @@ export function HeroSection({
                 <input
                   type="date"
                   className="pill-native-date-input"
+                  min={todayIso}
                   value={visaCheckIn}
                   onChange={(e) => setVisaCheckIn(e.target.value)}
                   aria-label="Entry Date"
@@ -1107,6 +1282,7 @@ export function HeroSection({
                 placeholder="Select Visa Type"
                 options={visaTypeOptions}
                 alignRight={true}
+                searchable={false}
                 isOpen={openDropdown === 'visa-type'}
                 onToggle={() =>
                   setOpenDropdown((curr) => (curr === 'visa-type' ? null : 'visa-type'))
@@ -1179,6 +1355,7 @@ export function HeroSection({
                 placeholder="Select Duration"
                 options={groupUmrahDurationOptions}
                 alignRight={true}
+                searchable={false}
                 isOpen={openDropdown === 'umrah-duration'}
                 onToggle={() =>
                   setOpenDropdown((curr) => (curr === 'umrah-duration' ? null : 'umrah-duration'))
