@@ -128,16 +128,13 @@ export default function MaintenancePage() {
 
         {/* Refresh check button */}
         <div className="mt-5">
-          <button
-            type="button"
-            onClick={() => {
-              if (typeof window !== 'undefined') window.location.reload();
-            }}
+          <a
+            href="/"
             className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
             <RefreshCw size={12} />
             <span>Check again if site is online</span>
-          </button>
+          </a>
         </div>
       </div>
     </main>
