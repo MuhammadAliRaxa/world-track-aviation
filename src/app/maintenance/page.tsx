@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { Wrench, Phone, Mail, MessageCircle, MapPin, Clock, RefreshCw } from 'lucide-react';
+import { Phone, Mail, MessageCircle, MapPin, Clock, RefreshCw, Plane, ShieldCheck } from 'lucide-react';
 import { COMPANY_CONFIG } from '@/config/company';
 
 export const metadata: Metadata = {
@@ -19,125 +19,337 @@ export default function MaintenancePage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#070e1b] text-white flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      {/* Decorative ambient gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-emerald-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <main
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px 16px',
+        position: 'relative',
+        backgroundColor: '#0a1628',
+        fontFamily: "var(--font-main, 'Plus Jakarta Sans', -apple-system, sans-serif)",
+        overflow: 'hidden',
+      }}
+    >
+      {/* Background Travel Media with dark cinematic overlay */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+        }}
+      >
+        <Image
+          src="/assets/Main header.webp"
+          alt="World Track Aviation Background"
+          fill
+          priority
+          sizes="100vw"
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center 40%',
+            filter: 'brightness(0.35) blur(3px)',
+            transform: 'scale(1.05)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(ellipse at center, rgba(10,22,40,0.7) 0%, rgba(10,22,40,0.92) 100%)',
+          }}
+        />
+      </div>
 
-      <div className="max-w-lg w-full bg-[#0d1829]/90 border border-slate-700/60 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md relative z-10 text-center">
+      {/* Main Luxury Glassmorphic Card */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          maxWidth: '560px',
+          width: '100%',
+          backgroundColor: '#ffffff',
+          borderRadius: '24px',
+          padding: '40px 32px',
+          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          textAlign: 'center',
+          boxSizing: 'border-box',
+        }}
+      >
         {/* Brand Logo */}
-        <div className="flex justify-center mb-6">
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
           <Image
             src="/assets/world_track_logo.png"
             alt={COMPANY_CONFIG.name}
-            width={180}
-            height={52}
+            width={210}
+            height={56}
             priority
-            className="h-10 w-auto object-contain brightness-110"
+            style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
           />
         </div>
 
-        {/* Maintenance Icon Badge */}
-        <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner">
-          <Wrench size={30} className="animate-pulse" />
+        {/* Status Pill Badge */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#eff6ff',
+            border: '1px solid #bfdbfe',
+            color: '#1d4ed8',
+            fontSize: '12px',
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            padding: '6px 14px',
+            borderRadius: '9999px',
+            marginBottom: '16px',
+          }}
+        >
+          <span
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#2563eb',
+              boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.25)',
+              display: 'inline-block',
+            }}
+          />
+          System Upgrade in Progress
         </div>
 
-        {/* Headline */}
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-3">
-          We&apos;ll Be Back Shortly!
+        {/* Clean, High-Contrast Headline */}
+        <h1
+          style={{
+            fontSize: '28px',
+            fontWeight: 800,
+            color: '#0f172a',
+            margin: '0 0 10px 0',
+            lineHeight: 1.25,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          We&apos;ll Be Back Shortly
         </h1>
 
-        <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
-          Our backend system is currently undergoing scheduled maintenance and upgrades. We apologize for any inconvenience.
+        {/* Subtitle Message */}
+        <p
+          style={{
+            fontSize: '14px',
+            color: '#475569',
+            lineHeight: 1.6,
+            margin: '0 auto 24px auto',
+            maxWidth: '440px',
+          }}
+        >
+          We are currently upgrading our booking systems and flight inventories to serve you better.
+          Our team is available 24/7 for all flight, Umrah, hotel, and visa inquiries.
         </p>
 
-        {/* Operating Hours Note */}
-        <div className="flex items-center justify-center gap-2 text-xs text-slate-400 bg-slate-800/50 rounded-xl py-2 px-3 mb-6 border border-slate-700/40">
-          <Clock size={13} className="text-emerald-400" />
-          <span>{COMPANY_CONFIG.openingHours}</span>
+        {/* 24/7 Booking Available Banner */}
+        <div
+          style={{
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '14px',
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            fontSize: '12px',
+            color: '#334155',
+            fontWeight: 600,
+            marginBottom: '20px',
+          }}
+        >
+          <ShieldCheck size={16} color="#059669" />
+          <span>All existing bookings &amp; issued tickets remain fully confirmed.</span>
         </div>
 
-        {/* Action / Contact Block */}
-        <div className="border-t border-slate-700/60 pt-5 space-y-2.5 text-left">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 text-center mb-3">
-            Need Immediate Booking or Inquiries?
-          </p>
-
-          {/* WhatsApp Direct Chat Button */}
+        {/* Primary Contact Channels */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'left' }}>
+          
+          {/* WhatsApp Direct Chat (Primary Action) */}
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 transition-all font-medium text-sm group"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '14px 18px',
+              borderRadius: '16px',
+              backgroundColor: '#25D366',
+              color: '#ffffff',
+              textDecoration: 'none',
+              boxShadow: '0 4px 14px 0 rgba(37, 211, 102, 0.35)',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+            }}
           >
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <MessageCircle size={18} />
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <MessageCircle size={20} color="#ffffff" />
+              </div>
               <div>
-                <div className="font-semibold text-white group-hover:text-emerald-300 transition-colors">
-                  WhatsApp 24/7 Helpline
+                <div style={{ fontWeight: 700, fontSize: '14px', lineHeight: 1.2 }}>
+                  Chat on WhatsApp 24/7
                 </div>
-                <div className="text-xs text-slate-400">{COMPANY_CONFIG.whatsapp}</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                  {COMPANY_CONFIG.whatsapp}
+                </div>
               </div>
             </div>
-            <span className="text-xs font-semibold uppercase tracking-wider px-2 py-1 rounded bg-emerald-500/20 text-emerald-300">
-              Chat
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                backgroundColor: 'rgba(0, 0, 0, 0.12)',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+              }}
+            >
+              Online Now
             </span>
           </a>
 
-          {/* Phone Call Button */}
+          {/* Direct Phone Call (Secondary Action) */}
           <a
             href={`tel:${COMPANY_CONFIG.phoneRaw}`}
-            className="flex items-center justify-between p-3.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-200 transition-all font-medium text-sm group"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '14px 18px',
+              borderRadius: '16px',
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              textDecoration: 'none',
+              boxShadow: '0 4px 14px 0 rgba(15, 23, 42, 0.25)',
+              transition: 'background-color 0.15s ease',
+            }}
           >
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center text-blue-400">
-                <Phone size={18} />
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Phone size={18} color="#ffffff" />
+              </div>
               <div>
-                <div className="font-semibold text-white group-hover:text-blue-300 transition-colors">
-                  Direct Office Line
+                <div style={{ fontWeight: 700, fontSize: '14px', lineHeight: 1.2 }}>
+                  Call Office Helpline
                 </div>
-                <div className="text-xs text-slate-400">{COMPANY_CONFIG.phoneFormatted}</div>
+                <div style={{ fontSize: '12px', color: '#cbd5e1' }}>
+                  {COMPANY_CONFIG.phoneFormatted}
+                </div>
               </div>
             </div>
-            <span className="text-xs font-semibold uppercase tracking-wider px-2 py-1 rounded bg-slate-700/50 text-slate-300">
-              Call
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+              }}
+            >
+              Call Now
             </span>
           </a>
 
-          {/* Email Contact */}
+          {/* Email Support */}
           <a
             href={`mailto:${COMPANY_CONFIG.email}`}
-            className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/70 border border-slate-700/40 text-slate-300 text-xs transition-colors"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '11px 16px',
+              borderRadius: '12px',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#475569',
+              textDecoration: 'none',
+              fontSize: '12px',
+            }}
           >
-            <div className="flex items-center gap-2.5">
-              <Mail size={15} className="text-slate-400" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Mail size={15} color="#64748b" />
               <span>{COMPANY_CONFIG.email}</span>
             </div>
-            <span className="text-[11px] text-slate-400">Email Us</span>
+            <span style={{ fontWeight: 600, color: '#0284c7' }}>Email Us</span>
           </a>
         </div>
 
-        {/* Physical Office Address */}
-        <div className="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-400 flex items-start justify-center gap-1.5 leading-relaxed">
-          <MapPin size={13} className="text-amber-400 shrink-0 mt-0.5" />
-          <span>{COMPANY_CONFIG.address}</span>
+        {/* Operating Hours & Physical Location */}
+        <div
+          style={{
+            marginTop: '20px',
+            paddingTop: '16px',
+            borderTop: '1px solid #f1f5f9',
+            fontSize: '11px',
+            color: '#64748b',
+            lineHeight: 1.6,
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginBottom: '4px' }}>
+            <Clock size={12} color="#059669" />
+            <span>{COMPANY_CONFIG.openingHours}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+            <MapPin size={12} color="#ea580c" />
+            <span>{COMPANY_CONFIG.address}</span>
+          </div>
         </div>
 
-        {/* Refresh check button */}
-        <div className="mt-5">
+        {/* Refresh Check Link */}
+        <div style={{ marginTop: '16px' }}>
           <a
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#64748b',
+              textDecoration: 'none',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              backgroundColor: '#f8fafc',
+            }}
           >
             <RefreshCw size={12} />
-            <span>Check again if site is online</span>
+            <span>Check if website is back online</span>
           </a>
         </div>
       </div>
     </main>
   );
 }
-
