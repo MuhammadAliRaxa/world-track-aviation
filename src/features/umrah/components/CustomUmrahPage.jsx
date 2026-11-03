@@ -121,6 +121,11 @@ export function CustomUmrahPage({
     privateRateSar: 550,
     infantRateSar: 244,
     roe: 78,
+    options: [
+      { value: 'Visa with Sharing Transport', label: 'Visa with Sharing Transport', rateSar: 126 },
+      { value: 'Visa with Private Transport', label: 'Visa with Private Transport', rateSar: 550 },
+    ],
+    rawItems: [],
   });
 
   // All raw tickets from API — dynamically populated for the selected duration
@@ -247,11 +252,33 @@ export function CustomUmrahPage({
         const privateRate = Number(privateItem?.price) || Number(privateItem?.visa_rates?.selling_price) || 550;
         const infantRate = Number(infantItem?.price) || Number(infantItem?.visa_rates?.selling_price) || 244;
 
+        // Build dynamic visa options from API items (excluding infant visa, which is priced automatically)
+        const apiVisaOptions = items
+          .filter((i) => {
+            const name = String(i.visa_type || i.name || i.title || '').trim();
+            return name && !name.toLowerCase().includes('infant') && i.id !== 4;
+          })
+          .map((i) => {
+            const name = String(i.visa_type || i.name || i.title).trim();
+            const rate = Number(i.price) || Number(i.visa_rates?.selling_price) || Number(i.rate) || 0;
+            return {
+              id: i.id,
+              value: name,
+              label: name, // Shown WITHOUT price
+              rateSar: rate,
+            };
+          });
+
         setVisaApiData({
           sharingRateSar: sharingRate,
           privateRateSar: privateRate,
           infantRateSar: infantRate,
           roe,
+          rawItems: items,
+          options: apiVisaOptions.length > 0 ? apiVisaOptions : [
+            { value: 'Visa with Sharing Transport', label: 'Visa with Sharing Transport', rateSar: sharingRate },
+            { value: 'Visa with Private Transport', label: 'Visa with Private Transport', rateSar: privateRate },
+          ],
         });
       }
     });
@@ -652,10 +679,24 @@ export function CustomUmrahPage({
 
 
     // 2. Visa Estimate
-    // - Adults & Children: charged based on selected visa type (Sharing = 126 SAR, Private = 550 SAR)
+    // - Adults & Children: charged based on selected visa type from API
     // - Infants: automatically charged infant visa price (244 SAR) if traveling; not shown in dropdown
+    const matchedOption = (visaApiData.options || []).find(
+      (o) => String(o.value || '').toLowerCase().trim() === String(activeVisaType || '').toLowerCase().trim()
+    );
+    let selectedRateSar = Number(matchedOption?.rateSar) || 0;
+
+    if (!selectedRateSar) {
+      const matchedRaw = (visaApiData.rawItems || []).find(
+        (i) => String(i.visa_type || i.name || i.title || '').toLowerCase().trim() === String(activeVisaType || '').toLowerCase().trim()
+      );
+      selectedRateSar = Number(matchedRaw?.price) || Number(matchedRaw?.visa_rates?.selling_price) || Number(matchedRaw?.rate) || 0;
+    }
+
     let adultChildVisaRate = 0;
-    if (isSharing) {
+    if (selectedRateSar > 0) {
+      adultChildVisaRate = Math.round(selectedRateSar * roe);
+    } else if (isSharing) {
       adultChildVisaRate = Math.round((visaApiData.sharingRateSar || 126) * roe);
     } else if (isPrivate) {
       adultChildVisaRate = Math.round((visaApiData.privateRateSar || 550) * roe);
@@ -806,7 +847,7 @@ export function CustomUmrahPage({
     console.group('%c🛂 Visa', 'color:#166534;font-weight:700;');
     console.table({
       'Visa Type': activeVisaType || 'Not selected',
-      'Adult/Child Rate (SAR)': isSharing ? visaApiData.sharingRateSar : (isPrivate ? visaApiData.privateRateSar : 0),
+      'Adult/Child Rate (SAR)': selectedRateSar > 0 ? selectedRateSar : (isSharing ? visaApiData.sharingRateSar : (isPrivate ? visaApiData.privateRateSar : 0)),
       'Infant Rate (SAR)': visaApiData.infantRateSar,
       'ROE': roe,
       'Adult/Child Fee (PKR)': adultChildVisaRate.toLocaleString(),
@@ -821,7 +862,7 @@ export function CustomUmrahPage({
     console.groupEnd();
 
     console.group('%c🚌 Transport', 'color:#7c3aed;font-weight:700;');
-    if (visaType === 'Visa with Private Transport') {
+    if (isPrivate || visaType === 'Visa with Private Transport') {
       const transportRows = transports.map((t) => {
         const matchedRoute = (transportLookups?.routes || []).find((r) => r.route === t.sector);
         const matchedVehicle = matchedRoute?.vehicles?.find((v) => v.vehicleType === t.vehicleType);
@@ -1017,7 +1058,7 @@ export function CustomUmrahPage({
     }
 
     // 4. Transport (if Visa with Private Transport)
-    if (visaType === 'Visa with Private Transport') {
+    if (visaType === 'Visa with Private Transport' || (visaType && visaType.toLowerCase().includes('private'))) {
       if (!transports || transports.length === 0) {
         errors.transports = 'At least one transport route is required';
         missingLabels.push('Private Transport Route');
@@ -1250,8 +1291,7 @@ export function CustomUmrahPage({
               setVisaType={handleVisaTypeChange}
               error={fieldErrors.visaType}
               onClearError={clearFieldError}
-              sharingRateSar={visaApiData.sharingRateSar}
-              privateRateSar={visaApiData.privateRateSar}
+              options={visaApiData.options}
             />
 
             {/* ── HOTELS SECTION ── */}
@@ -1318,7 +1358,7 @@ export function CustomUmrahPage({
             </div>
 
             {/* ── TRANSPORTS SECTION (only when visa with private transport) ── */}
-            {visaType === 'Visa with Private Transport' && (
+            {(visaType === 'Visa with Private Transport' || (visaType && visaType.toLowerCase().includes('private'))) && (
               <div className="cuf-transports-section">
                 {transports.map((t, index) => (
                   <UmrahTransportRow

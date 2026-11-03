@@ -298,9 +298,10 @@ export const visaService = {
       const res = await apiGet<any>('/calculator/visa/type', {
         cache: "no-store",
       } as RequestInit);
+      const rawData = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
       return {
-        data: Array.isArray(res.data) ? res.data : [],
-        roe: Number((res as any)?.roe) || 78,
+        data: rawData,
+        roe: Number((res as any)?.roe) || Number((res as any)?.data?.roe) || 78,
       };
     } catch {
       return { data: [], roe: 78 };

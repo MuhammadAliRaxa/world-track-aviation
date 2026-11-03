@@ -104,12 +104,12 @@ export function normalizeGroupUmrahPackage(item: any): GroupUmrahPackage | null 
   const seatsLeft = groupTicket.seats_left ?? item.seatsLeft ?? 12;
 
   const outbound = {
-    date: item.departure_date || groupTicket.departure?.date || item.outbound?.date || 'ON REQUEST',
-    flightNo: groupTicket.departure?.airline_code || item.outbound?.flightNo || '',
+    date: item.departure_date || item.departure?.date || item.outboundDate || groupTicket.departure_date || groupTicket.departure?.date || item.outbound?.date || 'ON REQUEST',
+    flightNo: groupTicket.departure?.airline_code || item.departure?.airline_code || item.outbound?.flightNo || '',
     time: groupTicket.departure?.flight_time
       ? `${groupTicket.departure.flight_time} - ${groupTicket.departure.land_time || ''}`.trim()
       : (item.outbound?.time || ''),
-    baggage: groupTicket.departure?.luggage || item.outbound?.baggage || '46 KG (2 Pcs × 23 KG)',
+    baggage: groupTicket.departure?.luggage || item.departure?.luggage || item.outbound?.baggage || '46 KG (2 Pcs × 23 KG)',
   };
 
   const inbound = {
@@ -159,14 +159,15 @@ export function normalizeGroupUmrahPackage(item: any): GroupUmrahPackage | null 
     id,
     title,
     name: title,
-    duration: item.duration,
+    duration: item.duration || groupTicket.duration || (item.durationDays ? parseInt(item.durationDays, 10) : 15),
     durationDays,
-    departure_date: item.departure_date || outbound.date,
+    departure_date: item.departure_date || item.departure?.date || item.outboundDate || groupTicket.departure_date || groupTicket.departure?.date || outbound.date,
     airline: item.airline || groupTicket.airline,
     airlineCode,
     airlineName,
     airlineLogo,
-    route: item.route || groupTicket.route,
+    route: item.route || groupTicket.route || (item.route_id ? { id: item.route_id, name: sector } : null),
+    route_id: item.route_id ?? item.route?.id ?? groupTicket.route?.id ?? groupTicket.route_id ?? null,
     sector,
     seatsLeft,
     price: displayPrice,
@@ -337,14 +338,29 @@ export const umrahService = {
     filters?: ApiGroupUmrahFilters,
   ): Promise<GroupUmrahPackage[]> {
     try {
-      const body = filters ? { filters } : {};
+      const sanitized = filters ? { ...filters } : undefined;
+      if (sanitized) {
+        if (typeof sanitized.perPage === 'number' && sanitized.perPage > 50) {
+          sanitized.perPage = 50;
+        }
+        if (typeof (sanitized as any).per_page === 'number' && (sanitized as any).per_page > 50) {
+          (sanitized as any).per_page = 50;
+        }
+      }
+      const body = sanitized ? { filters: sanitized } : {};
       const res = await apiPost<ApiGroupUmrahPackage[]>(
         '/group-umrah-packages/list',
         body,
         { cache: "no-store" } as RequestInit,
       );
-      const pkgs = Array.isArray(res.data) ? res.data : [];
-      return pkgs.map(normalizeGroupUmrahPackage).filter(Boolean) as unknown as GroupUmrahPackage[];
+      const rawList = Array.isArray(res?.data)
+        ? res.data
+        : (Array.isArray((res as any)?.data?.packages)
+            ? (res as any).data.packages
+            : (Array.isArray((res as any)?.packages)
+                ? (res as any).packages
+                : (Array.isArray(res) ? res : [])));
+      return rawList.map(normalizeGroupUmrahPackage).filter(Boolean) as unknown as GroupUmrahPackage[];
     } catch {
       return [];
     }
@@ -357,9 +373,16 @@ export const umrahService = {
     filters: ApiGroupUmrahFilters = {},
   ): Promise<{ packages: ApiGroupUmrahPackage[]; pagination: ApiPagination | undefined }> {
     try {
+      const sanitized = { ...filters };
+      if (typeof sanitized.perPage === 'number' && sanitized.perPage > 50) {
+        sanitized.perPage = 50;
+      }
+      if (typeof (sanitized as any).per_page === 'number' && (sanitized as any).per_page > 50) {
+        (sanitized as any).per_page = 50;
+      }
       const res = await apiPost<ApiGroupUmrahPackage[]>(
         '/group-umrah-packages/list',
-        { filters },
+        { filters: sanitized },
       );
       return {
         packages: Array.isArray(res.data) ? res.data : [],
@@ -391,13 +414,23 @@ export const umrahService = {
   },
 
   /**
-   * GET /group-umrah-packages/lookups
+   * GET /group-umrah-packages/lookups with fallback to /group-tickets/lookups
    * Returns durations, departure_dates, airlines, routes, sectors for group Umrah.
    */
   async getGroupUmrahLookups(): Promise<ApiGroupUmrahLookups | null> {
     try {
       const res = await apiGet<ApiGroupUmrahLookups>(
         '/group-umrah-packages/lookups',
+        { cache: "no-store" } as RequestInit,
+      );
+      if (res.data && (res.data.routes?.length || res.data.sectors?.length || res.data.durations?.length)) {
+        return res.data;
+      }
+    } catch {}
+
+    try {
+      const res = await apiGet<ApiGroupUmrahLookups>(
+        '/group-tickets/lookups',
         { cache: "no-store" } as RequestInit,
       );
       return res.data ?? null;

@@ -39,7 +39,7 @@ export function UmrahCalculationSummary({ calculatedResult, onOpenContact, whats
           <strong className="umrah-calc-item-val">
             {calculatedResult.transportTotal > 0
               ? `PKR ${calculatedResult.transportTotal.toLocaleString()}`
-              : (calculatedResult.visaType === 'Visa with Sharing Transport' ? 'Included in Visa (Sharing)' : 'PKR 0')}
+              : ((calculatedResult.visaType || '').toLowerCase().includes('sharing') ? 'Included in Visa (Sharing)' : 'PKR 0')}
           </strong>
         </div>
         <div className="umrah-calc-breakdown-item">

@@ -40,13 +40,71 @@ function addDaysToIso(dateStr, daysToAdd = 1) {
   return `${year}-${month}-${day}`;
 }
 
+function cleanDate(dateStr) {
+  if (!dateStr) return '';
+  return String(dateStr).split('T')[0].split(' ')[0].trim();
+}
+
+const IATA_CITY_MAP = {
+  isb: 'islamabad',
+  lhe: 'lahore',
+  khi: 'karachi',
+  pew: 'peshawar',
+  skt: 'sialkot',
+  mux: 'multan',
+  lyp: 'faisalabad',
+  uet: 'quetta',
+  jed: 'jeddah',
+  med: 'madinah',
+};
+
+function cleanSectorName(str) {
+  if (!str) return '';
+  const words = String(str).toLowerCase().split(/[^a-z0-9]+/);
+  const expanded = words.map((w) => IATA_CITY_MAP[w] || w);
+  return expanded.join('');
+}
+
 function formatDisplayDate(dateStr) {
   if (!dateStr) return '';
-  const parts = dateStr.split('-');
+  const cleaned = cleanDate(dateStr);
+  const parts = cleaned.split('-');
   if (parts.length === 3) {
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    if (parts[0].length === 4) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return `${parts[0]}/${parts[1]}/${parts[2]}`;
   }
   return dateStr;
+}
+
+function isPkgMatchingRoute(pkg, routeId, routeLabel) {
+  if (!pkg || !routeId) return false;
+  const targetId = String(routeId).trim();
+
+  // 1. Direct ID match
+  if (pkg.route?.id != null && String(pkg.route.id).trim() === targetId) return true;
+  if (pkg.route_id != null && String(pkg.route_id).trim() === targetId) return true;
+  if (typeof pkg.route === 'number' && String(pkg.route).trim() === targetId) return true;
+  if (typeof pkg.route === 'string' && pkg.route.trim() === targetId) return true;
+  if (pkg.group_ticket?.route?.id != null && String(pkg.group_ticket.route.id).trim() === targetId) return true;
+  if (pkg.group_ticket?.route_id != null && String(pkg.group_ticket.route_id).trim() === targetId) return true;
+
+  // 2. Name / sector normalization match
+  if (routeLabel) {
+    const targetClean = cleanSectorName(routeLabel);
+    if (targetClean) {
+      const pkgSectorClean = cleanSectorName(pkg.sector);
+      const pkgRouteNameClean = cleanSectorName(pkg.route?.name);
+      const pkgTicketRouteClean = cleanSectorName(pkg.group_ticket?.route?.name || pkg.group_ticket?.name);
+
+      if (pkgSectorClean && (pkgSectorClean === targetClean || pkgSectorClean.includes(targetClean) || targetClean.includes(pkgSectorClean))) return true;
+      if (pkgRouteNameClean && (pkgRouteNameClean === targetClean || pkgRouteNameClean.includes(targetClean) || targetClean.includes(pkgRouteNameClean))) return true;
+      if (pkgTicketRouteClean && (pkgTicketRouteClean === targetClean || pkgTicketRouteClean.includes(targetClean) || targetClean.includes(pkgTicketRouteClean))) return true;
+    }
+  }
+
+  return false;
 }
 
 function HeroDropdownField({
@@ -417,14 +475,37 @@ export function HeroSection({
   }, [initialVisaLookups]);
 
   // Group Umrah fields: Real API data only from GET /group-umrah-packages/lookups
-  const [lookupRoutes, setLookupRoutes] = useState(() => initialGroupUmrahLookups?.routes || []);
-  const [lookupDurations, setLookupDurations] = useState(() => initialGroupUmrahLookups?.durations || []);
-  const [lookupDepartureDates, setLookupDepartureDates] = useState(
-    () => initialGroupUmrahLookups?.departure_dates || []
-  );
+  const [lookupRoutes, setLookupRoutes] = useState(() => {
+    if (Array.isArray(initialGroupUmrahLookups?.routes) && initialGroupUmrahLookups.routes.length > 0) {
+      return initialGroupUmrahLookups.routes;
+    }
+    if (Array.isArray(initialGroupUmrahLookups?.sectors) && initialGroupUmrahLookups.sectors.length > 0) {
+      return initialGroupUmrahLookups.sectors;
+    }
+    return [];
+  });
+  const [lookupDurations, setLookupDurations] = useState(() => {
+    if (Array.isArray(initialGroupUmrahLookups?.durations) && initialGroupUmrahLookups.durations.length > 0) {
+      return initialGroupUmrahLookups.durations;
+    }
+    return [];
+  });
+  const [lookupDepartureDates, setLookupDepartureDates] = useState(() => {
+    if (Array.isArray(initialGroupUmrahLookups?.departure_dates) && initialGroupUmrahLookups.departure_dates.length > 0) {
+      return initialGroupUmrahLookups.departure_dates;
+    }
+    if (Array.isArray(initialGroupUmrahLookups?.dates) && initialGroupUmrahLookups.dates.length > 0) {
+      return initialGroupUmrahLookups.dates;
+    }
+    return [];
+  });
   const [selectedRoute, setSelectedRoute] = useState('');
   const [selectedDepartureDate, setSelectedDepartureDate] = useState('');
   const [umrahDuration, setUmrahDuration] = useState('');
+
+  // Route-specific packages fetched from API and loading status
+  const [routePackagesMap, setRoutePackagesMap] = useState({});
+  const [isLoadingRoutePkgs, setIsLoadingRoutePkgs] = useState(false);
 
   // Complete datasets used to establish dependent (cascading) filter relationships
   const [allVisas, setAllVisas] = useState(() => (Array.isArray(initialVisas) ? initialVisas : []));
@@ -447,7 +528,7 @@ export function HeroSection({
 
     if (!initialUmrahPackages || initialUmrahPackages.length === 0) {
       umrahService
-        .getGroupUmrahPackages()
+        .getGroupUmrahPackages({ perPage: 50 })
         .then((data) => {
           if (isMounted && Array.isArray(data) && data.length > 0) {
             setAllUmrahPackages(data);
@@ -461,28 +542,116 @@ export function HeroSection({
     };
   }, [initialVisas, initialUmrahPackages]);
 
+  // Route options and selected route label computed early so effects can depend on them
+  const groupUmrahRouteOptions = useMemo(() => {
+    const list = [{ value: '', label: 'Select Route' }];
+    if (Array.isArray(lookupRoutes) && lookupRoutes.length > 0) {
+      lookupRoutes.forEach((r) => {
+        const val = r.id != null ? String(r.id) : (r.value != null ? String(r.value) : (r.name || r.route));
+        const lbl = r.name || r.label || r.route || val;
+        if (val && !list.some((item) => item.value === String(val))) {
+          list.push({ value: String(val), label: lbl });
+        }
+      });
+    }
+
+    // Fallback from loaded packages if lookups was empty
+    if (list.length === 1 && allUmrahPackages.length > 0) {
+      allUmrahPackages.forEach((pkg) => {
+        const val = pkg.route_id != null ? String(pkg.route_id) : (pkg.route?.id != null ? String(pkg.route.id) : pkg.sector);
+        const lbl = pkg.route?.name || pkg.sector || val;
+        if (val && !list.some((item) => item.value === String(val))) {
+          list.push({ value: String(val), label: lbl });
+        }
+      });
+    }
+
+    // Safety fallback: Standard Pakistan Umrah flight routes so dropdown is NEVER empty
+    if (list.length === 1) {
+      const defaultRoutes = [
+        { value: 'ISLAMABAD - JEDDAH - ISLAMABAD', label: 'Islamabad - Jeddah' },
+        { value: 'LAHORE - JEDDAH - LAHORE', label: 'Lahore - Jeddah' },
+        { value: 'KARACHI - JEDDAH - KARACHI', label: 'Karachi - Jeddah' },
+        { value: 'PESHAWAR - JEDDAH - PESHAWAR', label: 'Peshawar - Jeddah' },
+        { value: 'MULTAN - JEDDAH - MULTAN', label: 'Multan - Jeddah' },
+        { value: 'SIALKOT - JEDDAH - SIALKOT', label: 'Sialkot - Jeddah' },
+      ];
+      defaultRoutes.forEach((r) => list.push(r));
+    }
+
+    return list;
+  }, [lookupRoutes, allUmrahPackages]);
+
+  const selectedRouteLabel = useMemo(() => {
+    if (!selectedRoute || selectedRoute === 'All Routes') return '';
+    const found = lookupRoutes.find(
+      (r) => String(r.id ?? r.value ?? '') === String(selectedRoute) || String(r.name ?? r.route ?? '') === String(selectedRoute)
+    );
+    return found?.name || found?.label || found?.route || selectedRoute;
+  }, [selectedRoute, lookupRoutes]);
+
+  // Dynamically fetch packages for the selected Route from API
+  useEffect(() => {
+    if (!selectedRoute) return;
+    if (routePackagesMap[selectedRoute]) return;
+
+    let isMounted = true;
+    setIsLoadingRoutePkgs(true);
+    const routeIdNum = Number(selectedRoute);
+    const filter = !isNaN(routeIdNum) && routeIdNum > 0
+      ? { routes: [routeIdNum], perPage: 50 }
+      : (selectedRouteLabel ? { name: selectedRouteLabel, perPage: 50 } : { perPage: 50 });
+
+    umrahService
+      .getGroupUmrahPackages(filter)
+      .then((pkgs) => {
+        if (!isMounted) return;
+        const validPkgs = Array.isArray(pkgs) ? pkgs : [];
+        setRoutePackagesMap((prev) => ({
+          ...prev,
+          [selectedRoute]: validPkgs,
+        }));
+        if (validPkgs.length > 0) {
+          setAllUmrahPackages((prev) => {
+            const existing = new Set(prev.map((p) => String(p.id)));
+            const toAdd = validPkgs.filter((p) => !existing.has(String(p.id)));
+            return toAdd.length > 0 ? [...prev, ...toAdd] : prev;
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('[HeroSection] Failed to load packages for route:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingRoutePkgs(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedRoute, selectedRouteLabel, routePackagesMap]);
+
   // Fetch group Umrah lookups directly from GET /group-umrah-packages/lookups (if not supplied via SSR)
   useEffect(() => {
-    if (initialGroupUmrahLookups && (initialGroupUmrahLookups.routes?.length > 0 || initialGroupUmrahLookups.durations?.length > 0)) {
+    if (lookupRoutes.length > 0 && lookupDurations.length > 0 && lookupDepartureDates.length > 0) {
       return;
     }
     let isMounted = true;
     umrahService
       .getGroupUmrahLookups()
       .then((lookups) => {
-        if (!isMounted) return;
-        const routes = lookups?.routes || [];
-        const durations = lookups?.durations || [];
-        const dates = lookups?.departure_dates || [];
-        if (Array.isArray(routes) && routes.length > 0) {
-          setLookupRoutes(routes);
-        }
-        if (Array.isArray(durations) && durations.length > 0) {
-          setLookupDurations(durations);
-        }
-        if (Array.isArray(dates) && dates.length > 0) {
-          setLookupDepartureDates(dates);
-        }
+        if (!isMounted || !lookups) return;
+        const routes = (Array.isArray(lookups.routes) && lookups.routes.length > 0)
+          ? lookups.routes
+          : (Array.isArray(lookups.sectors) && lookups.sectors.length > 0 ? lookups.sectors : []);
+        const durations = Array.isArray(lookups.durations) ? lookups.durations : [];
+        const dates = (Array.isArray(lookups.departure_dates) && lookups.departure_dates.length > 0)
+          ? lookups.departure_dates
+          : (Array.isArray(lookups.dates) ? lookups.dates : []);
+
+        if (routes.length > 0) setLookupRoutes((prev) => (prev.length > 0 ? prev : routes));
+        if (durations.length > 0) setLookupDurations((prev) => (prev.length > 0 ? prev : durations));
+        if (dates.length > 0) setLookupDepartureDates((prev) => (prev.length > 0 ? prev : dates));
       })
       .catch((err) => {
         console.error('[HeroSection] getGroupUmrahLookups error:', err);
@@ -491,7 +660,7 @@ export function HeroSection({
     return () => {
       isMounted = false;
     };
-  }, [initialGroupUmrahLookups]);
+  }, [lookupRoutes.length, lookupDurations.length, lookupDepartureDates.length]);
 
   // Sync activeTab if activeCategory changes externally
   if (activeCategory !== prevCategory) {
@@ -605,121 +774,149 @@ export function HeroSection({
     }
   }, [visaDestination, visaTypeOptions, visaType]);
 
-  const groupUmrahRouteOptions = useMemo(() => {
-    const list = [{ value: '', label: 'Select Route' }];
-    if (Array.isArray(lookupRoutes) && lookupRoutes.length > 0) {
-      lookupRoutes.forEach((r) => {
-        list.push({ value: String(r.id), label: r.name });
-      });
-    }
-    return list;
-  }, [lookupRoutes]);
-
-  const selectedRouteLabel = useMemo(() => {
-    if (!selectedRoute || selectedRoute === 'All Routes') return '';
-    const found = lookupRoutes.find((r) => String(r.id) === String(selectedRoute));
-    return found?.name || selectedRoute;
-  }, [selectedRoute, lookupRoutes]);
+  // Active matching packages for the selected Route (merging route-specific API fetch and initial packages)
+  const matchingRoutePackages = useMemo(() => {
+    if (!selectedRoute) return allUmrahPackages;
+    const fetchedForRoute = routePackagesMap[selectedRoute] || [];
+    const matchedFromAll = allUmrahPackages.filter((p) =>
+      isPkgMatchingRoute(p, selectedRoute, selectedRouteLabel)
+    );
+    const map = new Map();
+    [...fetchedForRoute, ...matchedFromAll].forEach((p) => {
+      if (p && p.id != null) map.set(String(p.id), p);
+    });
+    return Array.from(map.values());
+  }, [selectedRoute, selectedRouteLabel, routePackagesMap, allUmrahPackages]);
 
   // Dynamic cascading Departure Date options: narrows down based on selected Route
   const groupUmrahDepartureDateOptions = useMemo(() => {
-    const list = [{ value: '', label: 'Select Departure Date' }];
+    // 1. Loading state when route is selected:
+    if (selectedRoute && isLoadingRoutePkgs) {
+      return [{ value: '', label: 'Loading Departure Dates...' }];
+    }
 
-    // If a route is selected and packages are loaded, show only departure dates for that route
-    if (selectedRoute && allUmrahPackages.length > 0) {
-      const matchingPkgs = allUmrahPackages.filter((pkg) => {
-        const pkgRouteId = pkg.route?.id != null ? String(pkg.route.id) : '';
-        const pkgRouteName = (pkg.route?.name || pkg.sector || '').toLowerCase();
-        const selectedLabel = (selectedRouteLabel || '').toLowerCase();
-        return (
-          pkgRouteId === String(selectedRoute) ||
-          (selectedLabel && pkgRouteName.includes(selectedLabel))
-        );
+    const pool = selectedRoute ? matchingRoutePackages : allUmrahPackages;
+
+    if (pool.length > 0) {
+      const dateMap = new Map();
+      pool.forEach((pkg) => {
+        const rawDate = pkg.departure_date || pkg.outboundDate || pkg.outbound?.date;
+        const cleaned = cleanDate(rawDate);
+        if (cleaned && cleaned !== 'ON REQUEST' && cleaned !== 'CONFIRMED SEATS') {
+          const foundLookup = lookupDepartureDates.find(
+            (d) => cleanDate(d.value) === cleaned || d.value === rawDate
+          );
+          const baseLabel = foundLookup?.label || formatDisplayDate(cleaned);
+          const price = pkg.price && pkg.price !== 'Contact for Price' ? pkg.price : '';
+          const currentNumeric = pkg.priceNumeric || (price ? parseFloat(String(price).replace(/[^0-9.]/g, '')) : 0);
+
+          const existing = dateMap.get(cleaned);
+          if (!existing || (currentNumeric > 0 && (!existing.numeric || currentNumeric < existing.numeric))) {
+            dateMap.set(cleaned, {
+              value: cleaned,
+              label: `${baseLabel}${price ? ` — ${price}` : ''}`,
+              numeric: currentNumeric,
+            });
+          }
+        }
       });
 
-      if (matchingPkgs.length > 0) {
-        const dateMap = new Map();
-        matchingPkgs.forEach((pkg) => {
-          const rawDate = pkg.departure_date || pkg.outbound?.date;
-          if (rawDate && rawDate !== 'ON REQUEST' && !dateMap.has(rawDate)) {
-            const foundLookup = lookupDepartureDates.find((d) => d.value === rawDate);
-            dateMap.set(rawDate, foundLookup?.label || formatDisplayDate(rawDate));
-          }
-        });
-
-        if (dateMap.size > 0) {
-          dateMap.forEach((label, val) => {
-            list.push({ value: val, label });
-          });
-          return list;
-        }
+      if (dateMap.size > 0) {
+        const sortedDates = Array.from(dateMap.values())
+          .sort((a, b) => a.value.localeCompare(b.value))
+          .map(({ value, label }) => ({ value, label }));
+        return [{ value: '', label: 'Select Departure Date' }, ...sortedDates];
       }
     }
 
-    // Default: all departure dates from lookups
+    // 2. If route is selected but has no specific packages with dates
+    if (selectedRoute) {
+      return [{ value: '', label: 'No departure dates for this route' }];
+    }
+
+    // 3. Fallback when no route selected: all departure dates from lookups
+    const list = [{ value: '', label: 'Select Departure Date' }];
     if (Array.isArray(lookupDepartureDates) && lookupDepartureDates.length > 0) {
       lookupDepartureDates.forEach((d) => {
-        list.push({
-          value: d.value,
-          label: d.label || d.value,
-        });
+        const cleaned = cleanDate(d.value || d.departure_date || d.name);
+        const lbl = d.label || formatDisplayDate(cleaned) || cleaned;
+        if (cleaned && !list.some((item) => item.value === cleaned)) {
+          list.push({
+            value: cleaned,
+            label: lbl,
+          });
+        }
       });
     }
+
     return list;
-  }, [selectedRoute, selectedRouteLabel, allUmrahPackages, lookupDepartureDates]);
+  }, [selectedRoute, isLoadingRoutePkgs, matchingRoutePackages, allUmrahPackages, lookupDepartureDates]);
 
   const selectedDepartureDateLabel = useMemo(() => {
     if (!selectedDepartureDate || selectedDepartureDate === 'All Departure Dates') {
       return '';
     }
-    const found = lookupDepartureDates.find((d) => d.value === selectedDepartureDate);
-    return found?.label || selectedDepartureDate;
-  }, [selectedDepartureDate, lookupDepartureDates]);
+    const foundInOptions = groupUmrahDepartureDateOptions.find((d) => d.value === selectedDepartureDate);
+    if (foundInOptions && foundInOptions.label) return foundInOptions.label;
+    const found = lookupDepartureDates.find((d) => cleanDate(d.value) === cleanDate(selectedDepartureDate));
+    return found?.label || formatDisplayDate(selectedDepartureDate);
+  }, [selectedDepartureDate, groupUmrahDepartureDateOptions, lookupDepartureDates]);
 
   // Dynamic cascading Duration options: narrows down based on selected Route AND Departure Date
   const groupUmrahDurationOptions = useMemo(() => {
-    const list = [{ value: '', label: 'Select Duration' }];
+    // 1. Loading state:
+    if (selectedRoute && isLoadingRoutePkgs) {
+      return [{ value: '', label: 'Loading Durations...' }];
+    }
 
-    // If route and/or departure date is selected, filter durations matching them
-    if ((selectedRoute || selectedDepartureDate) && allUmrahPackages.length > 0) {
-      const matchingPkgs = allUmrahPackages.filter((pkg) => {
-        if (selectedRoute) {
-          const pkgRouteId = pkg.route?.id != null ? String(pkg.route.id) : '';
-          const pkgRouteName = (pkg.route?.name || pkg.sector || '').toLowerCase();
-          const selectedLabel = (selectedRouteLabel || '').toLowerCase();
-          const routeMatches =
-            pkgRouteId === String(selectedRoute) ||
-            (selectedLabel && pkgRouteName.includes(selectedLabel));
-          if (!routeMatches) return false;
-        }
-        if (selectedDepartureDate) {
-          const rawDate = pkg.departure_date || pkg.outbound?.date;
-          if (rawDate && rawDate !== selectedDepartureDate) return false;
-        }
-        return true;
-      });
+    const activePool = selectedRoute ? matchingRoutePackages : allUmrahPackages;
 
-      if (matchingPkgs.length > 0) {
-        const durSet = new Set();
-        matchingPkgs.forEach((pkg) => {
+    if (activePool.length > 0) {
+      const pkgsForDuration = selectedDepartureDate
+        ? activePool.filter((pkg) => {
+            const rawDate = pkg.departure_date || pkg.outboundDate || pkg.outbound?.date;
+            return cleanDate(rawDate) === cleanDate(selectedDepartureDate);
+          })
+        : activePool;
+
+      if (pkgsForDuration.length > 0) {
+        const durMap = new Map();
+        pkgsForDuration.forEach((pkg) => {
           const dVal = pkg.duration || (pkg.durationDays ? parseInt(pkg.durationDays, 10) : null);
           if (dVal && !isNaN(dVal)) {
-            durSet.add(Number(dVal));
+            const num = Number(dVal);
+            const price = pkg.price && pkg.price !== 'Contact for Price' ? pkg.price : '';
+            const currentNumeric = pkg.priceNumeric || (price ? parseFloat(String(price).replace(/[^0-9.]/g, '')) : 0);
+
+            const existing = durMap.get(num);
+            if (!existing || (currentNumeric > 0 && (!existing.numeric || currentNumeric < existing.numeric))) {
+              durMap.set(num, {
+                price,
+                numeric: currentNumeric,
+              });
+            }
           }
         });
 
-        if (durSet.size > 0) {
-          Array.from(durSet)
-            .sort((a, b) => a - b)
-            .forEach((num) => {
-              list.push({ value: String(num), label: `${num} Days` });
+        if (durMap.size > 0) {
+          const sortedDurs = Array.from(durMap.entries())
+            .sort((a, b) => a[0] - b[0])
+            .map(([num, data]) => {
+              const priceStr = data.price ? ` — ${data.price}` : '';
+              return { value: String(num), label: `${num} Days${priceStr}` };
             });
-          return list;
+          return [{ value: '', label: 'Select Duration' }, ...sortedDurs];
         }
       }
     }
 
-    // Default: all durations from lookups
+    // 2. If route is selected but has no durations
+    if (selectedRoute) {
+      return [{ value: '', label: 'No durations for this route' }];
+    }
+
+    // 3. Fallback when no route selected: all durations from lookups
+    const list = [{ value: '', label: 'Select Duration' }];
     if (Array.isArray(lookupDurations) && lookupDurations.length > 0) {
       lookupDurations.forEach((d) => {
         const val = typeof d === 'object' && d !== null ? (d.value ?? d.duration ?? d.id) : d;
@@ -736,8 +933,16 @@ export function HeroSection({
         list.push({ value: num, label: `${num} Days` });
       });
     }
+
     return list;
-  }, [selectedRoute, selectedRouteLabel, selectedDepartureDate, allUmrahPackages, lookupDurations]);
+  }, [
+    selectedRoute,
+    selectedDepartureDate,
+    isLoadingRoutePkgs,
+    matchingRoutePackages,
+    allUmrahPackages,
+    lookupDurations,
+  ]);
 
   const selectedDurationLabel = useMemo(() => {
     if (!umrahDuration || umrahDuration === 'All Durations') return '';
@@ -747,7 +952,7 @@ export function HeroSection({
 
   // Auto-reset departure date if no longer available for newly selected route
   useEffect(() => {
-    if (selectedDepartureDate && selectedRoute) {
+    if (selectedDepartureDate && selectedRoute && !isLoadingRoutePkgs) {
       const isValid = groupUmrahDepartureDateOptions.some(
         (opt) => opt.value === selectedDepartureDate
       );
@@ -755,11 +960,11 @@ export function HeroSection({
         setSelectedDepartureDate('');
       }
     }
-  }, [selectedRoute, groupUmrahDepartureDateOptions, selectedDepartureDate]);
+  }, [selectedRoute, groupUmrahDepartureDateOptions, selectedDepartureDate, isLoadingRoutePkgs]);
 
   // Auto-reset duration if no longer available for selected route or departure date
   useEffect(() => {
-    if (umrahDuration && (selectedRoute || selectedDepartureDate)) {
+    if (umrahDuration && (selectedRoute || selectedDepartureDate) && !isLoadingRoutePkgs) {
       const isValid = groupUmrahDurationOptions.some(
         (opt) => String(opt.value) === String(umrahDuration)
       );
@@ -767,7 +972,13 @@ export function HeroSection({
         setUmrahDuration('');
       }
     }
-  }, [selectedRoute, selectedDepartureDate, groupUmrahDurationOptions, umrahDuration]);
+  }, [
+    selectedRoute,
+    selectedDepartureDate,
+    groupUmrahDurationOptions,
+    umrahDuration,
+    isLoadingRoutePkgs,
+  ]);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -1324,6 +1535,8 @@ export function HeroSection({
                 }
                 onSelect={(val) => {
                   setSelectedRoute(val);
+                  setSelectedDepartureDate('');
+                  setUmrahDuration('');
                   setOpenDropdown(null);
                 }}
               />
