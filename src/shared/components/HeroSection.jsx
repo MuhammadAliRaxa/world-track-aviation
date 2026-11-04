@@ -582,13 +582,25 @@ export function HeroSection({
     return list;
   }, [lookupRoutes, allUmrahPackages]);
 
+  // Selected Route Object and Label from lookupRoutes
+  const selectedRouteObj = useMemo(() => {
+    if (!selectedRoute || selectedRoute === 'All Routes') return null;
+    return (
+      lookupRoutes.find(
+        (r) =>
+          String(r.id ?? r.value ?? '') === String(selectedRoute) ||
+          String(r.name ?? r.route ?? '') === String(selectedRoute)
+      ) || null
+    );
+  }, [selectedRoute, lookupRoutes]);
+
   const selectedRouteLabel = useMemo(() => {
     if (!selectedRoute || selectedRoute === 'All Routes') return '';
-    const found = lookupRoutes.find(
-      (r) => String(r.id ?? r.value ?? '') === String(selectedRoute) || String(r.name ?? r.route ?? '') === String(selectedRoute)
-    );
-    return found?.name || found?.label || found?.route || selectedRoute;
-  }, [selectedRoute, lookupRoutes]);
+    if (selectedRouteObj) {
+      return selectedRouteObj.name || selectedRouteObj.label || selectedRouteObj.route || selectedRoute;
+    }
+    return selectedRoute;
+  }, [selectedRoute, selectedRouteObj]);
 
   // Dynamically fetch packages for the selected Route from API
   useEffect(() => {
@@ -631,9 +643,9 @@ export function HeroSection({
     };
   }, [selectedRoute, selectedRouteLabel, routePackagesMap]);
 
-  // Fetch group Umrah lookups directly from GET /group-umrah-packages/lookups (if not supplied via SSR)
+  // Fetch group Umrah lookups directly from GET /dashboard/group-umrah-packages/lookups (if not supplied via SSR)
   useEffect(() => {
-    if (lookupRoutes.length > 0 && lookupDurations.length > 0 && lookupDepartureDates.length > 0) {
+    if (initialGroupUmrahLookups && Array.isArray(initialGroupUmrahLookups.routes) && initialGroupUmrahLookups.routes.length > 0) {
       return;
     }
     let isMounted = true;
@@ -649,9 +661,9 @@ export function HeroSection({
           ? lookups.departure_dates
           : (Array.isArray(lookups.dates) ? lookups.dates : []);
 
-        if (routes.length > 0) setLookupRoutes((prev) => (prev.length > 0 ? prev : routes));
-        if (durations.length > 0) setLookupDurations((prev) => (prev.length > 0 ? prev : durations));
-        if (dates.length > 0) setLookupDepartureDates((prev) => (prev.length > 0 ? prev : dates));
+        if (routes.length > 0) setLookupRoutes(routes);
+        if (durations.length > 0) setLookupDurations(durations);
+        if (dates.length > 0) setLookupDepartureDates(dates);
       })
       .catch((err) => {
         console.error('[HeroSection] getGroupUmrahLookups error:', err);
@@ -660,7 +672,7 @@ export function HeroSection({
     return () => {
       isMounted = false;
     };
-  }, [lookupRoutes.length, lookupDurations.length, lookupDepartureDates.length]);
+  }, [initialGroupUmrahLookups]);
 
   // Sync activeTab if activeCategory changes externally
   if (activeCategory !== prevCategory) {
@@ -725,42 +737,80 @@ export function HeroSection({
   const visaTypeOptions = useMemo(() => {
     const list = [{ value: '', label: 'Select Visa Type' }];
 
-    // If destination country is selected and we have visas data, only show visa types for that country
-    if (visaDestination && allVisas.length > 0) {
-      const countryVisas = allVisas.filter((v) => {
-        const country = (v.country || '').trim().toLowerCase();
-        return country === visaDestination.trim().toLowerCase();
-      });
+    // If destination country is selected:
+    if (visaDestination) {
+      // 1. Check lookupVisaCountries for the matching country and its nested visa_types
+      if (Array.isArray(lookupVisaCountries) && lookupVisaCountries.length > 0) {
+        const countryObj = lookupVisaCountries.find((c) => {
+          const val = typeof c === 'string' ? c : (c.value || c.name || c.country || '');
+          return val.toLowerCase() === visaDestination.trim().toLowerCase();
+        });
+        if (countryObj && Array.isArray(countryObj.visa_types) && countryObj.visa_types.length > 0) {
+          countryObj.visa_types.forEach((vt) => {
+            const typeVal = typeof vt === 'string' ? vt : (vt.value || vt.name || vt.visa_type || '');
+            const typeLbl = typeof vt === 'object' && vt.label ? vt.label : typeVal;
+            if (typeVal && !list.some((item) => item.value.toLowerCase() === typeVal.toLowerCase())) {
+              list.push({ value: typeVal, label: typeLbl });
+            }
+          });
+          if (list.length > 1) return list;
+        }
+      }
 
-      if (countryVisas.length > 0) {
-        const typesSet = new Set();
-        countryVisas.forEach((v) => {
-          const type = (v.badge || v.visa_type || '').trim();
-          if (type) typesSet.add(type);
+      // 2. Fallback to allVisas if loaded
+      if (allVisas.length > 0) {
+        const countryVisas = allVisas.filter((v) => {
+          const country = (v.country || '').trim().toLowerCase();
+          return country === visaDestination.trim().toLowerCase();
         });
 
-        if (typesSet.size > 0) {
-          typesSet.forEach((t) => list.push({ value: t, label: t }));
-          return list;
+        if (countryVisas.length > 0) {
+          const typesSet = new Set();
+          countryVisas.forEach((v) => {
+            const type = (v.badge || v.visa_type || '').trim();
+            if (type) typesSet.add(type);
+          });
+
+          if (typesSet.size > 0) {
+            typesSet.forEach((t) => list.push({ value: t, label: t }));
+            return list;
+          }
         }
       }
     }
 
-    // Default: all visa types from lookups
+    // Default: all visa types from lookupVisaTypes or all nested types across lookupVisaCountries
     if (Array.isArray(lookupVisaTypes) && lookupVisaTypes.length > 0) {
       lookupVisaTypes.forEach((t) => {
         const val = typeof t === 'string' ? t : (t.value || t.name || t.visa_type || '');
+        const lbl = typeof t === 'object' && t.label ? t.label : val;
         if (val && !list.some((item) => item.value.toLowerCase() === val.toLowerCase())) {
-          list.push({ value: val, label: val });
+          list.push({ value: val, label: lbl });
         }
       });
-    } else {
-      ['E-Visa', 'Visit Visa'].forEach((t) => {
+    }
+
+    if (list.length === 1 && Array.isArray(lookupVisaCountries) && lookupVisaCountries.length > 0) {
+      lookupVisaCountries.forEach((c) => {
+        if (Array.isArray(c?.visa_types)) {
+          c.visa_types.forEach((vt) => {
+            const typeVal = typeof vt === 'string' ? vt : (vt.value || vt.name || vt.visa_type || '');
+            if (typeVal && !list.some((item) => item.value.toLowerCase() === typeVal.toLowerCase())) {
+              list.push({ value: typeVal, label: typeVal });
+            }
+          });
+        }
+      });
+    }
+
+    if (list.length === 1) {
+      ['E-Visa', 'Visit Visa', 'Tourist Visa', 'Business Visa'].forEach((t) => {
         list.push({ value: t, label: t });
       });
     }
+
     return list;
-  }, [visaDestination, allVisas, lookupVisaTypes]);
+  }, [visaDestination, lookupVisaCountries, allVisas, lookupVisaTypes]);
 
   // Auto-reset visaType if selected type is not available in the newly selected country
   useEffect(() => {
@@ -790,67 +840,119 @@ export function HeroSection({
 
   // Dynamic cascading Departure Date options: narrows down based on selected Route
   const groupUmrahDepartureDateOptions = useMemo(() => {
-    // 1. Loading state when route is selected:
-    if (selectedRoute && isLoadingRoutePkgs) {
-      return [{ value: '', label: 'Loading Departure Dates...' }];
-    }
+    // 1. If a route is selected:
+    if (selectedRoute) {
+      if (selectedRouteObj && selectedRouteObj.packages_count === 0) {
+        return [{ value: '', label: 'No departure dates for this route' }];
+      }
 
-    const pool = selectedRoute ? matchingRoutePackages : allUmrahPackages;
+      // Check if selectedRouteObj has nested departure_dates from /dashboard/group-umrah-packages/lookups
+      const routeDates = Array.isArray(selectedRouteObj?.departure_dates) ? selectedRouteObj.departure_dates : [];
 
-    if (pool.length > 0) {
-      const dateMap = new Map();
-      pool.forEach((pkg) => {
-        const rawDate = pkg.departure_date || pkg.outboundDate || pkg.outbound?.date;
-        const cleaned = cleanDate(rawDate);
-        if (cleaned && cleaned !== 'ON REQUEST' && cleaned !== 'CONFIRMED SEATS') {
-          const foundLookup = lookupDepartureDates.find(
-            (d) => cleanDate(d.value) === cleaned || d.value === rawDate
-          );
-          const baseLabel = foundLookup?.label || formatDisplayDate(cleaned);
-          const price = pkg.price && pkg.price !== 'Contact for Price' ? pkg.price : '';
-          const currentNumeric = pkg.priceNumeric || (price ? parseFloat(String(price).replace(/[^0-9.]/g, '')) : 0);
+      if (routeDates.length > 0) {
+        const list = [{ value: '', label: 'Select Departure Date' }];
+        routeDates.forEach((rd) => {
+          const rawVal = typeof rd === 'object' && rd !== null ? (rd.value || rd.departure_date || rd.date) : rd;
+          const cleaned = cleanDate(rawVal);
+          const baseLabel = typeof rd === 'object' && rd !== null && rd.label ? rd.label : formatDisplayDate(cleaned);
 
-          const existing = dateMap.get(cleaned);
-          if (!existing || (currentNumeric > 0 && (!existing.numeric || currentNumeric < existing.numeric))) {
-            dateMap.set(cleaned, {
+          // Find lowest price for this date in matchingRoutePackages
+          const pkgsForDate = matchingRoutePackages.filter((p) => {
+            const pDate = cleanDate(p.departure_date || p.outboundDate || p.outbound?.date);
+            return pDate === cleaned;
+          });
+
+          let priceStr = '';
+          if (pkgsForDate.length > 0) {
+            const numerics = pkgsForDate
+              .map((p) => p.priceNumeric || (p.price && p.price !== 'Contact for Price' ? parseFloat(String(p.price).replace(/[^0-9.]/g, '')) : 0))
+              .filter((n) => n > 0);
+            if (numerics.length > 0) {
+              const minPrice = Math.min(...numerics);
+              priceStr = ` — Rs ${minPrice.toLocaleString('en-PK')}`;
+            }
+          }
+
+          if (cleaned && !list.some((item) => item.value === cleaned)) {
+            list.push({
               value: cleaned,
-              label: `${baseLabel}${price ? ` — ${price}` : ''}`,
-              numeric: currentNumeric,
+              label: `${baseLabel}${priceStr}`,
             });
           }
-        }
-      });
+        });
 
-      if (dateMap.size > 0) {
-        const sortedDates = Array.from(dateMap.values())
-          .sort((a, b) => a.value.localeCompare(b.value))
-          .map(({ value, label }) => ({ value, label }));
-        return [{ value: '', label: 'Select Departure Date' }, ...sortedDates];
+        return list;
       }
-    }
 
-    // 2. If route is selected but has no specific packages with dates
-    if (selectedRoute) {
+      if (isLoadingRoutePkgs) {
+        return [{ value: '', label: 'Loading Departure Dates...' }];
+      }
+
+      if (matchingRoutePackages.length > 0) {
+        const dateMap = new Map();
+        matchingRoutePackages.forEach((pkg) => {
+          const rawDate = pkg.departure_date || pkg.outboundDate || pkg.outbound?.date;
+          const cleaned = cleanDate(rawDate);
+          if (cleaned && cleaned !== 'ON REQUEST' && cleaned !== 'CONFIRMED SEATS') {
+            const foundLookup = lookupDepartureDates.find(
+              (d) => cleanDate(d.value) === cleaned || d.value === rawDate
+            );
+            const baseLabel = foundLookup?.label || formatDisplayDate(cleaned);
+            const price = pkg.price && pkg.price !== 'Contact for Price' ? pkg.price : '';
+            const currentNumeric = pkg.priceNumeric || (price ? parseFloat(String(price).replace(/[^0-9.]/g, '')) : 0);
+
+            const existing = dateMap.get(cleaned);
+            if (!existing || (currentNumeric > 0 && (!existing.numeric || currentNumeric < existing.numeric))) {
+              dateMap.set(cleaned, {
+                value: cleaned,
+                label: `${baseLabel}${price ? ` — ${price}` : ''}`,
+                numeric: currentNumeric,
+              });
+            }
+          }
+        });
+
+        if (dateMap.size > 0) {
+          const sortedDates = Array.from(dateMap.values())
+            .sort((a, b) => a.value.localeCompare(b.value))
+            .map(({ value, label }) => ({ value, label }));
+          return [{ value: '', label: 'Select Departure Date' }, ...sortedDates];
+        }
+      }
+
       return [{ value: '', label: 'No departure dates for this route' }];
     }
 
-    // 3. Fallback when no route selected: all departure dates from lookups
+    // 2. Fallback when NO route selected: all departure dates from lookups
     const list = [{ value: '', label: 'Select Departure Date' }];
     if (Array.isArray(lookupDepartureDates) && lookupDepartureDates.length > 0) {
       lookupDepartureDates.forEach((d) => {
-        const cleaned = cleanDate(d.value || d.departure_date || d.name);
-        const lbl = d.label || formatDisplayDate(cleaned) || cleaned;
+        const cleaned = cleanDate(typeof d === 'object' && d !== null ? (d.value || d.departure_date || d.name) : d);
+        const lbl = typeof d === 'object' && d !== null && d.label ? d.label : (formatDisplayDate(cleaned) || cleaned);
         if (cleaned && !list.some((item) => item.value === cleaned)) {
+          let priceStr = '';
+          const matchingPkgs = allUmrahPackages.filter((p) => {
+            const pDate = cleanDate(p.departure_date || p.outboundDate || p.outbound?.date);
+            return pDate === cleaned;
+          });
+          if (matchingPkgs.length > 0) {
+            const nums = matchingPkgs
+              .map((p) => p.priceNumeric || (p.price && p.price !== 'Contact for Price' ? parseFloat(String(p.price).replace(/[^0-9.]/g, '')) : 0))
+              .filter((n) => n > 0);
+            if (nums.length > 0) {
+              priceStr = ` — Rs ${Math.min(...nums).toLocaleString('en-PK')}`;
+            }
+          }
           list.push({
             value: cleaned,
-            label: lbl,
+            label: `${lbl}${priceStr}`,
           });
         }
       });
     }
 
     return list;
-  }, [selectedRoute, isLoadingRoutePkgs, matchingRoutePackages, allUmrahPackages, lookupDepartureDates]);
+  }, [selectedRoute, selectedRouteObj, isLoadingRoutePkgs, matchingRoutePackages, allUmrahPackages, lookupDepartureDates]);
 
   const selectedDepartureDateLabel = useMemo(() => {
     if (!selectedDepartureDate || selectedDepartureDate === 'All Departure Dates') {
@@ -864,58 +966,101 @@ export function HeroSection({
 
   // Dynamic cascading Duration options: narrows down based on selected Route AND Departure Date
   const groupUmrahDurationOptions = useMemo(() => {
-    // 1. Loading state:
-    if (selectedRoute && isLoadingRoutePkgs) {
-      return [{ value: '', label: 'Loading Durations...' }];
-    }
+    // 1. If a route is selected:
+    if (selectedRoute) {
+      if (selectedRouteObj && selectedRouteObj.packages_count === 0) {
+        return [{ value: '', label: 'No durations for this route' }];
+      }
 
-    const activePool = selectedRoute ? matchingRoutePackages : allUmrahPackages;
+      // Check if selectedRouteObj has nested durations from /dashboard/group-umrah-packages/lookups
+      const routeDurations = Array.isArray(selectedRouteObj?.durations) ? selectedRouteObj.durations : [];
 
-    if (activePool.length > 0) {
-      const pkgsForDuration = selectedDepartureDate
-        ? activePool.filter((pkg) => {
-            const rawDate = pkg.departure_date || pkg.outboundDate || pkg.outbound?.date;
-            return cleanDate(rawDate) === cleanDate(selectedDepartureDate);
-          })
-        : activePool;
+      if (routeDurations.length > 0) {
+        const list = [{ value: '', label: 'Select Duration' }];
+        routeDurations.forEach((d) => {
+          const val = typeof d === 'object' && d !== null ? (d.value ?? d.duration ?? d.id) : d;
+          const num = Number(val);
+          const baseLabel = typeof d === 'object' && d !== null && d.label ? d.label : `${num} Days`;
 
-      if (pkgsForDuration.length > 0) {
-        const durMap = new Map();
-        pkgsForDuration.forEach((pkg) => {
-          const dVal = pkg.duration || (pkg.durationDays ? parseInt(pkg.durationDays, 10) : null);
-          if (dVal && !isNaN(dVal)) {
-            const num = Number(dVal);
-            const price = pkg.price && pkg.price !== 'Contact for Price' ? pkg.price : '';
-            const currentNumeric = pkg.priceNumeric || (price ? parseFloat(String(price).replace(/[^0-9.]/g, '')) : 0);
-
-            const existing = durMap.get(num);
-            if (!existing || (currentNumeric > 0 && (!existing.numeric || currentNumeric < existing.numeric))) {
-              durMap.set(num, {
-                price,
-                numeric: currentNumeric,
-              });
+          // Find lowest price for this duration (filtered by selectedDepartureDate if set)
+          const pkgsForDur = matchingRoutePackages.filter((pkg) => {
+            const dVal = pkg.duration || (pkg.durationDays ? parseInt(pkg.durationDays, 10) : null);
+            if (Number(dVal) !== num) return false;
+            if (selectedDepartureDate) {
+              const rawDate = pkg.departure_date || pkg.outboundDate || pkg.outbound?.date;
+              return cleanDate(rawDate) === cleanDate(selectedDepartureDate);
             }
+            return true;
+          });
+
+          let priceStr = '';
+          if (pkgsForDur.length > 0) {
+            const nums = pkgsForDur
+              .map((p) => p.priceNumeric || (p.price && p.price !== 'Contact for Price' ? parseFloat(String(p.price).replace(/[^0-9.]/g, '')) : 0))
+              .filter((n) => n > 0);
+            if (nums.length > 0) {
+              priceStr = ` — Rs ${Math.min(...nums).toLocaleString('en-PK')}`;
+            }
+          }
+
+          if (val != null && !list.some((item) => item.value === String(val))) {
+            list.push({
+              value: String(val),
+              label: `${baseLabel}${priceStr}`,
+            });
           }
         });
 
-        if (durMap.size > 0) {
-          const sortedDurs = Array.from(durMap.entries())
-            .sort((a, b) => a[0] - b[0])
-            .map(([num, data]) => {
-              const priceStr = data.price ? ` — ${data.price}` : '';
-              return { value: String(num), label: `${num} Days${priceStr}` };
-            });
-          return [{ value: '', label: 'Select Duration' }, ...sortedDurs];
+        return list;
+      }
+
+      if (isLoadingRoutePkgs) {
+        return [{ value: '', label: 'Loading Durations...' }];
+      }
+
+      if (matchingRoutePackages.length > 0) {
+        const pkgsForDuration = selectedDepartureDate
+          ? matchingRoutePackages.filter((pkg) => {
+              const rawDate = pkg.departure_date || pkg.outboundDate || pkg.outbound?.date;
+              return cleanDate(rawDate) === cleanDate(selectedDepartureDate);
+            })
+          : matchingRoutePackages;
+
+        if (pkgsForDuration.length > 0) {
+          const durMap = new Map();
+          pkgsForDuration.forEach((pkg) => {
+            const dVal = pkg.duration || (pkg.durationDays ? parseInt(pkg.durationDays, 10) : null);
+            if (dVal && !isNaN(dVal)) {
+              const num = Number(dVal);
+              const price = pkg.price && pkg.price !== 'Contact for Price' ? pkg.price : '';
+              const currentNumeric = pkg.priceNumeric || (price ? parseFloat(String(price).replace(/[^0-9.]/g, '')) : 0);
+
+              const existing = durMap.get(num);
+              if (!existing || (currentNumeric > 0 && (!existing.numeric || currentNumeric < existing.numeric))) {
+                durMap.set(num, {
+                  price,
+                  numeric: currentNumeric,
+                });
+              }
+            }
+          });
+
+          if (durMap.size > 0) {
+            const sortedDurs = Array.from(durMap.entries())
+              .sort((a, b) => a[0] - b[0])
+              .map(([num, data]) => {
+                const priceStr = data.price ? ` — ${data.price}` : '';
+                return { value: String(num), label: `${num} Days${priceStr}` };
+              });
+            return [{ value: '', label: 'Select Duration' }, ...sortedDurs];
+          }
         }
       }
-    }
 
-    // 2. If route is selected but has no durations
-    if (selectedRoute) {
       return [{ value: '', label: 'No durations for this route' }];
     }
 
-    // 3. Fallback when no route selected: all durations from lookups
+    // 2. Fallback when NO route selected: all durations from lookups
     const list = [{ value: '', label: 'Select Duration' }];
     if (Array.isArray(lookupDurations) && lookupDurations.length > 0) {
       lookupDurations.forEach((d) => {
@@ -937,10 +1082,10 @@ export function HeroSection({
     return list;
   }, [
     selectedRoute,
+    selectedRouteObj,
     selectedDepartureDate,
     isLoadingRoutePkgs,
     matchingRoutePackages,
-    allUmrahPackages,
     lookupDurations,
   ]);
 
@@ -1060,10 +1205,7 @@ export function HeroSection({
       }
 
       try {
-        const hasFilters = Object.keys(filters).length > 0;
-        const res = await apiPost('/visa/list', hasFilters ? { filters } : {});
-        const rawVisas = Array.isArray(res?.data) ? res.data : [];
-        const normalized = rawVisas.map(normalizeVisaDetail).filter(Boolean);
+        const normalized = await visaService.getVisas(Object.keys(filters).length > 0 ? filters : undefined);
 
         onSearchSubmit?.({
           tab: 'visa',
@@ -1076,7 +1218,7 @@ export function HeroSection({
           },
         });
       } catch (err) {
-        console.error('[HeroSection] POST /visa/list error:', err);
+        console.error('[HeroSection] visaService.getVisas error:', err);
         onSearchSubmit?.({
           tab: 'visa',
           params: {
@@ -1095,22 +1237,29 @@ export function HeroSection({
 
     if (activeTab === 'umrah') {
       setIsSearchingUmrah(true);
-      const filters = {};
+      const filters = {
+        perPage: 50,
+      };
       if (selectedRoute && selectedRoute !== 'All Routes' && selectedRoute !== 'all') {
-        filters.routes = [Number(selectedRoute)];
+        const routeIdNum = Number(selectedRoute);
+        if (!isNaN(routeIdNum) && routeIdNum > 0) {
+          filters.routes = [routeIdNum];
+        } else if (selectedRouteLabel) {
+          filters.name = selectedRouteLabel;
+        }
       }
       if (selectedDepartureDate && selectedDepartureDate !== 'All Departure Dates' && selectedDepartureDate !== 'all') {
         filters.departure_date = selectedDepartureDate;
       }
       if (umrahDuration && umrahDuration !== 'All Durations' && umrahDuration !== 'all') {
-        filters.duration = [Number(umrahDuration)];
+        const durNum = Number(umrahDuration);
+        if (!isNaN(durNum) && durNum > 0) {
+          filters.duration = [durNum];
+        }
       }
 
       try {
-        const hasFilters = Object.keys(filters).length > 0;
-        const res = await apiPost('/group-umrah-packages/list', hasFilters ? { filters } : {});
-        const rawPackages = Array.isArray(res?.data) ? res.data : [];
-        const normalized = rawPackages.map(normalizeGroupUmrahPackage).filter(Boolean);
+        const normalized = await umrahService.getGroupUmrahPackages(filters);
 
         onSearchSubmit?.({
           tab: 'umrah',
@@ -1126,7 +1275,7 @@ export function HeroSection({
           },
         });
       } catch (err) {
-        console.error('[HeroSection] POST /group-umrah-packages/list error:', err);
+        console.error('[HeroSection] umrahService.getGroupUmrahPackages error:', err);
         onSearchSubmit?.({
           tab: 'umrah',
           params: {

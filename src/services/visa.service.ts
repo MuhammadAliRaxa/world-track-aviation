@@ -309,10 +309,51 @@ export const visaService = {
   },
 
   /**
-   * GET /visa/lookups
+   * GET /dashboard/visa/lookups
    * Returns countries, visa_types, and durations for filter UI.
+   * Falls back to /visa/lookups if needed.
    */
   async getVisaLookups(): Promise<ApiVisaLookups | null> {
+    try {
+      const res = await apiGet<any>('/dashboard/visa/lookups', {
+        cache: 'no-store',
+      } as RequestInit);
+      const data = res?.data || res;
+      if (data) {
+        const countries = Array.isArray(data.countries) ? data.countries : [];
+        let visa_types = Array.isArray(data.visa_types)
+          ? data.visa_types
+          : (Array.isArray(data.visaTypes) ? data.visaTypes : (Array.isArray(data.types) ? data.types : []));
+        const durations = Array.isArray(data.durations) ? data.durations : [];
+
+        // If root visa_types is empty, aggregate unique visa_types from each country
+        if (visa_types.length === 0 && countries.length > 0) {
+          const typeMap = new Map<string, any>();
+          countries.forEach((c: any) => {
+            if (Array.isArray(c.visa_types)) {
+              c.visa_types.forEach((vt: any) => {
+                const val = typeof vt === 'string' ? vt : (vt.value || vt.name || vt.visa_type);
+                if (val && !typeMap.has(val)) {
+                  typeMap.set(val, vt);
+                }
+              });
+            }
+          });
+          visa_types = Array.from(typeMap.values());
+        }
+
+        if (countries.length > 0 || visa_types.length > 0) {
+          return {
+            countries,
+            visa_types,
+            durations,
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('[visaService] GET /dashboard/visa/lookups fallback:', err);
+    }
+
     try {
       const res = await apiGet<ApiVisaLookups>('/visa/lookups', {
         cache: 'no-store',

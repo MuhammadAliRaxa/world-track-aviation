@@ -148,10 +148,21 @@ export function normalizeGroupUmrahPackage(item: any): GroupUmrahPackage | null 
     quad: formatPriceVal(rawPrices.quad || item.price),
   };
 
-  const rawPriceNumeric = typeof item.price === 'number' ? item.price : (parseFloat(String(item.price).replace(/[^0-9.]/g, '')) || 0);
-  const displayPrice = item.price
-    ? (typeof item.price === 'string' && item.price.startsWith('Rs') ? item.price : `Rs ${rawPriceNumeric.toLocaleString()}`)
-    : (rawPrices.sharing ? `Rs ${formatPriceVal(rawPrices.sharing)}` : 'Contact for Price');
+  const candidatePrices = [
+    rawPrices.sharing,
+    rawPrices.quad,
+    rawPrices.quint,
+    rawPrices.triple,
+    rawPrices.double,
+    item.price,
+  ]
+    .map((v) => (v != null ? parseFloat(String(v).replace(/[^0-9.]/g, '')) : NaN))
+    .filter((n) => !isNaN(n) && n > 0);
+
+  const rawPriceNumeric = candidatePrices.length > 0 ? Math.min(...candidatePrices) : 0;
+  const displayPrice = rawPriceNumeric > 0
+    ? `Rs ${rawPriceNumeric.toLocaleString('en-PK')}`
+    : 'Contact for Price';
 
   const mainImage = item.image || (Array.isArray(item.images) ? (item.images[0]?.file || item.images[0]) : null) || 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80';
 
@@ -414,10 +425,70 @@ export const umrahService = {
   },
 
   /**
-   * GET /group-umrah-packages/lookups with fallback to /group-tickets/lookups
+   * GET /dashboard/group-umrah-packages/lookups with fallbacks
    * Returns durations, departure_dates, airlines, routes, sectors for group Umrah.
    */
   async getGroupUmrahLookups(): Promise<ApiGroupUmrahLookups | null> {
+    try {
+      const res = await apiGet<any>(
+        '/dashboard/group-umrah-packages/lookups',
+        { cache: "no-store" } as RequestInit,
+      );
+      const data = res?.data || res;
+      if (data) {
+        const routes = (Array.isArray(data.routes) && data.routes.length > 0)
+          ? data.routes
+          : (Array.isArray(data.sectors) ? data.sectors : []);
+        const sectors = (Array.isArray(data.sectors) && data.sectors.length > 0)
+          ? data.sectors
+          : (Array.isArray(data.routes) ? data.routes : []);
+        let durations = Array.isArray(data.durations) ? data.durations : [];
+        let departure_dates = (Array.isArray(data.departure_dates) && data.departure_dates.length > 0)
+          ? data.departure_dates
+          : (Array.isArray(data.dates) ? data.dates : []);
+        const airlines = Array.isArray(data.airlines) ? data.airlines : [];
+
+        // If root durations or departure_dates are empty, aggregate from routes
+        if (durations.length === 0 && routes.length > 0) {
+          const durMap = new Map<string | number, any>();
+          routes.forEach((r: any) => {
+            if (Array.isArray(r.durations)) {
+              r.durations.forEach((d: any) => {
+                const val = typeof d === 'object' && d !== null ? (d.value ?? d.duration) : d;
+                if (val && !durMap.has(val)) durMap.set(val, d);
+              });
+            }
+          });
+          durations = Array.from(durMap.values());
+        }
+
+        if (departure_dates.length === 0 && routes.length > 0) {
+          const dateMap = new Map<string, any>();
+          routes.forEach((r: any) => {
+            if (Array.isArray(r.departure_dates)) {
+              r.departure_dates.forEach((d: any) => {
+                const val = typeof d === 'object' && d !== null ? (d.value ?? d.departure_date) : d;
+                if (val && !dateMap.has(val)) dateMap.set(val, d);
+              });
+            }
+          });
+          departure_dates = Array.from(dateMap.values());
+        }
+
+        if (routes.length > 0 || sectors.length > 0 || durations.length > 0 || departure_dates.length > 0) {
+          return {
+            durations,
+            departure_dates,
+            airlines,
+            routes,
+            sectors,
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('[umrahService] GET /dashboard/group-umrah-packages/lookups fallback:', err);
+    }
+
     try {
       const res = await apiGet<ApiGroupUmrahLookups>(
         '/group-umrah-packages/lookups',
