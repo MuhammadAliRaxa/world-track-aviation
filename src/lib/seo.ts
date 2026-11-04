@@ -243,6 +243,11 @@ export async function buildMetadata(
   // Avoid duplicate brand suffix if already included in title
   const hasBrand = titleCandidate.toLowerCase().includes('world track');
 
+  const gscCode = extractGoogleVerificationCode(
+    global?.google_search_console_verification ||
+    global?.google_search_console_tag
+  );
+
   const metadata: Metadata = {
     title: hasBrand ? { absolute: titleCandidate } : titleCandidate,
     description: descriptionCandidate,
@@ -253,6 +258,11 @@ export async function buildMetadata(
       index: isIndex,
       follow: isFollow,
     },
+    verification: gscCode
+      ? {
+          google: gscCode,
+        }
+      : undefined,
     openGraph: {
       title: ogTitle,
       description: ogDescription,

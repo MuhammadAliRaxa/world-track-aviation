@@ -58,10 +58,16 @@ export interface ApiGlobalSeo {
   default_robots_follow: string;
   default_og_title: string;
   default_og_description: string;
-  default_og_image: string;
-  default_schema_json: Record<string, unknown>;
-  google_analytics_id?: string;
-  google_search_console_tag?: string;
+  default_og_image: string | null;
+  default_schema_json?: Record<string, unknown> | null;
+  organization_schema?: Record<string, unknown> | string | null;
+  website_schema?: Record<string, unknown> | string | null;
+  google_analytics_tracking_code?: string | null;
+  google_analytics_id?: string | null;
+  google_search_console_verification?: string | null;
+  google_search_console_tag?: string | null;
+  robots_txt?: string | null;
+  xml_sitemap_url?: string | null;
 }
 
 export interface ApiPageSeo {
