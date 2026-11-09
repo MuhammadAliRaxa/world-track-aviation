@@ -359,9 +359,13 @@ export const umrahService = {
       if (typeof sanitized.per_page === 'number' && sanitized.per_page > 50) {
         sanitized.per_page = 50;
       }
+      const pageNum = Number(sanitized.page || 1);
+      const url = pageNum > 1
+        ? `/group-umrah-packages/list?page=${pageNum}`
+        : '/group-umrah-packages/list';
       const body = { filters: sanitized };
       const res = await apiPost<ApiGroupUmrahPackage[]>(
-        '/group-umrah-packages/list',
+        url,
         body,
         { cache: "no-store" } as RequestInit,
       );
@@ -383,21 +387,38 @@ export const umrahService = {
    */
   async getGroupUmrahPackagesPaginated(
     filters: ApiGroupUmrahFilters = {},
-  ): Promise<{ packages: ApiGroupUmrahPackage[]; pagination: ApiPagination | undefined }> {
+    page: number = 1,
+  ): Promise<{ packages: GroupUmrahPackage[]; pagination: ApiPagination | undefined }> {
     try {
-      const sanitized = { ...filters };
+      const sanitized: Record<string, any> = {
+        perPage: 12,
+        ...filters,
+      };
       if (typeof sanitized.perPage === 'number' && sanitized.perPage > 50) {
         sanitized.perPage = 50;
       }
-      if (typeof (sanitized as any).per_page === 'number' && (sanitized as any).per_page > 50) {
-        (sanitized as any).per_page = 50;
+      if (typeof sanitized.per_page === 'number' && sanitized.per_page > 50) {
+        sanitized.per_page = 50;
       }
+      const pageNum = Number(sanitized.page || page || 1);
+      const url = pageNum > 1
+        ? `/group-umrah-packages/list?page=${pageNum}`
+        : '/group-umrah-packages/list';
+
       const res = await apiPost<ApiGroupUmrahPackage[]>(
-        '/group-umrah-packages/list',
+        url,
         { filters: sanitized },
+        { cache: "no-store" } as RequestInit,
       );
+      const rawList = Array.isArray(res?.data)
+        ? res.data
+        : (Array.isArray((res as any)?.data?.packages)
+            ? (res as any).data.packages
+            : (Array.isArray((res as any)?.packages)
+                ? (res as any).packages
+                : (Array.isArray(res) ? res : [])));
       return {
-        packages: Array.isArray(res.data) ? res.data : [],
+        packages: rawList.map(normalizeGroupUmrahPackage).filter(Boolean) as unknown as GroupUmrahPackage[],
         pagination: res.pagination,
       };
     } catch {

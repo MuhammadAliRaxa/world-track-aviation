@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Search, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 import { umrahService, getAirlineLogo } from '../../../services';
 import { AppBar, Footer, Modals, WhatsAppIcon } from '../../../shared';
+import { Pagination } from '../../../shared/components/Pagination';
 import { COMPANY_CONFIG } from '../../../config/company';
 import { useDebounce } from '../../../shared/hooks/useDebounce';
 import { GroupUmrahCard } from './GroupUmrahCard';
 
 export function GroupUmrahPage({
   initialPackages = [],
+  initialPagination = undefined,
   initialLookups = null,
   h1 = 'Group Umrah Packages',
   heroIntro = 'Traveling as a group usually means better hotel rates and one person handling the whole booking instead of everyone arranging their own visa and transport. These packages are built for that: fixed group pricing, shared transfers between Jeddah, Makkah, and Madinah, and rooms blocked together at the same hotel.',
@@ -18,17 +20,28 @@ export function GroupUmrahPage({
   const router = useRouter();
 
   const [packages, setPackages] = useState(initialPackages);
+  const [pagination, setPagination] = useState(
+    initialPagination || {
+      current_page: 1,
+      per_page: 12,
+      total_pages: Math.ceil(initialPackages.length / 12) || 1,
+      total_records: initialPackages.length,
+      nextPage: null,
+      has_more: false,
+    }
+  );
+  const [isPageChanging, setIsPageChanging] = useState(false);
   const [lookups, setLookups] = useState(initialLookups);
   const [isFiltering, setIsFiltering] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 800);
+  const debouncedSearch = useDebounce(searchQuery, 400);
   const [selectedDuration, setSelectedDuration] = useState([]);
   const [selectedAirlines, setSelectedAirlines] = useState([]);
   const [selectedSectors, setSelectedSectors] = useState([]);
-  const debouncedDuration = useDebounce(selectedDuration, 800);
-  const debouncedAirlines = useDebounce(selectedAirlines, 800);
-  const debouncedSectors = useDebounce(selectedSectors, 800);
+  const debouncedDuration = useDebounce(selectedDuration, 200);
+  const debouncedAirlines = useDebounce(selectedAirlines, 200);
+  const debouncedSectors = useDebounce(selectedSectors, 200);
 
   // Modal & Mobile Filter states
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -134,21 +147,28 @@ export function GroupUmrahPage({
     selectedAirlines.length > 0 ||
     selectedSectors.length > 0;
 
+  const buildFilters = (targetPage = 1) => {
+    const apiFilters = {
+      perPage: 12,
+      page: targetPage,
+    };
+    if (debouncedSearch.trim()) apiFilters.name = debouncedSearch.trim();
+    if (debouncedDuration.length > 0) apiFilters.duration = debouncedDuration;
+    if (debouncedAirlines.length > 0) apiFilters.airlines = debouncedAirlines;
+    if (debouncedSectors.length > 0) apiFilters.routes = debouncedSectors;
+    return apiFilters;
+  };
+
   useEffect(() => {
     const fetchFiltered = async () => {
       setIsFiltering(true);
       try {
-        const apiFilters = {
-          perPage: 50,
-        };
-        if (debouncedSearch.trim()) apiFilters.name = debouncedSearch.trim();
-        if (debouncedDuration.length > 0) apiFilters.duration = debouncedDuration;
-        if (debouncedAirlines.length > 0) apiFilters.airlines = debouncedAirlines;
-        if (debouncedSectors.length > 0) apiFilters.routes = debouncedSectors;
-
-        const results = await umrahService.getGroupUmrahPackages(apiFilters);
-
-        setPackages(results);
+        const apiFilters = buildFilters(1);
+        const res = await umrahService.getGroupUmrahPackagesPaginated(apiFilters, 1);
+        setPackages(res.packages);
+        if (res.pagination) {
+          setPagination(res.pagination);
+        }
       } catch (err) {
         console.error('[GroupUmrahPage] filter error:', err);
       } finally {
@@ -156,13 +176,49 @@ export function GroupUmrahPage({
       }
     };
 
-    if (!hasFilters && initialPackages.length > 0) {
+    if (!hasFilters && initialPackages.length > 0 && (!pagination || pagination.current_page === 1)) {
       setPackages(initialPackages);
+      if (initialPagination) setPagination(initialPagination);
       return;
     }
 
     fetchFiltered();
-  }, [debouncedSearch, debouncedDuration, debouncedAirlines, debouncedSectors, initialPackages, hasFilters]);
+  }, [debouncedSearch, debouncedDuration, debouncedAirlines, debouncedSectors]);
+
+  const handlePageChange = async (targetPage) => {
+    if (
+      targetPage < 1 ||
+      (pagination && targetPage > pagination.total_pages) ||
+      targetPage === pagination?.current_page ||
+      isFiltering ||
+      isPageChanging
+    ) {
+      return;
+    }
+
+    setIsPageChanging(true);
+    try {
+      const apiFilters = buildFilters(targetPage);
+      const res = await umrahService.getGroupUmrahPackagesPaginated(apiFilters, targetPage);
+      setPackages(res.packages);
+      if (res.pagination) {
+        setPagination(res.pagination);
+      }
+
+      window.scrollTo({ top: 380, behavior: 'smooth' });
+    } catch (err) {
+      console.error('[GroupUmrahPage] page change error:', err);
+    } finally {
+      setIsPageChanging(false);
+    }
+  };
+
+  const currentPage = Number(pagination?.current_page || 1);
+  const totalPages = Number(pagination?.total_pages || 1);
+  const perPage = Number(pagination?.per_page || 12);
+  const totalCount = Number(pagination?.total_records ?? packages.length);
+  const startIndex = totalCount > 0 ? (currentPage - 1) * perPage + 1 : 0;
+  const endIndex = Math.min(currentPage * perPage, totalCount);
 
   return (
     <div className="group-umrah-page-root" style={{ background: '#f8fafc', minHeight: '100vh', color: '#0f172a' }}>
@@ -388,7 +444,7 @@ export function GroupUmrahPage({
               <div>
                 <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: 0 }}>Group Umrah Packages</h2>
                 <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
-                  Showing {isFiltering ? "..." : packages.length} packages
+                  Showing {isFiltering ? '...' : (totalCount > 0 ? `${startIndex}–${endIndex} of ${totalCount}` : packages.length)} packages
                 </p>
               </div>
 
@@ -414,11 +470,33 @@ export function GroupUmrahPage({
                 <p className="hp-empty-title">Loading packages...</p>
               </div>
             ) : packages.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {packages.map((pkg) => (
-                <GroupUmrahCard key={pkg.id} pkg={pkg} />
-              ))}
-            </div>
+              <>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px',
+                    opacity: isPageChanging ? 0.6 : 1,
+                    transition: 'opacity 0.2s ease',
+                  }}
+                >
+                  {packages.map((pkg) => (
+                    <GroupUmrahCard key={pkg.id} pkg={pkg} />
+                  ))}
+                </div>
+
+                {/* ── Pagination Component ── */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalCount={totalCount}
+                  perPage={perPage}
+                  isLoading={isPageChanging || isFiltering}
+                  onPageChange={handlePageChange}
+                  itemName="packages"
+                  id="group-umrah-pagination"
+                />
+              </>
             ) : (
               <div className="hp-empty-state">
                 <p className="hp-empty-title">No packages found</p>

@@ -18,13 +18,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const [packagesRes, lookupsRes, pageSeoRes] = await Promise.allSettled([
-    umrahService.getGroupUmrahPackages({ perPage: 50 }),
+  const [paginatedRes, lookupsRes, pageSeoRes] = await Promise.allSettled([
+    umrahService.getGroupUmrahPackagesPaginated({ perPage: 12 }, 1),
     umrahService.getGroupUmrahLookups(),
     fetchPageSeo('group-umrah-packages'),
   ]);
 
-  const packages = packagesRes.status === 'fulfilled' ? packagesRes.value : [];
+  const packages = paginatedRes.status === 'fulfilled' ? paginatedRes.value.packages : [];
+  const pagination = paginatedRes.status === 'fulfilled' ? paginatedRes.value.pagination : undefined;
   const lookups = lookupsRes.status === 'fulfilled' ? lookupsRes.value : null;
   const pageSeo = pageSeoRes.status === 'fulfilled' ? pageSeoRes.value : null;
 
@@ -38,6 +39,7 @@ export default async function Page() {
       <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
       <GroupUmrahPage
         initialPackages={packages}
+        initialPagination={pagination}
         initialLookups={lookups}
         h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
         heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}
