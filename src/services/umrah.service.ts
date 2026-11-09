@@ -349,16 +349,17 @@ export const umrahService = {
     filters?: ApiGroupUmrahFilters,
   ): Promise<GroupUmrahPackage[]> {
     try {
-      const sanitized = filters ? { ...filters } : undefined;
-      if (sanitized) {
-        if (typeof sanitized.perPage === 'number' && sanitized.perPage > 50) {
-          sanitized.perPage = 50;
-        }
-        if (typeof (sanitized as any).per_page === 'number' && (sanitized as any).per_page > 50) {
-          (sanitized as any).per_page = 50;
-        }
+      const sanitized: Record<string, any> = {
+        perPage: 50,
+        ...(filters || {}),
+      };
+      if (typeof sanitized.perPage === 'number' && sanitized.perPage > 50) {
+        sanitized.perPage = 50;
       }
-      const body = sanitized ? { filters: sanitized } : {};
+      if (typeof sanitized.per_page === 'number' && sanitized.per_page > 50) {
+        sanitized.per_page = 50;
+      }
+      const body = { filters: sanitized };
       const res = await apiPost<ApiGroupUmrahPackage[]>(
         '/group-umrah-packages/list',
         body,

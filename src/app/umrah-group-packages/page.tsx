@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Page() {
   const [packagesRes, lookupsRes, pageSeoRes] = await Promise.allSettled([
-    umrahService.getGroupUmrahPackages(),
+    umrahService.getGroupUmrahPackages({ perPage: 50 }),
     umrahService.getGroupUmrahLookups(),
     fetchPageSeo('group-umrah-packages'),
   ]);

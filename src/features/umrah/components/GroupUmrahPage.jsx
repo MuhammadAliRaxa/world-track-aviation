@@ -138,15 +138,15 @@ export function GroupUmrahPage({
     const fetchFiltered = async () => {
       setIsFiltering(true);
       try {
-        const apiFilters = {};
+        const apiFilters = {
+          perPage: 50,
+        };
         if (debouncedSearch.trim()) apiFilters.name = debouncedSearch.trim();
         if (debouncedDuration.length > 0) apiFilters.duration = debouncedDuration;
         if (debouncedAirlines.length > 0) apiFilters.airlines = debouncedAirlines;
         if (debouncedSectors.length > 0) apiFilters.routes = debouncedSectors;
 
-        const results = await umrahService.getGroupUmrahPackages(
-          Object.keys(apiFilters).length > 0 ? apiFilters : undefined
-        );
+        const results = await umrahService.getGroupUmrahPackages(apiFilters);
 
         setPackages(results);
       } catch (err) {
