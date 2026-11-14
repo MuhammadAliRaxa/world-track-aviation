@@ -5,6 +5,7 @@
  * Page 2: Terms & Conditions, Contact Us, Bank Details, Thank You
  */
 import { WORLD_TRACK_WHITE_LOGO_BASE64 } from './logoDataUri';
+import { BANK_AL_HABIB_QR_BASE64 } from './bankQrDataUri';
 
 function parsePaxString(paxStr) {
   const s = String(paxStr || '');
@@ -346,26 +347,6 @@ function buildQuotationHtml(data) {
     'Travellers are responsible for meeting all Saudi entry, health and vaccination requirements.',
   ];
 
-  /* QR placeholder SVG */
-  const qrSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 90" width="90" height="90">
-    <rect width="90" height="90" fill="#f8fafc" rx="6" stroke="#dde3f0" stroke-width="2"/>
-    <rect x="10" y="10" width="30" height="30" rx="3" fill="none" stroke="#0077e6" stroke-width="3"/>
-    <rect x="16" y="16" width="18" height="18" rx="1" fill="#0077e6"/>
-    <rect x="50" y="10" width="30" height="30" rx="3" fill="none" stroke="#0077e6" stroke-width="3"/>
-    <rect x="56" y="16" width="18" height="18" rx="1" fill="#0077e6"/>
-    <rect x="10" y="50" width="30" height="30" rx="3" fill="none" stroke="#0077e6" stroke-width="3"/>
-    <rect x="16" y="56" width="18" height="18" rx="1" fill="#0077e6"/>
-    <rect x="50" y="50" width="8" height="8" fill="#0077e6"/>
-    <rect x="62" y="50" width="8" height="8" fill="#0077e6"/>
-    <rect x="74" y="50" width="6" height="6" fill="#0077e6"/>
-    <rect x="50" y="62" width="6" height="6" fill="#0077e6"/>
-    <rect x="60" y="60" width="10" height="10" fill="#0077e6"/>
-    <rect x="74" y="62" width="6" height="6" fill="#0077e6"/>
-    <rect x="52" y="74" width="6" height="6" fill="#0077e6"/>
-    <rect x="64" y="72" width="8" height="8" fill="#0077e6"/>
-    <rect x="76" y="74" width="4" height="4" fill="#0077e6"/>
-  </svg>`;
-
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -621,6 +602,7 @@ function buildQuotationHtml(data) {
     .bank-key{color:#64748b;font-weight:600;min-width:110px;flex-shrink:0}
     .bank-val{color:#0f172a;font-weight:800}
     .qr-row{display:flex;gap:14px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f6}
+    .qr-img{width:96px;height:auto;border-radius:6px;border:1px solid #dde3f0;background:#ffffff;padding:2px;box-shadow:0 2px 6px rgba(0,0,0,0.05);display:block;flex-shrink:0}
     .scan-btn{display:inline-flex;align-items:center;gap:6px;background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:11.5px;font-weight:700}
     .scan-sub{font-size:9.5px;color:#64748b;margin-top:4px;line-height:1.35}
     .thankyou{text-align:center;padding:14px 0 0}
@@ -855,12 +837,12 @@ function buildQuotationHtml(data) {
         <div>
           <div class="p2-pill p2-pill--yellow">Bank details</div>
           <div class="bank-box">
-            <div class="bank-row"><span class="bank-key">Bank Name</span><span class="bank-val">United Bank Limited</span></div>
+            <div class="bank-row"><span class="bank-key">Bank Name</span><span class="bank-val">Bank AL Habib Limited</span></div>
             <div class="bank-row"><span class="bank-key">Account Title</span><span class="bank-val">World Track Aviation<br>(Private) Limited</span></div>
-            <div class="bank-row"><span class="bank-key">Account Number</span><span class="bank-val">1471327533588</span></div>
-            <div class="bank-row"><span class="bank-key">IBAN</span><span class="bank-val" style="font-size:10.5px;word-break:break-all">PK55UNIL0109000327533588</span></div>
+            <div class="bank-row"><span class="bank-key">Account Number</span><span class="bank-val">0402-0981-002592-01</span></div>
+            <div class="bank-row"><span class="bank-key">IBAN</span><span class="bank-val" style="font-size:10px;word-break:break-all">PK18BAHL0402098100259201</span></div>
             <div class="qr-row">
-              ${qrSvg}
+              <img src="${BANK_AL_HABIB_QR_BASE64}" alt="Bank AL Habib QR Code" class="qr-img" />
               <div>
                 <div class="scan-btn">
                   <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -869,7 +851,7 @@ function buildQuotationHtml(data) {
                   </svg>
                   Scan to Pay
                 </div>
-                <div class="scan-sub">Use this QR code for<br>easy and secure payment.</div>
+                <div class="scan-sub">Scan via Bank AL Habib app or any Raast / banking app for easy, secure payment.</div>
               </div>
             </div>
           </div>
