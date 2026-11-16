@@ -196,8 +196,8 @@ export function GroupUmrahCard({ pkg }) {
                 {pkg.makkahHotel?.name || 'Makkah Hotel'}
               </div>
               <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                {pkg.makkahHotel?.nights ? `${pkg.makkahHotel.nights} nights` : ''}{' '}
-                {pkg.makkahHotel?.shuttle ? `• ${pkg.makkahHotel.shuttle}` : ''}
+                {pkg.makkahHotel?.nights ? `${pkg.makkahHotel.nights} nights` : ''}
+                {(pkg.makkahHotel?.shuttle || pkg.makkahHotel?.distance) ? ` • ${pkg.makkahHotel.shuttle || pkg.makkahHotel.distance}` : ''}
               </div>
             </div>
           </div>
@@ -228,8 +228,8 @@ export function GroupUmrahCard({ pkg }) {
                 {pkg.madinahHotel?.name || 'Madinah Hotel'}
               </div>
               <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                {pkg.madinahHotel?.nights ? `${pkg.madinahHotel.nights} nights` : ''}{' '}
-                {pkg.madinahHotel?.shuttle ? `• ${pkg.madinahHotel.shuttle}` : ''}
+                {pkg.madinahHotel?.nights ? `${pkg.madinahHotel.nights} nights` : ''}
+                {(pkg.madinahHotel?.shuttle || pkg.madinahHotel?.distance) ? ` • ${pkg.madinahHotel.shuttle || pkg.madinahHotel.distance}` : ''}
               </div>
             </div>
           </div>

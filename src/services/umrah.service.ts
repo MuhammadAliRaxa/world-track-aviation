@@ -121,16 +121,33 @@ export function normalizeGroupUmrahPackage(item: any): GroupUmrahPackage | null 
     baggage: groupTicket.arrival?.luggage || item.inbound?.baggage || '46 KG (2 Pcs × 23 KG)',
   };
 
+  const getHotelDetail = (hotel: any) => {
+    if (!hotel) return '';
+    const parts: string[] = [];
+    const distance = hotel.distance ? String(hotel.distance).trim() : '';
+    const shuttle = hotel.shuttle_service || hotel.shuttle || '';
+    if (distance) parts.push(distance);
+    if (shuttle && typeof shuttle === 'string' && shuttle.trim()) {
+      const s = shuttle.trim();
+      if (!distance.toLowerCase().includes(s.toLowerCase())) {
+        parts.push(s);
+      }
+    }
+    return parts.join(' • ');
+  };
+
   const makkahHotel = {
     name: item.makkah_hotel?.name || item.makkahHotel?.name || 'Makkah Hotel',
     nights: item.makkah_hotel?.nights || item.makkahHotel?.nights || 7,
-    shuttle: item.shuttle_service || item.makkah_hotel?.shuttle || item.makkahHotel?.shuttle || 'Shuttle Service',
+    distance: item.makkah_hotel?.distance || item.makkahHotel?.distance || '',
+    shuttle: getHotelDetail(item.makkah_hotel || item.makkahHotel) || (item.shuttle_service || ''),
   };
 
   const madinahHotel = {
     name: item.madina_hotel?.name || item.madinah_hotel?.name || item.madinahHotel?.name || 'Madinah Hotel',
     nights: item.madina_hotel?.nights || item.madinah_hotel?.nights || item.madinahHotel?.nights || 7,
-    shuttle: item.shuttle_service || item.madina_hotel?.shuttle || item.madinahHotel?.shuttle || 'Shuttle Service',
+    distance: item.madina_hotel?.distance || item.madinah_hotel?.distance || item.madinahHotel?.distance || '',
+    shuttle: getHotelDetail(item.madina_hotel || item.madinah_hotel || item.madinahHotel) || '',
   };
 
   const rawPrices = item.prices || item.pricing || {};
