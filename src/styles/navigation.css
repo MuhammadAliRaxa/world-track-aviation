@@ -621,6 +621,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.18s ease;
+  text-decoration: none;
 }
 
 .mobile-sub-nav-item:hover {
@@ -657,6 +658,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  text-decoration: none;
   transition: all 0.2s ease;
 }
 

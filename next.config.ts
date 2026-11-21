@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   trailingSlash: true,
   images: {
-    qualities: [75, 85],
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
