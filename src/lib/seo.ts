@@ -267,7 +267,10 @@ export async function buildMetadata(
       title: ogTitle,
       description: ogDescription,
       url: canonicalUrl,
-      siteName: global?.site_name ?? SITE_CONFIG.name,
+      siteName:
+        global?.site_name && !/worldtracktravel/i.test(global.site_name)
+          ? global.site_name
+          : SITE_CONFIG.name,
       type: 'website',
       ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
@@ -276,6 +279,16 @@ export async function buildMetadata(
       title: ogTitle,
       description: ogDescription,
       ...(ogImage ? { images: [ogImage] } : {}),
+    },
+    icons: {
+      icon: [
+        { url: '/favicon.ico', sizes: 'any' },
+        { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+        { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+      ],
+      apple: [
+        { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+      ],
     },
   };
 

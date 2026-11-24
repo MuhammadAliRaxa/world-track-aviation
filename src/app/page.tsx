@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     pageKey: 'home',
     canonicalPath: 'https://worldtracktravel.com/',
-    fallbackTitle: 'Travel Agency in Islamabad - Umrah, Visas & Flights | World Track Aviation',
+    fallbackTitle: 'World Track Aviation - Travel Agency in Islamabad | Umrah, Visas & Flights',
     fallbackDescription:
       'World Track Aviation is an IATA-accredited travel agency in Islamabad offering Umrah packages, visa assistance, flight & hotel bookings across Pakistan.',
   });
@@ -36,16 +36,25 @@ export default async function Page() {
 
   const pSeo = pageSeo.status === 'fulfilled' ? pageSeo.value : null;
   const gSeo = globalSeo.status === 'fulfilled' ? globalSeo.value : null;
+
   const homeSchema =
     pSeo?.seo?.custom_schema_json ||
     (gSeo as any)?.custom_schema_json ||
     gSeo?.organization_schema ||
     (gSeo as any)?.default_schema_json;
 
+  const websiteSchema =
+    gSeo?.website_schema ||
+    (gSeo as any)?.website_schema_json ||
+    (gSeo as any)?.default_website_schema_json;
+
+  const schemasToRender = [homeSchema, websiteSchema].filter(Boolean);
+
   return (
     <>
-      {homeSchema && <JsonLdScript schema={homeSchema} />}
+      {schemasToRender.length > 0 && <JsonLdScript schema={schemasToRender as any} />}
       <HomePage
+        h1={pSeo?.h1_heading || pSeo?.seo?.h1_heading}
         initialHotels={hotels.status === 'fulfilled' ? hotels.value : []}
         initialHotelLookups={hotelLookups.status === 'fulfilled' ? hotelLookups.value : null}
         initialVisaLookups={visaLookups.status === 'fulfilled' ? visaLookups.value : null}

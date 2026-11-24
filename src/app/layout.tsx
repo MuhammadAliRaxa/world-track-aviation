@@ -12,6 +12,12 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const globalSeo = await fetchGlobalSeo();
+  const rawSiteName = globalSeo?.site_name;
+  const siteName =
+    rawSiteName && !/worldtracktravel/i.test(rawSiteName)
+      ? rawSiteName
+      : SITE_CONFIG.name;
+
   const gscCode = extractGoogleVerificationCode(
     globalSeo?.google_search_console_verification ||
     globalSeo?.google_search_console_tag
@@ -21,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(SITE_CONFIG.baseUrl),
     title: {
       default: globalSeo?.default_site_seo_title || SITE_CONFIG.defaultTitle,
-      template: `%s | ${globalSeo?.site_name || SITE_CONFIG.shortName}`,
+      template: `%s | ${siteName}`,
     },
     description: globalSeo?.default_site_seo_description || SITE_CONFIG.defaultDescription,
     verification: gscCode
@@ -33,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'website',
       locale: 'en_PK',
       url: SITE_CONFIG.baseUrl,
-      siteName: globalSeo?.site_name || SITE_CONFIG.name,
+      siteName: siteName,
       title: globalSeo?.default_og_title || globalSeo?.default_site_seo_title || SITE_CONFIG.defaultTitle,
       description: globalSeo?.default_og_description || globalSeo?.default_site_seo_description || SITE_CONFIG.defaultDescription,
       images: [
@@ -41,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
           url: globalSeo?.default_og_image || '/assets/world_track_logo.png',
           width: 1200,
           height: 630,
-          alt: globalSeo?.site_name || SITE_CONFIG.name,
+          alt: siteName,
         },
       ],
     },
@@ -52,7 +58,14 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [globalSeo?.default_og_image || '/assets/world_track_logo.png'],
     },
     icons: {
-      icon: '/assets/world_track_logo.png',
+      icon: [
+        { url: '/favicon.ico', sizes: 'any' },
+        { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+        { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+      ],
+      apple: [
+        { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+      ],
     },
   };
 }
@@ -75,6 +88,9 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" sizes="180x180" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

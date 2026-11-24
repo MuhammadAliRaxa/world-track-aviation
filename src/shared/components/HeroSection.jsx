@@ -325,6 +325,7 @@ function HeroDropdownField({
 }
 
 export function HeroSection({
+  h1,
   onSearchSubmit,
   activeCategory = 'all',
   onSelectCategory,
@@ -1344,7 +1345,11 @@ export function HeroSection({
 
           {/* Large Hero Title */}
           <h1 className="hero-headline-title">
-            Everything You Need for Every<br />Destination.
+            {h1 || (
+              <>
+                World Track Aviation — Everything You Need for Every<br />Destination.
+              </>
+            )}
           </h1>
 
           {/* Tab Capsule — floating above search bar */}

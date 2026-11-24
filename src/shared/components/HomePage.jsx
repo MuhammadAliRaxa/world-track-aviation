@@ -40,6 +40,7 @@ function HomePageInner({
   initialHotelLookups,
   initialVisaLookups,
   initialGroupUmrahLookups,
+  h1,
 }) {
   const router = useRouter();
   const dispatch = useHotelsDispatch();
@@ -138,6 +139,7 @@ function HomePageInner({
         onSelectCategory={handleSelectCategory}
         heroContent={
           <HeroSection
+            h1={h1}
             activeCategory={activeCategory}
             onSelectCategory={handleSelectCategory}
             onSearchSubmit={handleSearchSubmit}
