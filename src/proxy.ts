@@ -95,6 +95,7 @@ export async function proxy(request: NextRequest) {
       pathname.includes('favicon.ico') ||
       pathname.includes('sitemap') ||
       pathname.includes('robots.txt') ||
+      pathname.startsWith('/google') ||
       pathname === '/maintenance'
     ) {
       return NextResponse.next();
@@ -157,7 +158,7 @@ export const config = {
      * - favicon.ico, sitemap.xml, robots.txt
      * - Public assets and static files with extensions (e.g. .svg, .png, .jpg)
      */
-    '/((?!api|_next/static|_next/image|assets|favicon\\.ico|robots\\.txt|sitemap\\.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?)$).*)',
+    '/((?!api|_next/static|_next/image|assets|favicon\\.ico|robots\\.txt|sitemap\\.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|html|txt)$).*)',
   ],
 };
 
