@@ -4,7 +4,7 @@ import { visaService } from '@/services/visa.service';
 import { VisaDetailPage } from '@/features/visas/components/VisaDetailPage';
 
 import { notFound } from 'next/navigation';
-import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -58,31 +58,11 @@ export default async function Page({ params }: Props) {
     { name: visa?.title || 'Visa Details', path: `/visas/${id}/` },
   ];
 
-  const serviceSchema = visa
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'Service',
-        name: visa.title || `${visa.country} Visa Service`,
-        description: visa.detailDesc || visa.aboutText || 'Fast-track visa processing service.',
-        provider: {
-          '@id': 'https://worldtracktravel.com/#organization',
-        },
-        areaServed: 'PK',
-        serviceType: 'Visa Consultancy',
-        offers: {
-          '@type': 'Offer',
-          price: visa.pricePKR ? String(visa.pricePKR).replace(/[^0-9]/g, '') : '0',
-          priceCurrency: 'PKR',
-          availability: 'https://schema.org/InStock',
-        },
-      }
-    : null;
+  const adminSchema = (visa as any)?.seo?.custom_schema_json || (visa as any)?.custom_schema_json;
 
   return (
     <>
-      {visa && serviceSchema && (
-        <JsonLdScript schema={[serviceSchema, getBreadcrumbSchema(breadcrumbs)]} />
-      )}
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <VisaDetailPage initialVisa={visa} />
     </>
   );

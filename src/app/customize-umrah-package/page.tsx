@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { CustomUmrahPage } from '@/features/umrah/components/CustomUmrahPage';
 
-import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 export const revalidate = 0;
 
@@ -19,14 +19,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
   const pageSeo = await fetchPageSeo('custom-umrah-packages');
 
-  const breadcrumbs = [
-    { name: 'Home', path: '/' },
-    { name: 'Customize Umrah Package', path: '/customize-umrah-package/' },
-  ];
+  const adminSchema = pageSeo?.seo?.custom_schema_json || (pageSeo as any)?.custom_schema_json;
 
   return (
     <>
-      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <CustomUmrahPage
         h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}
         heroIntro={pageSeo?.hero_intro || pageSeo?.seo?.hero_intro}

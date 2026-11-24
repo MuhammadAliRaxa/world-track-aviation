@@ -4,7 +4,7 @@ import { buildMetadata } from '@/lib/seo';
 import { umrahService } from '@/services';
 import { UmrahPackageDetailPage } from '@/features/umrah/components/UmrahPackageDetailPage';
 
-import { JsonLdScript, getBreadcrumbSchema, getTouristTripSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -62,26 +62,11 @@ export default async function Page({ params }: Props) {
 
   const canonicalSlug = pkg.seo?.url_slug || (pkg as any).slug || id;
 
-  const breadcrumbs = [
-    { name: 'Home', path: '/' },
-    { name: 'Umrah Packages', path: '/umrah-packages/' },
-    { name: pkg.title || 'Package Details', path: `/umrah-packages/${canonicalSlug}/` },
-  ];
-
-  const tripSchema = getTouristTripSchema({
-    id: pkg.id,
-    name: pkg.title,
-    description: pkg.tagline || `${pkg.title} (${pkg.duration})`,
-    image: pkg.image,
-    price: pkg.priceNumeric || pkg.price,
-    url: `https://worldtracktravel.com/umrah-packages/${canonicalSlug}/`,
-    duration: pkg.duration,
-  });
+  const adminSchema = (pkg as any)?.seo?.custom_schema_json || (pkg as any)?.custom_schema_json;
 
   return (
     <>
-      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
-      <JsonLdScript schema={tripSchema} />
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <UmrahPackageDetailPage initialPackage={pkg} />
     </>
   );

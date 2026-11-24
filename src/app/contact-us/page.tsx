@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { ContactPage } from '@/shared/components/ContactPage';
 import { contentService } from '@/services/content.service';
-
-import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 export const revalidate = 0;
 
@@ -23,37 +22,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ContactUsPage() {
-  const contactInfo = await contentService.getContactInfo();
+  const [contactInfo, pageSeo] = await Promise.all([
+    contentService.getContactInfo(),
+    fetchPageSeo('contact-us'),
+  ]);
 
-  const breadcrumbs = [
-    { name: 'Home', path: '/' },
-    { name: 'Contact Us', path: '/contact-us/' },
-  ];
-
-  const contactSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'TravelAgency',
-    name: 'World Track Aviation',
-    url: 'https://worldtracktravel.com/contact-us/',
-    telephone: '+92-51-2120721',
-    email: contactInfo?.email || 'worldtrackaviation@gmail.com',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: contactInfo?.address || 'Office No. 4, Islamabad Center, Block 39, Fazal-ul-Haq Road, Blue Area',
-      addressLocality: 'Islamabad',
-      addressRegion: 'Islamabad Capital Territory',
-      addressCountry: 'PK',
-    },
-    sameAs: [
-      'https://web.facebook.com/worldtrackaviation/',
-      'https://www.instagram.com/worldtrackaviation/',
-    ],
-    areaServed: ['Islamabad', 'Rawalpindi', 'Pakistan'],
-  };
+  const adminSchema = pageSeo?.seo?.custom_schema_json || (pageSeo as any)?.custom_schema_json;
 
   return (
     <>
-      <JsonLdScript schema={[getBreadcrumbSchema(breadcrumbs), contactSchema]} />
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <ContactPage contactInfo={contactInfo} />
     </>
   );

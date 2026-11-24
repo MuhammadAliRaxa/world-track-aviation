@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import '../index.css';
 import { HotelsProvider } from '../features/hotels/state/HotelsContext';
 import { SITE_CONFIG } from '../config/site';
-import { JsonLdScript, getOrganizationSchema, getWebsiteSchema } from '../lib/jsonld';
 import { fetchGlobalSeo, extractGoogleVerificationCode, extractGaMeasurementId } from '../lib/seo';
 
 export const viewport: Viewport = {
@@ -72,15 +71,6 @@ export default async function RootLayout({
     globalSeo?.google_search_console_verification ||
     globalSeo?.google_search_console_tag
   );
-  const orgSchema = getOrganizationSchema(
-    globalSeo?.organization_schema ||
-    globalSeo?.default_schema_json
-  );
-  const websiteSchema = getWebsiteSchema(
-    globalSeo?.website_schema ||
-    (globalSeo as any)?.website_schema_json ||
-    (globalSeo as any)?.default_website_schema_json
-  );
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -110,7 +100,6 @@ export default async function RootLayout({
             />
           </>
         )}
-        <JsonLdScript schema={[orgSchema, websiteSchema]} />
       </head>
       <body className="antialiased font-sans bg-white text-slate-900 min-h-screen" suppressHydrationWarning>
         <HotelsProvider>{children}</HotelsProvider>

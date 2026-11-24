@@ -3,7 +3,7 @@ import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { umrahService } from '@/services';
 import { GroupUmrahPage } from '@/features/umrah/components/GroupUmrahPage';
 
-import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 export const revalidate = 0;
 
@@ -29,14 +29,11 @@ export default async function Page() {
   const lookups = lookupsRes.status === 'fulfilled' ? lookupsRes.value : null;
   const pageSeo = pageSeoRes.status === 'fulfilled' ? pageSeoRes.value : null;
 
-  const breadcrumbs = [
-    { name: 'Home', path: '/' },
-    { name: 'Group Umrah Packages', path: '/umrah-group-packages/' },
-  ];
+  const adminSchema = pageSeo?.seo?.custom_schema_json || (pageSeo as any)?.custom_schema_json;
 
   return (
     <>
-      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <GroupUmrahPage
         initialPackages={packages}
         initialPagination={pagination}

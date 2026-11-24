@@ -22,22 +22,11 @@ export default async function Page() {
     fetchPageSeo('transport'),
   ]);
 
-  const transportSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Service',
-    name: 'Private Airport Transport — World Track Aviation',
-    serviceType: 'Airport Transfer',
-    areaServed: ['Jeddah', 'Makkah', 'Madinah'],
-    provider: {
-      '@type': 'TravelAgency',
-      name: 'World Track Aviation',
-      url: 'https://worldtracktravel.com',
-    },
-  };
+  const adminSchema = pageSeo?.seo?.custom_schema_json || (pageSeo as any)?.custom_schema_json;
 
   return (
     <>
-      <JsonLdScript schema={transportSchema} />
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <PrivateTransportPage
         initialListing={listing}
         h1={pageSeo?.h1_heading || pageSeo?.seo?.h1_heading}

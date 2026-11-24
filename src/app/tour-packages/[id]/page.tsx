@@ -3,7 +3,7 @@ import { buildMetadata } from '@/lib/seo';
 import { tourService } from '@/services';
 import { TourDetailPage } from '@/features/holidays/components/TourDetailPage';
 
-import { JsonLdScript, getTouristTripSchema, getBreadcrumbSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -58,24 +58,11 @@ export default async function Page({ params }: Props) {
     { name: tour?.title || 'Tour Details', path: `/tour-packages/${id}/` },
   ];
 
+  const adminSchema = (tour as any)?.seo?.custom_schema_json || (tour as any)?.custom_schema_json;
+
   return (
     <>
-      {tour && (
-        <JsonLdScript
-          schema={[
-            getTouristTripSchema({
-              id,
-              name: tour.title,
-              description: tour.description,
-              image: tour.image,
-              price: tour.pricePKR || tour.priceUSD,
-              url: `https://worldtracktravel.com/tour-packages/${id}/`,
-              duration: tour.duration,
-            }),
-            getBreadcrumbSchema(breadcrumbs),
-          ]}
-        />
-      )}
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <TourDetailPage initialTour={tour} />
     </>
   );

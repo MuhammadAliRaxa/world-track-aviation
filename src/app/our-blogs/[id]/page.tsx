@@ -4,7 +4,7 @@ import { buildMetadata } from '@/lib/seo';
 import { blogService } from '@/services';
 import { BlogDetailPage } from '@/features/insights/components/BlogDetailPage';
 
-import { JsonLdScript, getBreadcrumbSchema, getBlogPostingSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -73,25 +73,11 @@ export default async function Page({ params }: Props) {
     .replace(/^\/?(our-blogs|blogs)\//i, '')
     .replace(/^\/+|\/+$/g, '');
 
-  const breadcrumbs = [
-    { name: 'Home', path: '/' },
-    { name: 'Blogs & Guides', path: '/our-blogs/' },
-    { name: blog.title || 'Article', path: `/our-blogs/${cleanSlug || blog.id}/` },
-  ];
-
-  const blogSchema = getBlogPostingSchema({
-    id: cleanSlug || blog.id,
-    title: blog.title,
-    summary: blog.summary || blog.intro,
-    image: blog.image,
-    publishedAt: blog.date,
-    author: blog.author,
-  });
+  const adminSchema = (blog as any)?.seo?.custom_schema_json || (blog as any)?.custom_schema_json;
 
   return (
     <>
-      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
-      <JsonLdScript schema={blogSchema} />
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <BlogDetailPage initialArticle={blog} />
     </>
   );

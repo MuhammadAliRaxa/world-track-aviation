@@ -3,7 +3,7 @@ import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { tourService } from '@/services';
 import { ToursPage } from '@/features/holidays/components/ToursPage';
 
-import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 export const revalidate = 0;
 
@@ -29,14 +29,11 @@ export default async function Page() {
     fetchPageSeo('tours'),
   ]);
 
-  const breadcrumbs = [
-    { name: 'Home', path: '/' },
-    { name: 'Tour Packages', path: '/tour-packages/' },
-  ];
+  const adminSchema = pageSeo?.seo?.custom_schema_json || (pageSeo as any)?.custom_schema_json;
 
   return (
     <>
-      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <ToursPage
         initialTours={paginatedData.tours}
         initialPagination={paginatedData.pagination}

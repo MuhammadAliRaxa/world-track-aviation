@@ -4,7 +4,7 @@ import { buildMetadata } from '@/lib/seo';
 import { hotelService } from '@/services/hotel.service';
 import { HotelDetailPage } from '@/features/hotels/components/HotelDetailPage';
 
-import { JsonLdScript, getHotelSchema, getBreadcrumbSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -77,27 +77,11 @@ export default async function Page({ params }: Props) {
     { name: hotel?.name || 'Hotel Details', path: `/our-hotels/${id}/` },
   ];
 
+  const adminSchema = (hotel as any)?.seo?.custom_schema_json || (hotel as any)?.custom_schema_json;
+
   return (
     <>
-      {hotel && (
-        <JsonLdScript
-          schema={[
-            getHotelSchema({
-              id,
-              name: hotel.name,
-              description: hotel.description,
-              image: hotel.image || hotel.gallery?.[0],
-              city: hotel.location,
-              address: hotel.address || hotel.location,
-              stars: hotel.stars,
-              price: hotel.price,
-              lat: hotel.lat,
-              lng: hotel.lng,
-            }),
-            getBreadcrumbSchema(breadcrumbs),
-          ]}
-        />
-      )}
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <HotelDetailPage initialHotel={hotel} />
     </>
   );

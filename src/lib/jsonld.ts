@@ -6,26 +6,20 @@
  */
 
 import React from 'react';
+import { cleanAndSerializeSchema, RawSchemaInput } from './schema-cleaner';
 
 // ---------------------------------------------------------------------------
 // Safe JSON-LD serialization
 // ---------------------------------------------------------------------------
 
 /**
- * Serializes a schema object to a JSON string safe for use in
+ * Serializes and cleans a schema object or string to a JSON string safe for use in
  * <script type="application/ld+json"> tags.
  *
- * Escapes the </script> sequence to prevent script tag injection.
- * Returns null if the schema is empty or serialization fails.
+ * Strips markdown code fences, escapes </script>, and returns null if empty.
  */
-export function safeJsonLd(schema: Record<string, unknown> | null | undefined): string | null {
-  if (!schema || Object.keys(schema).length === 0) return null;
-
-  try {
-    return JSON.stringify(schema).replace(/<\/script>/gi, '<\\/script>');
-  } catch {
-    return null;
-  }
+export function safeJsonLd(schema: RawSchemaInput): string | null {
+  return cleanAndSerializeSchema(schema);
 }
 
 // ---------------------------------------------------------------------------
@@ -33,18 +27,42 @@ export function safeJsonLd(schema: Record<string, unknown> | null | undefined): 
 // ---------------------------------------------------------------------------
 
 interface JsonLdScriptProps {
-  schema: Record<string, unknown> | Array<Record<string, unknown>> | null | undefined;
+  schema: RawSchemaInput | Array<RawSchemaInput>;
 }
 
 /**
  * Server component that renders a <script type="application/ld+json"> block.
- * Safely serializes the schema. Renders nothing if schema is empty/null.
+ * Safely strips markdown fences, validates JSON, and serializes the schema.
+ * Renders nothing if schema is empty/null/invalid.
  */
 export function JsonLdScript({ schema }: JsonLdScriptProps): React.ReactElement | null {
   if (!schema) return null;
-  const serialized = Array.isArray(schema)
-    ? JSON.stringify(schema).replace(/<\/script>/gi, '<\\/script>')
-    : safeJsonLd(schema as Record<string, unknown>);
+
+  let serialized: string | null = null;
+
+  if (Array.isArray(schema)) {
+    const validItems: unknown[] = [];
+    for (const item of schema) {
+      if (!item) continue;
+      if (typeof item === 'string') {
+        const cleanedStr = cleanAndSerializeSchema(item);
+        if (cleanedStr) {
+          try {
+            validItems.push(JSON.parse(cleanedStr));
+          } catch {}
+        }
+      } else if (typeof item === 'object') {
+        if (Object.keys(item).length > 0) {
+          validItems.push(item);
+        }
+      }
+    }
+    if (validItems.length === 0) return null;
+    serialized = cleanAndSerializeSchema(validItems.length === 1 ? (validItems[0] as any) : (validItems as any));
+  } else {
+    serialized = cleanAndSerializeSchema(schema);
+  }
+
   if (!serialized) return null;
 
   return React.createElement('script', {
@@ -54,7 +72,7 @@ export function JsonLdScript({ schema }: JsonLdScriptProps): React.ReactElement 
 }
 
 // ---------------------------------------------------------------------------
-// Schema Generators
+// Schema Generators (No automatic fallbacks — return null if not provided)
 // ---------------------------------------------------------------------------
 
 export function getOrganizationSchema(customSchema?: Record<string, unknown> | string | null) {
@@ -65,111 +83,11 @@ export function getOrganizationSchema(customSchema?: Record<string, unknown> | s
         return parsed as Record<string, unknown>;
       }
     } catch {
-      // Fall back to default schema on parse error
+      // Return null on parse error
     }
   }
 
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'TravelAgency',
-    '@id': 'https://worldtracktravel.com/#organization',
-    name: 'World Track Aviation & Tourism',
-    alternateName: ['World Track Aviation', 'World Track Travel'],
-    legalName: 'World Track Travel & Tourism (Pvt.) Ltd.',
-    url: 'https://worldtracktravel.com',
-    logo: 'https://worldtracktravel.com/assets/world_track_logo.png',
-    image: 'https://worldtracktravel.com/assets/world_track_logo.png',
-    description:
-      'IATA-accredited travel agency in Islamabad (#27351170, Ministry Lic #ID-2637) specializing in Umrah packages, flight tickets, hotel reservations in Makkah & Madinah, private airport transport, and worldwide visa services.',
-    telephone: '+92-51-2120721',
-    email: 'worldtrackaviation@gmail.com',
-    priceRange: '$$$',
-    currenciesAccepted: 'PKR, SAR, USD',
-    paymentAccepted: 'Cash, Bank Transfer, Credit Card',
-    openingHours: 'Mo,Tu,We,Th,Fr,Sa 09:00-19:00',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'Office #4, Islamabad Center, Fazal-ul-Haq Road, Blue Area',
-      addressLocality: 'Islamabad',
-      addressRegion: 'Federal Capital',
-      postalCode: '44000',
-      addressCountry: 'PK',
-    },
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: '33.7145',
-      longitude: '73.0645',
-    },
-    areaServed: [
-      { '@type': 'City', name: 'Islamabad' },
-      { '@type': 'City', name: 'Rawalpindi' },
-      { '@type': 'City', name: 'Vehari' },
-      { '@type': 'Country', name: 'Pakistan' },
-      { '@type': 'City', name: 'Makkah' },
-      { '@type': 'City', name: 'Madinah' },
-      { '@type': 'City', name: 'Jeddah' },
-    ],
-    contactPoint: [
-      {
-        '@type': 'ContactPoint',
-        telephone: '+92-51-2120721',
-        contactType: 'customer service',
-        areaServed: 'PK',
-        availableLanguage: ['English', 'Urdu'],
-      },
-      {
-        '@type': 'ContactPoint',
-        telephone: '+92-335-0122252',
-        contactType: 'reservations',
-        contactOption: 'WhatsApp',
-        areaServed: 'PK',
-        availableLanguage: ['English', 'Urdu', 'Arabic'],
-      },
-      {
-        '@type': 'ContactPoint',
-        telephone: '+92-329-2721721',
-        contactType: 'emergency',
-        contactOption: 'WhatsApp',
-        areaServed: ['PK', 'SA'],
-        availableLanguage: ['English', 'Urdu', 'Arabic'],
-      },
-    ],
-    department: [
-      {
-        '@type': 'TravelAgency',
-        name: 'World Track Aviation - Vehari Branch',
-        telephone: '+92-313-7943362',
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: 'Main Multan Road',
-          addressLocality: 'Vehari',
-          addressRegion: 'Punjab',
-          addressCountry: 'PK',
-        },
-      },
-    ],
-    identifier: [
-      {
-        '@type': 'PropertyValue',
-        propertyID: 'IATA Number',
-        value: '27351170',
-      },
-      {
-        '@type': 'PropertyValue',
-        propertyID: 'Ministry License',
-        value: 'ID-2637',
-      },
-      {
-        '@type': 'PropertyValue',
-        propertyID: 'Accreditation',
-        value: 'DTS Approved',
-      },
-    ],
-    sameAs: [
-      'https://web.facebook.com/worldtrackaviation/',
-      'https://www.instagram.com/worldtrackaviation/',
-    ],
-  };
+  return null;
 }
 
 export function getWebsiteSchema(customSchema?: Record<string, unknown> | string | null) {
@@ -180,29 +98,11 @@ export function getWebsiteSchema(customSchema?: Record<string, unknown> | string
         return parsed as Record<string, unknown>;
       }
     } catch {
-      // Fall back to default schema on parse error
+      // Return null on parse error
     }
   }
 
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    '@id': 'https://worldtracktravel.com/#website',
-    url: 'https://worldtracktravel.com',
-    name: 'World Track Aviation & Tourism',
-    description: 'Travel Agency in Islamabad - Umrah, Visas, Hotels & Flights',
-    publisher: {
-      '@id': 'https://worldtracktravel.com/#organization',
-    },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: 'https://worldtracktravel.com/our-hotels/?search={search_term_string}',
-      },
-      'query-input': 'required name=search_term_string',
-    },
-  };
+  return null;
 }
 
 export function getBreadcrumbSchema(items: { name: string; path: string }[]) {

@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo } from '@/lib/seo';
 import { AboutPage } from '@/shared/components';
-
-import { JsonLdScript, getBreadcrumbSchema } from '@/lib/jsonld';
+import { JsonLdScript } from '@/lib/jsonld';
 
 export async function generateMetadata(): Promise<Metadata> {
   const metadata = await buildMetadata({
@@ -25,15 +24,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function Page() {
-  const breadcrumbs = [
-    { name: 'Home', path: '/' },
-    { name: 'About Us', path: '/about-us/' },
-  ];
+export default async function Page() {
+  const pageSeo = await fetchPageSeo('about-us');
+  const adminSchema = pageSeo?.seo?.custom_schema_json || (pageSeo as any)?.custom_schema_json;
 
   return (
     <>
-      <JsonLdScript schema={getBreadcrumbSchema(breadcrumbs)} />
+      {adminSchema && <JsonLdScript schema={adminSchema} />}
       <AboutPage />
     </>
   );

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { buildMetadata } from '@/lib/seo';
+import { buildMetadata, fetchPageSeo, fetchGlobalSeo } from '@/lib/seo';
+import { JsonLdScript } from '@/lib/jsonld';
 import { umrahService } from '@/services/umrah.service';
 import { hotelService } from '@/services/hotel.service';
 import { visaService } from '@/services/visa.service';
@@ -24,25 +25,38 @@ export async function generateMetadata(): Promise<Metadata> {
  * on the client side and appear in the browser's Network tab.
  */
 export default async function Page() {
-  const [hotels, hotelLookups, visaLookups, groupUmrahLookups] = await Promise.allSettled([
+  const [hotels, hotelLookups, visaLookups, groupUmrahLookups, pageSeo, globalSeo] = await Promise.allSettled([
     hotelService.getHotels(),
     hotelService.getHotelLookups(),
     visaService.getVisaLookups(),
     umrahService.getGroupUmrahLookups(),
+    fetchPageSeo('home'),
+    fetchGlobalSeo(),
   ]);
 
+  const pSeo = pageSeo.status === 'fulfilled' ? pageSeo.value : null;
+  const gSeo = globalSeo.status === 'fulfilled' ? globalSeo.value : null;
+  const homeSchema =
+    pSeo?.seo?.custom_schema_json ||
+    (gSeo as any)?.custom_schema_json ||
+    gSeo?.organization_schema ||
+    (gSeo as any)?.default_schema_json;
+
   return (
-    <HomePage
-      initialHotels={hotels.status === 'fulfilled' ? hotels.value : []}
-      initialHotelLookups={hotelLookups.status === 'fulfilled' ? hotelLookups.value : null}
-      initialVisaLookups={visaLookups.status === 'fulfilled' ? visaLookups.value : null}
-      initialGroupUmrahLookups={groupUmrahLookups.status === 'fulfilled' ? groupUmrahLookups.value : null}
-      initialUmrahPackages={[]}
-      initialVisas={[]}
-      initialTours={[]}
-      initialBlogs={[]}
-      initialTeam={null}
-      initialReviews={[]}
-    />
+    <>
+      {homeSchema && <JsonLdScript schema={homeSchema} />}
+      <HomePage
+        initialHotels={hotels.status === 'fulfilled' ? hotels.value : []}
+        initialHotelLookups={hotelLookups.status === 'fulfilled' ? hotelLookups.value : null}
+        initialVisaLookups={visaLookups.status === 'fulfilled' ? visaLookups.value : null}
+        initialGroupUmrahLookups={groupUmrahLookups.status === 'fulfilled' ? groupUmrahLookups.value : null}
+        initialUmrahPackages={[]}
+        initialVisas={[]}
+        initialTours={[]}
+        initialBlogs={[]}
+        initialTeam={null}
+        initialReviews={[]}
+      />
+    </>
   );
 }
