@@ -43,10 +43,33 @@ export default async function Page() {
     gSeo?.organization_schema ||
     (gSeo as any)?.default_schema_json;
 
-  const websiteSchema =
+  if (homeSchema && typeof homeSchema === 'object') {
+    const currentHomeName = String((homeSchema as any).name || '');
+    if (/worldtracktravel/i.test(currentHomeName)) {
+      (homeSchema as any).name = 'World Track Aviation';
+    }
+  }
+
+  let websiteSchema =
     gSeo?.website_schema ||
     (gSeo as any)?.website_schema_json ||
     (gSeo as any)?.default_website_schema_json;
+
+  if (!websiteSchema) {
+    websiteSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      '@id': 'https://worldtracktravel.com/#website',
+      name: 'World Track Aviation',
+      alternateName: ['World Track', 'World Track Aviation & Tourism'],
+      url: 'https://worldtracktravel.com/',
+    };
+  } else if (typeof websiteSchema === 'object' && websiteSchema !== null) {
+    const currentName = String((websiteSchema as any).name || '');
+    if (!currentName || /worldtracktravel/i.test(currentName)) {
+      (websiteSchema as any).name = 'World Track Aviation';
+    }
+  }
 
   const schemasToRender = [homeSchema, websiteSchema].filter(Boolean);
 
